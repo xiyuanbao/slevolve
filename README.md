@@ -2,6 +2,8 @@
 
 # SLEvolve v1.0
 
+<p align="center"><b>📖 Manual: <a href="https://xiyuanbao.github.io/slevolve/">https://xiyuanbao.github.io/slevolve/</a></b> — installation, quick start, benchmark cases, options, method</p>
+
 SLEvolve was developed by [Xiyuan Bao](https://xiyuanbao.github.io/). It combines an exact recursive reformulation of the viscoelastic memory, engineering optimizations of the solver, and physics-inspired iteration starts; the implementation was AI-agent-assisted, with the formulation, the algorithms and the acceptance criteria set by the author and every change verified against the legacy solver.
 SLEvolve is a 1-D pseudo-spectral, gravitationally self-consistent sea-level solver for a spherically
 symmetric viscoelastic Earth, based on the normal-mode (Love-number) formulation of Kendall et al.
