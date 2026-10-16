@@ -2,7 +2,8 @@
 
 # SLEvolve v1.0
 
-<p align="center"><b>📖 Manual: <a href="https://xiyuanbao.github.io/slevolve/">https://xiyuanbao.github.io/slevolve/</a></b> — installation, quick start, benchmark cases, options, method</p>
+<p align="center"><b>📖 Manual: <a href="https://xiyuanbao.github.io/slevolve/">https://xiyuanbao.github.io/slevolve/</a></b> — installation, quick start, benchmark cases, options, method<br>
+<a href="https://doi.org/10.5281/zenodo.23422437"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.23422437.svg" alt="DOI"></a></p>
 
 SLEvolve was developed by [Xiyuan Bao](https://xiyuanbao.github.io/). It combines an exact recursive reformulation of the viscoelastic memory, engineering optimizations of the solver, and physics-inspired iteration starts; the implementation was AI-agent-assisted, with the formulation, the algorithms and the acceptance criteria set by the author and every change verified against the legacy solver.
 SLEvolve is a 1-D pseudo-spectral, gravitationally self-consistent sea-level solver for a spherically
@@ -119,9 +120,10 @@ If you use SLEvolve, please cite:
 
 Bao, X., Mousavi, S. M., Latychev, K., and Mitrovica, J. X.: An exact finite-state representation of
 viscoelastic memory for accelerated sea-level modeling: SLEvolve v1.0, Geoscientific Model
-Development, submitted, 2026 (DOI to be added).
+Development, submitted, 2026.
 
-Machine-readable metadata: `CITATION.cff`.
+Software archive: Zenodo, https://doi.org/10.5281/zenodo.23422437 (all versions; v1.0.0:
+https://doi.org/10.5281/zenodo.23422438). Machine-readable metadata: `CITATION.cff`.
 
 ## Lineage
 

@@ -54,6 +54,9 @@ Bao, X., Mousavi, S. M., Latychev, K., and Mitrovica, J. X.: An exact finite-sta
 viscoelastic memory for accelerated sea-level modeling: SLEvolve v1.0, Geoscientific Model
 Development, submitted, 2026.
 
+Software archive: Zenodo, <https://doi.org/10.5281/zenodo.23422437> (all versions; v1.0.0:
+<https://doi.org/10.5281/zenodo.23422438>).
+
 Equation, table and section numbers in these pages refer to that paper. Source code:
 <https://github.com/xiyuanbao/slevolve>.
 
