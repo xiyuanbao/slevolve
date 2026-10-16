@@ -27,7 +27,7 @@ O(N^2) in the number of time steps N. A Fortran solver derived from the legacy c
   symmetry, OpenMP); binary `.npy` I/O with text <-> `.npy` converters in Fortran and Python.
 - Horizontal surface displacement output (scalar potential Psi_lm, gradient on the grid).
 
-Details: [Method overview](docs/src/method.md).
+Details: [Method overview](https://xiyuanbao.github.io/slevolve/method.html).
 
 ## Install and first run
 
@@ -45,8 +45,8 @@ bash tests/test_fortran_synthetic.sh # Fortran-only test (no Python): vs referen
 ```
 
 `CASE=case1|case2|case3` selects a benchmark case's compiled-in settings; without `CASE` the build
-goes to `fortran/build/custom/`. All switches: [Installation](docs/src/install.md) and
-[Command-line options](docs/src/options.md).
+goes to `fortran/build/custom/`. All switches: [Installation](https://xiyuanbao.github.io/slevolve/install.html) and
+[Command-line options](https://xiyuanbao.github.io/slevolve/options.html).
 
 **Python** (no install step needed; run the scripts in `python/`):
 
@@ -70,8 +70,8 @@ Tests:
 - `bash tests/test_fortran_python.sh` (Fortran vs Python, synthetic Earth) and
   `bash tests/test_fortran_python_vardt.sh` (non-uniform steps) print "PASS".
 
-See [Verifying the installation](docs/src/verify.md) and the tested environment in
-[Installation](docs/src/install.md).
+See [Verifying the installation](https://xiyuanbao.github.io/slevolve/verify.html) and the tested environment in
+[Installation](https://xiyuanbao.github.io/slevolve/install.html).
 
 ## Benchmark cases
 
@@ -85,8 +85,8 @@ Love-number files of all three cases are in `lovenum/`.
 - **Case 3**, ICE-NADI-1 deglaciation (50 x 0.5 kyr; Lucas et al. 2026): ice history from Zenodo,
   doi:10.5281/zenodo.21464139.
 
-Commands, expected results and run times: [Running the benchmark cases](docs/src/benchmarks.md);
-data provenance: [Benchmark provenance](docs/src/provenance.md). Reference outputs of the three cases
+Commands, expected results and run times: [Running the benchmark cases](https://xiyuanbao.github.io/slevolve/benchmarks.html);
+data provenance: [Benchmark provenance](https://xiyuanbao.github.io/slevolve/provenance.html). Reference outputs of the three cases
 are in `reference/`; check a run with `python tests/check_reference.py --case case1 --dir OUT_case1_py`.
 
 ## Known limitations
@@ -94,25 +94,25 @@ are in `reference/`; check a run with `python tests/check_reference.py --case ca
 - SLEvolve reads Love numbers but does not compute them (`python/tools/write_lovenum.py` writes your
   own in the solver's layout).
 - The Fortran grid is fixed at 512 x 1024 and the input file names are compiled in.
-- Steps are uniform, or non-uniform from an optional times file ([Input files](docs/src/inputs.md)).
+- Steps are uniform, or non-uniform from an optional times file ([Input files](https://xiyuanbao.github.io/slevolve/inputs.html)).
 
-Full list: [Release notes](docs/src/release_notes.md).
+Full list: [Release notes](https://xiyuanbao.github.io/slevolve/release_notes.html).
 
 ## Documentation
 
 Manual: https://xiyuanbao.github.io/slevolve/ (sources in `docs/`, MkDocs Material; `mkdocs serve`).
 
-- **Getting started**: [installation](docs/src/install.md), [quick start](docs/src/quickstart.md),
-  [verifying the installation](docs/src/verify.md).
-- **User guide**: [benchmark cases](docs/src/benchmarks.md), [new case](docs/src/own_case.md),
-  [Love numbers](docs/src/lovenum.md), [horizontal displacement](docs/src/horizontal.md),
-  [file conversion](docs/src/conversion.md), [reproducing the published results](docs/src/reproduce.md).
-- **Reference**: [options](docs/src/options.md), [inputs](docs/src/inputs.md),
-  [outputs](docs/src/outputs.md), [formats](docs/src/formats.md),
-  [code structure](docs/src/structure.md), [glossary](docs/src/reference/glossary.md).
-- **Background**: [method](docs/src/method.md), [provenance](docs/src/provenance.md),
-  [degree-1 Love numbers](docs/src/degree1.md), [release notes](docs/src/release_notes.md),
-  [lineage and references](docs/src/lineage.md).
+- **Getting started**: [installation](https://xiyuanbao.github.io/slevolve/install.html), [quick start](https://xiyuanbao.github.io/slevolve/quickstart.html),
+  [verifying the installation](https://xiyuanbao.github.io/slevolve/verify.html).
+- **User guide**: [benchmark cases](https://xiyuanbao.github.io/slevolve/benchmarks.html), [new case](https://xiyuanbao.github.io/slevolve/own_case.html),
+  [Love numbers](https://xiyuanbao.github.io/slevolve/lovenum.html), [horizontal displacement](https://xiyuanbao.github.io/slevolve/horizontal.html),
+  [file conversion](https://xiyuanbao.github.io/slevolve/conversion.html), [reproducing the published results](https://xiyuanbao.github.io/slevolve/reproduce.html).
+- **Reference**: [options](https://xiyuanbao.github.io/slevolve/options.html), [inputs](https://xiyuanbao.github.io/slevolve/inputs.html),
+  [outputs](https://xiyuanbao.github.io/slevolve/outputs.html), [formats](https://xiyuanbao.github.io/slevolve/formats.html),
+  [code structure](https://xiyuanbao.github.io/slevolve/structure.html), [glossary](https://xiyuanbao.github.io/slevolve/reference/glossary.html).
+- **Background**: [method](https://xiyuanbao.github.io/slevolve/method.html), [provenance](https://xiyuanbao.github.io/slevolve/provenance.html),
+  [degree-1 Love numbers](https://xiyuanbao.github.io/slevolve/degree1.html), [release notes](https://xiyuanbao.github.io/slevolve/release_notes.html),
+  [lineage and references](https://xiyuanbao.github.io/slevolve/lineage.html).
 
 ## Citation
 
@@ -128,7 +128,7 @@ https://doi.org/10.5281/zenodo.23422438). Machine-readable metadata: `CITATION.c
 ## Lineage
 
 SLEvolve builds on the sea-level theory of Kendall et al. (2005) and is a further development of the
-code of Han et al. (2022); see [Lineage and references](docs/src/lineage.md).
+code of Han et al. (2022); see [Lineage and references](https://xiyuanbao.github.io/slevolve/lineage.html).
 
 - Kendall, R. A., Mitrovica, J. X., and Milne, G. A.: On post-glacial sea level - II. Numerical
   formulation and comparative results on spherically symmetric models, Geophys. J. Int., 161, 679-706,
