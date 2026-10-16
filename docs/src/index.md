@@ -12,7 +12,7 @@ outer iteration on the initial topography of ice age runs. The explicit load-his
 pseudo-spectral formulation is replaced by an exact recursive modal state, so the cost per time step
 does not grow with the length of the load history and the total cost grows as O(N) instead of O(N^2)
 in the number of time steps N. A Fortran solver derived from the legacy code of Han et al. (2022) and
-a Python solver written from scratch give results identical to round-off (below 1e-10 m in the benchmark cases).
+a Python solver written from scratch give results identical to round-off (below 1e-11 m in the three benchmark cases).
 
 ## Install and first run
 

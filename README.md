@@ -11,7 +11,7 @@ symmetric viscoelastic Earth, based on the normal-mode (Love-number) formulation
 runs (outer iteration on the initial topography). The viscoelastic memory is carried in a recursive
 modal state instead of a sum over the full load history, so the total cost grows as O(N) instead of
 O(N^2) in the number of time steps N. A Fortran solver derived from the legacy code of Han et al.
-(2022) and a Python solver written from scratch give results identical to round-off (below 1e-10 m in the benchmark cases).
+(2022) and a Python solver written from scratch give results identical to round-off (below 1e-11 m in the three benchmark cases).
 
 ## What is new relative to the legacy code
 
