@@ -1,0 +1,2241 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Recursive-state 1-D normal-mode GIA sea-level solver (Fortran and Python)">
+      
+      
+      
+      
+        <link rel="prev" href="formats.html">
+      
+      
+        <link rel="next" href="reference/glossary.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="img/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Code structure - SLEvolve v1.0</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="css/header.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#code-structure" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="SLEvolve v1.0" class="md-header__button md-logo" aria-label="SLEvolve v1.0" data-md-component="logo">
+      
+  <img src="img/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SLEvolve v1.0
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Code structure
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="teal"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="teal"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="install.html" class="md-tabs__link">
+          
+  
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="benchmarks.html" class="md-tabs__link">
+          
+  
+  
+  User guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="options.html" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="method.html" class="md-tabs__link">
+          
+  
+  
+  Background
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="SLEvolve v1.0" class="md-nav__button md-logo" aria-label="SLEvolve v1.0" data-md-component="logo">
+      
+  <img src="img/logo.svg" alt="logo">
+
+    </a>
+    SLEvolve v1.0
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="install.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="quickstart.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="verify.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Verifying the installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="benchmarks.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the benchmark cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="own_case.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting up a new case
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lovenum.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Love numbers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="horizontal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Horizontal displacement output
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="conversion.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File conversion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reproduce.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducing the published results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="options.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command-line options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="inputs.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="outputs.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="formats.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code structure
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="structure.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-repository-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Repository layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-fortran-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Fortran architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Fortran architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-modules-and-build-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Modules and build order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Drivers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-one-time-step-sl_model_modsl_solver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 One time step (sl_model_mod::sl_solver)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-python-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Python architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-code-excerpts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Code excerpts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Code excerpts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-modal-state-advance-and-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Modal-state advance and commit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-placement-of-advance-and-commit-in-the-time-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Placement of advance and commit in the time step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-extrapolated-inner-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Extrapolated inner start
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-love-number-file-read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Love-number file read
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-horizontal-displacement-read-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 Horizontal-displacement read-out
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-where-to-change-what" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Where to change what
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/glossary.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Background
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Background
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="method.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="provenance.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark provenance and differences from Han et al. (2022)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="degree1.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Degree-1 Love numbers and reference frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="release_notes.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release notes and known limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lineage.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage and references
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-repository-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Repository layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-fortran-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Fortran architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Fortran architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-modules-and-build-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Modules and build order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Drivers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-one-time-step-sl_model_modsl_solver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 One time step (sl_model_mod::sl_solver)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-python-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Python architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-code-excerpts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Code excerpts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Code excerpts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-modal-state-advance-and-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Modal-state advance and commit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-placement-of-advance-and-commit-in-the-time-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Placement of advance and commit in the time step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-extrapolated-inner-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Extrapolated inner start
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-love-number-file-read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Love-number file read
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-horizontal-displacement-read-out" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 Horizontal-displacement read-out
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-where-to-change-what" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Where to change what
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="code-structure">Code structure<a class="headerlink" href="#code-structure" title="Permanent link">&para;</a></h1>
+<p>This page describes how the release sources are organised and how one time step is carried out in
+the code. Routine and class names are given with the file that contains them. The code excerpts are
+copied from the release sources. <code>...</code> marks lines left out between complete statements.</p>
+<h2 id="1-repository-layout">1. Repository layout<a class="headerlink" href="#1-repository-layout" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>README.md                          overview, build, quick start, references
+LICENSE                            GPL-3.0 text
+LICENSE-upstream-MIT               MIT license of the upstream Fortran code
+CITATION.cff                       citation metadata
+fortran/
+  build.sh                         release build: generates user_specs from the support module (sed),
+                                   compiles src/ with the chosen DRIVER/SHT/FFT/OMP, builds the tools
+  IO_FORMATS.md                    binary file formats (.npy, .bin)
+  src/
+    run_from_zero_plus.f90         driver: forward run, ./exe LAST (step = DT or times file)
+    run_outer_plus.f90             driver: one outer pass per process, ./exe LAST [ITERSL]
+    run_outer_mem.f90              driver: outer passes K0..K1 in one process, ./exe LAST K0 K1
+    sl_model_mod.f90               module sl_model_mod: the solver (step 0, time step, inner
+                                   iteration, outer update, warm-start store, outputs)
+    modal_state_mod.f90            module modal_state_mod: recursive modal state
+                                   (advance_and_read, read_horizontal, commit, checkpoint)
+    io_mod.f90                     module io_mod: run-time options (SLEVOLVE_* environment
+                                   variables), grid/spectral read and write, snapshot selection
+    npy_io_mod.f90                 module npy_io_mod: dependency-free .npy reader/writer
+    spharmt_otf.f90                module spharmt: spherical-harmonic transforms (BLAS table,
+                                   on-the-fly recurrence, verification backends), FFTW/FFT991
+    otf_kernels.inc                on-the-fly Legendre recurrence kernels, included by spharmt_otf.f90
+                                   for SHT=otf
+    spharmt_plus.f90               alternative module spharmt without the on-the-fly backend; not
+                                   compiled by build.sh
+    support_mod.f90                unedited legacy support modules (constants_mod, user_specs_mod,
+                                   planets_mod, sl_io_mod); build.sh writes the configured copy
+  tools/
+    make_cache.f90                 text grids -&gt; flat little-endian fp64 .bin caches
+    text2npy.f90, npy2text.f90     text &lt;-&gt; .npy grid converters (link npy_io_mod)
+    build_npytools.sh              builds text2npy/npy2text on their own
+pyproject.toml                     pip metadata of the package slevolve (setuptools; package dir python/)
+python/
+  run_ais.py, run_outer.py,        script entry points (python python/run_ais.py ...); each calls main()
+  init_topo_segmented.py           of the package module of the same name
+  cache/                           ice caches of a checkout (created on first use)
+  slevolve/                        the package (relative imports; pip install . installs it)
+    __init__.py                    __version__ = "1.0.0"; main classes, imported on first use
+    _paths.py                      default root and ice-cache directory (checkout or installed)
+    run_ais.py                     forward-run driver (CLI, console script slevolve-forward); writes
+                                   .npy outputs and run_log.json
+    run_outer.py                   ice age run driver (slevolve-outer): outer (initial-topography)
+                                   iteration, Picard or per-cell secant, optional warm start across passes
+    init_topo_segmented.py         partially relaxed (segmented) first-pass initial topography
+                                   (slevolve-init-topo)
+    solver.py                      reference solver: Planet, LoveNumbers, ExactMemory, SeaLevelSolver
+    solver_opt.py                  optimised step: OptSeaLevelSolver, ExactMemoryFast, parse_opts,
+                                   Anderson mixing (_Anderson)
+    kernels.py                     Numba kernels for the hereditary advance and grid/spectral algebra
+    sht.py                         NumPy/BLAS transform (class SHT) in the conventions of the Fortran
+    sht_ducc.py                    ducc0 transform (class DuccSHT) with the same interface; make_sht
+    npyio.py                       shared file conventions: read_grid, save_grid, save_spectral, IceDir
+    horiz.py                       grid components of the horizontal displacement (gradient)
+    tools/                         subpackage slevolve.tools
+      text2npy.py, npy2text.py     text &lt;-&gt; .npy grid converters (slevolve-text2npy, slevolve-npy2text)
+      npy2nc.py                    per-step .npy snapshots -&gt; one NetCDF4 file (slevolve-npy2nc)
+      horiz_grad.py                grid components from horiz&lt;N&gt;.npy (with --selftest)
+      horiz_history_check.py       verification: recursive horizontal read-out vs full-history sum
+      write_lovenum.py             writes Love numbers in the solver's text layout
+      make_reference.py            reference/ files from an output directory
+      plot_fields.py               Mollweide and south polar stereographic maps (coast = 0 m contour)
+  tools/                           script entry points for slevolve.tools (python python/tools/&lt;name&gt;.py ...)
+tools/
+  build_case1_total_ice.py         Case 1 total (grounded plus floating) ice forcing
+  make_grid.py                     grid files GLlat_512.txt, GLlon_512.txt
+  make_synthetic_case.py           synthetic-Earth input tree (quick start, Fortran tests)
+  make_synthetic_case.f90          Fortran twin of make_synthetic_case.py (identical .npy files)
+  plot_reference.py                maps of the reference results and of the synthetic test
+  make_logo.py                     logo files in docs/src/img
+  regrid.py                        nearest-source sampling onto the solver grid (NearestSourceSampler)
+  prepare_case2_inputs.sh          Case 2 input tree from the archived files
+  prepare_case3_nadi.py            Case 3 (ICE-NADI-1) input tree
+lovenum/
+  prem_512.l60K2C.sum18p6.dum19p2.tz19p4.lm22  Love numbers, Case 1 Earth model
+  prem_512.l120C.ump5.lm5          Love numbers, Case 2 Earth model
+  prem_512.l96C.ump3.lm1           Love numbers, Case 3 Earth model
+  DEGREE1_NOTES.md, DEGREE1_NOTES_zh.md
+                                   notes on degree-1 Love numbers (English, Chinese)
+tests/
+  run_all.py                       runs the five Python tests below
+  test_recursion.py, test_sht_roundtrip.py, test_small_case.py,
+  test_extrap_formula.py, test_small_case_vardt.py
+  test_fortran_python.sh           Fortran test: Fortran vs Python on the synthetic Earth
+  test_fortran_python_vardt.sh     Fortran test with a variable-step times file (Fortran vs Python)
+  test_fortran_synthetic.sh        Fortran-only test: Fortran vs reference/synthetic/tgrid8.npy
+  npy_maxdiff.f90                  max |A - B| of two .npy grids (used by the Fortran-only test)
+  check_reference.py               compares a benchmark run with reference/
+examples/
+  quickstart.py                    quick start (Python solver, synthetic Earth, 128 x 256)
+  case1_forward.sh                 Case 1 forward run (fortran|python)
+  case2_one_pass.sh                Case 2, first outer pass (fortran|python)
+  case3_ice_age.sh                 Case 3 ice age run (fortran|python), segmented first-pass topography
+  run_outer_mem.sh                 general wrapper for the in-process outer-iteration driver
+docs/
+  mkdocs.yml, src/*.md             this manual
+</code></pre></div>
+<p><strong>Python imports.</strong> The modules of <code>python/slevolve/</code> import each other relatively
+(<code>from .solver import ...</code>, <code>from .. import npyio</code> in <code>slevolve.tools</code>), so the same files work
+installed (<code>pip install .</code>) and from a checkout. The scripts <code>python/run_ais.py</code>, <code>python/run_outer.py</code>,
+<code>python/init_topo_segmented.py</code> and <code>python/tools/&lt;name&gt;.py</code> put <code>python/</code> on <code>sys.path</code> and call <code>main()</code>
+of the package module, so the documented commands are unchanged. Code outside the package (tests,
+examples, <code>tools/</code>) imports from the package: <code>from slevolve.solver import LoveNumbers</code>,
+<code>from slevolve.tools.plot_fields import mollweide_map</code>, after <code>sys.path.insert(0, "python")</code> in a checkout
+or with no path change when the package is installed. <code>run_ais</code> and <code>run_outer</code> parse their arguments
+and pin the thread counts at import, before NumPy is imported; <code>import slevolve</code> itself does not import
+NumPy.</p>
+<h2 id="2-fortran-architecture">2. Fortran architecture<a class="headerlink" href="#2-fortran-architecture" title="Permanent link">&para;</a></h2>
+<h3 id="21-modules-and-build-order">2.1 Modules and build order<a class="headerlink" href="#21-modules-and-build-order" title="Permanent link">&para;</a></h3>
+<p><code>build.sh</code> compiles, in this order: the generated support module, <code>npy_io_mod.f90</code>,
+<code>io_mod.f90</code>, <code>spharmt_otf.f90</code> (as <code>spharmt.o</code>), <code>modal_state_mod.f90</code>,
+<code>sl_model_mod.f90</code> and the selected driver. The <code>use</code> relations are:</p>
+<div class="highlight"><pre><span></span><code>driver (run_from_zero_plus | run_outer_plus | run_outer_mem)
+ |-- sl_model_mod                      sl_model_mod.f90
+ |    |-- spharmt                      spharmt_otf.f90 (+ otf_kernels.inc with SHT=otf)
+ |    |-- user_specs_mod               generated support module
+ |    |-- planets_mod                  generated support module
+ |    |    `-- constants_mod
+ |    |-- sl_io_mod                    generated support module (legacy text read_sl / write_sl)
+ |    |    `-- user_specs_mod
+ |    |-- modal_state_mod              modal_state_mod.f90
+ |    `-- io_mod                       io_mod.f90
+ |         `-- npy_io_mod              npy_io_mod.f90
+ |-- spharmt                           (sht_profile counters)
+ |-- user_specs_mod                    (dt1; outer drivers)
+ `-- io_mod                            (pp_read_options, pp_shtprof)
+</code></pre></div>
+<p>Compile-time parameters (step length <code>dt1</code>, number of steps <code>L_sim</code>, truncation <code>norder</code>, tolerance
+<code>epsilon1</code>, file names, <code>tpw</code>, <code>checkmarine</code>, <code>initial_topo</code>, constants) live in <code>user_specs_mod</code>
+and are set by <code>build.sh</code>. Run-time switches are environment variables read by
+<code>io_mod::pp_read_options</code> (with <code>inner_read_options</code> and <code>opt_read_options</code>) and by
+<code>spharmt::sht_env_init</code> (<code>SLEVOLVE_FFT</code>); see <a href="options.html">Command-line options</a>.</p>
+<h3 id="22-drivers">2.2 Drivers<a class="headerlink" href="#22-drivers" title="Permanent link">&para;</a></h3>
+<p>All three drivers call the same solver routines:</p>
+<ol>
+<li><code>sl_solver_checkpoint(itersl, dtime)</code>: checks <code>dtime == dt1</code>, sets the planet (<code>set_planet</code>),
+   reads the run-time options, initialises the transform backend (<code>sht_env_init</code>, <code>spharmt_init</code>).</li>
+<li>Step 0: <code>sl_timewindow(0)</code>, <code>sl_allocate_and_initialize_array</code>, <code>sl_solver_init(itersl, 0.0)</code>,
+   <code>sl_deallocate_array</code>.</li>
+<li>Steps <code>iter = 1..LAST</code>: <code>sl_timewindow(iter)</code>, <code>sl_allocate_and_initialize_array</code>,
+   <code>sl_solver(itersl, iter, dtime, 0.0)</code>, <code>sl_deallocate_array</code>.</li>
+<li><code>sl_print_counts</code>.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>driver</th>
+<th>command</th>
+<th>what differs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>run_from_zero_plus.f90</code></td>
+<td><code>./exe LAST</code></td>
+<td>forward run; <code>itersl = 1</code>, step length <code>dt1</code> = build-time <code>DT</code> (or the times file); optional transform profile print (<code>SLEVOLVE_SHTPROF</code>)</td>
+</tr>
+<tr>
+<td><code>run_outer_plus.f90</code></td>
+<td><code>./exe LAST [ITERSL]</code></td>
+<td>one outer pass; <code>dtime = dt1</code>; pass <code>ITERSL &gt; 1</code> reads <code>pred_pres_topo_&lt;k-1&gt;</code> and <code>tgrid0_&lt;k-1&gt;</code> from <code>OUTPUT_SLM/</code> in <code>sl_solver_init</code></td>
+</tr>
+<tr>
+<td><code>run_outer_mem.f90</code></td>
+<td><code>./exe LAST K0 K1</code></td>
+<td>passes <code>K0..K1</code> in one process; sets <code>pp_mem_outer</code>, reads <code>SLEVOLVE_ICECACHE</code>; calls <code>sl_outer_reset</code> between passes; copies <code>OUTPUT_SLM/numiter</code> to <code>numiter_&lt;k&gt;</code> and prints the wall time per pass</td>
+</tr>
+</tbody>
+</table>
+<p>The outer update of the initial topography is done in <code>sl_solver_init</code> at the start of pass
+<code>itersl &gt; 1</code> (Picard update, or <code>outer_secant</code> with <code>SLEVOLVE_OUTER=secant</code>). At the last step,
+<code>sl_solver</code> writes <code>pred_pres_topo_&lt;itersl&gt;</code> and <code>tgrid0_&lt;itersl&gt;</code> (and with <code>run_outer_mem</code>
+also keeps them in memory for the next pass).</p>
+<h3 id="23-one-time-step-sl_model_modsl_solver">2.3 One time step (<code>sl_model_mod::sl_solver</code>)<a class="headerlink" href="#23-one-time-step-sl_model_modsl_solver" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Setup and ice.</strong> <code>opt_setup</code>; the ice grid of the current step is read with <code>pp_ice_get</code>
+   (at <code>iter == 1</code> also the time-zero grid). <code>pp_ice_get</code> serves the grid from the in-memory ice
+   cache (<code>run_outer_mem</code>) or through <code>pp_read_grid</code> (<code>.npy</code>, then <code>.bin</code>, then text). The physical
+   times of the previous and current step are appended to the time array file.</li>
+<li><strong>Step-0 fields.</strong> <code>tinit_0</code>, <code>cxy0</code>, <code>beta0</code> stay resident (re-read only with
+   <code>SLEVOLVE_COMPAT</code> bit 1); the previous step's ocean function is already in <code>cxy</code>.</li>
+<li><strong>Earth model (once per run).</strong> The Love-number file is parsed in the block "Read in Love
+   numbers", guarded by <code>pp_love_ready</code>; the response spectrum <code>exact_spec</code> (decay rates and the
+   weights <code>a_sl</code>, <code>a_rr</code>, degree-2 <code>a_il</code>, <code>a_m</code>, <code>a_tsl</code>, <code>a_trr</code>, and <code>a_hl</code>, <code>a_thl</code> when
+   <code>SLEVOLVE_HORIZ &gt; 0</code>) is built from it, and <code>exact_state%init</code> allocates the modal state.</li>
+<li><strong>Advance-and-read.</strong> At <code>iter == 1</code> the state is zeroed (<code>exact_state%zero</code>); otherwise it is
+   resident (or reloaded with <code>load_checkpoint</code> under <code>SLEVOLVE_COMPAT</code> bit 4). Then
+   <code>exact_state%advance_and_read</code> advances every modal state by one decay factor and returns the
+   viscous sea-level and radial sums and the degree-2 rotational sums. These are frozen for the whole
+   inner iteration. The cumulative loads <code>deltaS(:,:,exact_prev)</code>, <code>oldil</code>, <code>oldm</code> and the previous
+   <code>deltalambda</code> are restored from <code>p_ocean</code>, <code>p_il</code>, <code>p_m</code>, <code>p_lambda</code>.</li>
+<li><strong>Ice and ocean setup.</strong> Transform of the initial topography (once, <code>pp_t0lm_ready</code>), the
+   grounded-ice and beta fields (STEP 3), the warm-start read <code>warm_read</code> (with
+   <code>SLEVOLVE_REUSE=warm</code>; replaces the ocean mask), and the batched analyses (<code>opt_ana_multi</code>) of the
+   ice, <code>cstar</code> and <code>tO</code> grids.</li>
+<li><strong>Inner start.</strong> Eustatic first guess for the ocean-load increment <code>load_inc_lm</code>; with
+   <code>SLEVOLVE_INNER=extrap</code> (or <code>anderson</code>) and two stored converged increments, the extrapolated
+   start replaces it; with a warm-start record, the stored increment of the previous pass replaces
+   both.</li>
+<li><strong>Inner iteration</strong> (the <code>do</code> loop between "Start of inner loop" and "End of inner loop"):
+   rotation (<code>tpw</code>: moment of inertia, <code>m</code>, <code>lambda</code>, using the frozen <code>exact_sum_il</code>, <code>exact_sum_m</code>,
+   <code>exact_tsl</code>, <code>exact_trr</code>); sea-level change from the load (STEP 6, elastic part plus frozen
+   <code>viscous</code>); synthesis; <code>r0</code>, conservation term and new ocean load (STEPS 7 to 9); convergence
+   measure <code>xi</code> on <code>sum(abs(load_inc_lm))</code>; ocean-function update and re-analysis while <code>xi &gt; epsilon1</code>;
+   optional Anderson mixing (<code>inner_anderson</code>). The loop exits when <code>xi &lt;= epsilon1</code> and aborts at
+   9999 iterations.</li>
+<li><strong>After convergence.</strong> The converged <code>load_inc_lm</code> and <code>dtime</code> are pushed into the extrapolation
+   history (<code>extrap_dsm1</code>, <code>extrap_dsm2</code>, <code>extrap_dtm1</code>, <code>extrap_dtm2</code>); <code>R</code> and <code>G</code> are formed from the frozen
+   <code>exact_radial</code> when they are written (<code>lazyrg</code>); the optional horizontal read-out
+   (<code>exact_state%read_horizontal</code>, <code>SLEVOLVE_HORIZ</code>) is done on the same states.</li>
+<li><strong>Commit.</strong> The current load <code>rhoi*dicestar + rhow*load_inc_lm</code> (degrees 1..norder) is added to
+   <code>p_load</code> with <code>exact_state%commit</code> (with <code>dil</code>, <code>dm</code>, <code>dlambda</code> when <code>tpw</code>); the cumulative
+   <code>p_ice</code>, <code>p_ocean</code>, <code>prev_ice</code> are stored; <code>save_checkpoint</code> only with <code>SLEVOLVE_CKPT</code> or
+   <code>SLEVOLVE_COMPAT</code> bit 4.</li>
+<li><strong>Topography and outputs.</strong> <code>topoxy = tinit - deltaslxy</code>, new ocean function <code>cxy</code> (STEP 11);
+    <code>warm_write</code> (warm-start store); diagnostics (ocean areas, GMSL, ice volume); text scalars
+    (<code>numiter</code>, <code>nmelt</code>, <code>TPW&lt;N&gt;</code>, ...); grids through <code>pp_write_grid</code> (<code>tgrid</code>, <code>ocean</code>, <code>beta</code>,
+    <code>R</code>, <code>G</code>) and <code>pp_write_cplx</code> (<code>dS_converged</code>), subject to <code>SLEVOLVE_SNAP</code>; at the last step
+    <code>pred_pres_topo_&lt;itersl&gt;</code> and <code>tgrid0_&lt;itersl&gt;</code>.</li>
+</ol>
+<h2 id="3-python-architecture">3. Python architecture<a class="headerlink" href="#3-python-architecture" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>run_ais.py (forward)        run_outer.py (outer passes)       init_topo_segmented.py
+      |                            |                                 |
+      |  npyio (read_grid, IceDir, save_grid, save_spectral)        |  solver.LoveNumbers, Planet
+      |  solver.LoveNumbers, Planet                                  |
+      |  sht_ducc.make_sht -&gt; sht.SHT | sht_ducc.DuccSHT            |
+      v                            v
+solver_opt.OptSeaLevelSolver  (subclass of solver.SeaLevelSolver, overrides step)
+      |-- state: solver_opt.ExactMemoryFast (subclass of solver.ExactMemory)  [opt "numba"]
+      |          or solver.ExactMemory
+      |-- kernels (Numba kernels)                                            [opt "numba"]
+      |-- solver_opt._Anderson                                               [--inner anderson]
+      `-- horiz.gradient (grid components, called by the drivers)            [--horizontal-grid]
+</code></pre></div>
+<ul>
+<li><code>run_ais.py</code> parses the options, builds the ice cache, reads the topography (<code>read_grid_any</code>) and
+  the Love numbers (<code>solver.LoveNumbers</code>), creates the transform with <code>sht_ducc.make_sht</code>
+  (<code>--sht numpy|ducc</code>), and uses <code>OptSeaLevelSolver</code> when <code>--opt</code> or <code>--inner</code> is given, otherwise
+  the reference <code>SeaLevelSolver</code> (with <code>dt = --dt</code>, or the first step of <code>--times</code>). It then calls <code>step(ice[k])</code> for <code>k = 1..steps</code>
+  and writes <code>tgrid&lt;k&gt;.npy</code>, <code>ocean</code>, <code>beta</code>, <code>R</code>, <code>G</code>, <code>dS_converged</code>, <code>horiz</code> (<code>--save-fields</code>,
+  <code>--horizontal</code>, <code>--horizontal-grid</code>), <code>numiter.npy</code> and <code>run_log.json</code>.</li>
+<li><code>run_outer.py</code> creates one <code>OptSeaLevelSolver</code> per outer pass (<code>dt=--dt</code>, default <code>opt
+  raw,diag,dsl,numba,sums</code>, ducc0 transform), passes the dict <code>store</code> that survives across passes
+  for <code>--reuse warm</code>, runs all steps, and updates the initial topography by Picard or per-cell
+  secant (<code>--outer</code>). It writes <code>pred_pres_topo_&lt;it&gt;.npy</code>, <code>tgrid0_&lt;it&gt;.npy</code>, saved steps and
+  <code>T0_next.npy</code>.</li>
+<li><code>solver.SeaLevelSolver.__init__</code> does what <code>sl_solver_init</code> does (step 0: initial topography,
+  ocean and beta functions, their spectra) and creates the state <code>ExactMemory</code>;
+  <code>OptSeaLevelSolver.__init__</code> replaces it by <code>ExactMemoryFast</code> when <code>numba</code> is selected.</li>
+<li><code>OptSeaLevelSolver.step</code> follows the same sequence as <code>sl_solver</code>: <code>state.advance_and_read()</code>,
+  ice and ocean grids (<code>kernels.icestar_beta_cstar_tO</code>), ice analysis and increments, eustatic guess,
+  extrapolated start (<code>inner != "off"</code>), warm start (<code>reuse_store</code>), inner loop (rotation,
+  <code>kernels.b18</code>, synthesis, conservation, <code>kernels.dS_update</code>, convergence measure <code>xi</code>,
+  ocean-function update or Anderson mixing), history push, <code>R</code>/<code>G</code> from <code>radial</code>, optional
+  <code>horizontal_lm</code>, <code>state.commit(...)</code>, topography and ocean function (<code>kernels.topo_ocean</code>),
+  diagnostics. It returns a dict of fields (<code>tgrid</code>, <code>ocean</code>, <code>beta</code>, <code>R</code>, <code>G</code>, <code>dS_converged</code>,
+  <code>horiz</code>, scalars).</li>
+<li><code>parse_opts</code> turns <code>--opt</code> (<code>raw</code>, <code>diag</code>, <code>dsl</code>, <code>numba</code>, <code>sums</code>, or <code>all</code>) into a set; each item
+  switches one optimisation of <code>step</code>.</li>
+<li><code>sht.SHT</code> (NumPy/BLAS table) and <code>sht_ducc.DuccSHT</code> (ducc0) share <code>analysis(grid, out)</code> and
+  <code>synthesis(coeffs, out)</code>; <code>make_sht(backend, ...)</code> selects one. The <code>raw</code> option exists only for
+  ducc0.</li>
+<li><code>npyio</code> holds the file conventions shared with the Fortran (<code>read_grid</code> tries <code>.npy</code>, <code>.bin</code>,
+  text; <code>IceDir</code> reads <code>&lt;dir&gt;/&lt;pfx&gt;&lt;k&gt;</code> on demand).</li>
+<li><code>horiz.gradient(U, nlat, nlon)</code> turns the spectral <code>Psi_lm</code> into <code>(u_theta, u_phi)</code> with the
+  ducc0 spin-1 gradient synthesis.</li>
+</ul>
+<h2 id="4-code-excerpts">4. Code excerpts<a class="headerlink" href="#4-code-excerpts" title="Permanent link">&para;</a></h2>
+<h3 id="41-modal-state-advance-and-commit">4.1 Modal-state advance and commit<a class="headerlink" href="#41-modal-state-advance-and-commit" title="Permanent link">&para;</a></h3>
+<p>The advance loop of <code>state_advance_and_read</code> in <code>fortran/src/modal_state_mod.f90</code>
+(the degree-2 rotational states follow after it):</p>
+<div class="highlight"><pre><span></span><code><span class="k">call </span><span class="n">update_decay</span><span class="p">(</span><span class="n">self</span><span class="p">,</span><span class="n">spec</span><span class="p">,</span><span class="n">dt_years</span><span class="p">)</span>
+<span class="n">viscous</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0_dp</span><span class="p">,</span><span class="mf">0.0_dp</span><span class="p">);</span><span class="w"> </span><span class="n">radial</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0_dp</span><span class="p">,</span><span class="mf">0.0_dp</span><span class="p">)</span>
+
+<span class="c">! Packed layout is [degree][pole][m=0:l], so each pole update is one</span>
+<span class="c">! contiguous vector operation.  R itself is the hereditary response state:</span>
+<span class="c">! R_new = d*R_old + (1-d)*DL_old   (DL = cumulative load, p_load).</span>
+<span class="c">! degrees are independent (each writes a disjoint slice of</span>
+<span class="c">! r_load / viscous / radial and accumulates over kk in the same order),</span>
+<span class="c">! so this loop threads identically.</span>
+<span class="c">!$omp parallel do schedule(dynamic,4) default(shared) private(ll,kk,ibase,rstart,rend,d,omd)</span>
+<span class="k">do </span><span class="n">ll</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">self</span><span class="p">%</span><span class="n">lmax</span>
+<span class="w">   </span><span class="n">ibase</span><span class="o">=</span><span class="n">lm_index</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+<span class="w">   </span><span class="k">do </span><span class="n">kk</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">self</span><span class="p">%</span><span class="n">nmod</span><span class="p">(</span><span class="n">ll</span><span class="p">)</span>
+<span class="w">      </span><span class="n">d</span><span class="o">=</span><span class="n">self</span><span class="p">%</span><span class="n">decay</span><span class="p">(</span><span class="n">kk</span><span class="p">,</span><span class="n">ll</span><span class="p">);</span><span class="w"> </span><span class="n">omd</span><span class="o">=</span><span class="mf">1.0_dp</span><span class="o">-</span><span class="n">d</span>
+<span class="w">      </span><span class="n">rstart</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">self</span><span class="p">%</span><span class="n">roffset</span><span class="p">(</span><span class="n">ll</span><span class="p">))</span><span class="o">+</span><span class="p">(</span><span class="n">kk</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">ll</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">      </span><span class="n">rend</span><span class="o">=</span><span class="n">rstart</span><span class="o">+</span><span class="n">ll</span>
+<span class="w">      </span><span class="n">self</span><span class="p">%</span><span class="n">r_load</span><span class="p">(</span><span class="n">rstart</span><span class="p">:</span><span class="n">rend</span><span class="p">)</span><span class="o">=</span><span class="n">d</span><span class="o">*</span><span class="n">self</span><span class="p">%</span><span class="n">r_load</span><span class="p">(</span><span class="n">rstart</span><span class="p">:</span><span class="n">rend</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                                </span><span class="n">omd</span><span class="o">*</span><span class="n">self</span><span class="p">%</span><span class="n">p_load</span><span class="p">(</span><span class="n">ibase</span><span class="p">:</span><span class="n">ibase</span><span class="o">+</span><span class="n">ll</span><span class="p">)</span>
+<span class="w">      </span><span class="n">viscous</span><span class="p">(</span><span class="n">ibase</span><span class="p">:</span><span class="n">ibase</span><span class="o">+</span><span class="n">ll</span><span class="p">)</span><span class="o">=</span><span class="n">viscous</span><span class="p">(</span><span class="n">ibase</span><span class="p">:</span><span class="n">ibase</span><span class="o">+</span><span class="n">ll</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                              </span><span class="n">spec</span><span class="p">%</span><span class="n">a_sl</span><span class="p">(</span><span class="n">kk</span><span class="p">,</span><span class="n">ll</span><span class="p">)</span><span class="o">*</span><span class="n">self</span><span class="p">%</span><span class="n">r_load</span><span class="p">(</span><span class="n">rstart</span><span class="p">:</span><span class="n">rend</span><span class="p">)</span>
+<span class="w">      </span><span class="n">radial</span><span class="p">(</span><span class="n">ibase</span><span class="p">:</span><span class="n">ibase</span><span class="o">+</span><span class="n">ll</span><span class="p">)</span><span class="o">=</span><span class="n">radial</span><span class="p">(</span><span class="n">ibase</span><span class="p">:</span><span class="n">ibase</span><span class="o">+</span><span class="n">ll</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                             </span><span class="n">spec</span><span class="p">%</span><span class="n">a_rr</span><span class="p">(</span><span class="n">kk</span><span class="p">,</span><span class="n">ll</span><span class="p">)</span><span class="o">*</span><span class="n">self</span><span class="p">%</span><span class="n">r_load</span><span class="p">(</span><span class="n">rstart</span><span class="p">:</span><span class="n">rend</span><span class="p">)</span>
+<span class="w">   </span><span class="k">end do</span>
+<span class="k">end do</span>
+<span class="c">!$omp end parallel do</span>
+</code></pre></div>
+<p><code>state_commit</code> in the same file only adds the converged increments to the accumulated loads:</p>
+<div class="highlight"><pre><span></span><code><span class="k">subroutine </span><span class="n">state_commit</span><span class="p">(</span><span class="n">self</span><span class="p">,</span><span class="n">current_load</span><span class="p">,</span><span class="n">dil</span><span class="p">,</span><span class="n">dm</span><span class="p">,</span><span class="n">dlambda</span><span class="p">)</span>
+<span class="w">  </span><span class="k">class</span><span class="p">(</span><span class="n">response_memory_state</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">self</span>
+<span class="w">  </span><span class="kt">complex</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">current_load</span><span class="p">(:)</span>
+<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dil</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="n">dm</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">  </span><span class="kt">complex</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dlambda</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">  </span><span class="n">self</span><span class="p">%</span><span class="n">p_load</span><span class="o">=</span><span class="n">self</span><span class="p">%</span><span class="n">p_load</span><span class="o">+</span><span class="n">current_load</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">dil</span><span class="p">))</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">p_il</span><span class="o">=</span><span class="n">self</span><span class="p">%</span><span class="n">p_il</span><span class="o">+</span><span class="n">dil</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">dm</span><span class="p">))</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">p_m</span><span class="o">=</span><span class="n">self</span><span class="p">%</span><span class="n">p_m</span><span class="o">+</span><span class="n">dm</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">dlambda</span><span class="p">))</span><span class="w"> </span><span class="n">self</span><span class="p">%</span><span class="n">p_lambda</span><span class="o">=</span><span class="n">self</span><span class="p">%</span><span class="n">p_lambda</span><span class="o">+</span><span class="n">dlambda</span>
+<span class="k">end subroutine </span><span class="n">state_commit</span>
+</code></pre></div>
+<p>The Python equivalent of the advance, the body of <code>advance_and_read</code> in <code>python/slevolve/kernels.py</code> (state stored as
+<code>R[l, k, m]</code>, used by <code>ExactMemoryFast</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="n">nl</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">nl</span><span class="p">):</span>
+    <span class="n">nk</span> <span class="o">=</span> <span class="n">nmod</span><span class="p">[</span><span class="n">l</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nl</span><span class="p">):</span>
+        <span class="n">visc</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">rad</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nk</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">decay</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
+        <span class="n">o</span> <span class="o">=</span> <span class="n">omd</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">a_sl</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">a_rr</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">l</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span> <span class="o">+</span> <span class="n">P</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">*</span> <span class="n">o</span>
+            <span class="n">R</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="n">visc</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">s</span>
+            <span class="n">rad</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">q</span>
+</code></pre></div>
+<p>Here <code>P</code> (<code>p_load</code> in both codes) holds the cumulative load ΔL(t_{j-1}).</p>
+<p>and <code>ExactMemory.commit</code> in <code>python/slevolve/solver.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">commit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_load</span><span class="p">,</span> <span class="n">dil</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dlambda</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">p_load</span> <span class="o">+=</span> <span class="n">current_load</span>
+    <span class="k">if</span> <span class="n">dil</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_il</span> <span class="o">+=</span> <span class="n">dil</span>
+    <span class="k">if</span> <span class="n">dm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_m</span> <span class="o">+=</span> <span class="n">dm</span>
+    <span class="k">if</span> <span class="n">dlambda</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_lambda</span> <span class="o">+=</span> <span class="n">dlambda</span>
+</code></pre></div>
+<h3 id="42-placement-of-advance-and-commit-in-the-time-step">4.2 Placement of advance and commit in the time step<a class="headerlink" href="#42-placement-of-advance-and-commit-in-the-time-step" title="Permanent link">&para;</a></h3>
+<p>In <code>sl_solver</code> (<code>fortran/src/sl_model_mod.f90</code>) the state is advanced and read once before
+the inner iteration and committed once after convergence; the inner iteration and the R, G and
+horizontal read-outs lie between the two parts (left out):</p>
+<div class="highlight"><pre><span></span><code><span class="c">! the 53 MB hereditary state stays in memory across timesteps;</span>
+<span class="c">! the baseline writes and reads it back on every single step.</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">iter</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">   call </span><span class="n">exact_state</span><span class="p">%</span><span class="n">zero</span><span class="p">()</span>
+<span class="w">   </span><span class="n">pp_state_ready</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>
+<span class="k">else if</span><span class="w"> </span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">pp_state_ready</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="nb">iand</span><span class="p">(</span><span class="n">pp_compat</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">   call </span><span class="n">exact_state</span><span class="p">%</span><span class="n">load_checkpoint</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">exact_statefile</span><span class="p">),</span><span class="n">exact_spec</span><span class="p">)</span>
+<span class="w">   </span><span class="n">pp_state_ready</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>
+<span class="k">endif</span>
+<span class="k">call </span><span class="n">exact_state</span><span class="p">%</span><span class="n">advance_and_read</span><span class="p">(</span><span class="n">exact_spec</span><span class="p">,</span><span class="kt">real</span><span class="p">(</span><span class="nb">dtime</span><span class="p">,</span><span class="n">dp</span><span class="p">),</span><span class="n">exact_viscous</span><span class="p">,</span><span class="n">exact_radial</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                                  </span><span class="n">exact_sum_il</span><span class="p">,</span><span class="n">exact_sum_m</span><span class="p">,</span><span class="n">exact_tsl</span><span class="p">,</span><span class="n">exact_trr</span><span class="p">)</span>
+<span class="p">...</span>
+<span class="c">! Commit the converged current-step increments only now.  The current</span>
+<span class="c">! load has zero age at this instant, so it did not contribute to the</span>
+<span class="c">! hereditary response used above; it becomes memory for future steps.</span>
+<span class="n">exact_current_load</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mf">0.0_dp</span><span class="p">,</span><span class="mf">0.0_dp</span><span class="p">)</span>
+<span class="c">!$omp parallel do schedule(static) default(shared) private(l,m,exact_idx)</span>
+<span class="k">do </span><span class="n">l</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="n">norder</span>
+<span class="w">   </span><span class="k">do </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="n">l</span>
+<span class="w">      </span><span class="n">exact_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lm_index</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">)</span>
+<span class="w">      </span><span class="n">exact_current_load</span><span class="p">(</span><span class="n">exact_idx</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rhoi</span><span class="o">*</span><span class="n">dicestar</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">exact_cur</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">rhow</span><span class="o">*</span><span class="n">load_inc_lm</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">)</span>
+<span class="w">   </span><span class="k">enddo</span>
+<span class="k">enddo</span>
+<span class="c">!$omp end parallel do</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tpw</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">   call </span><span class="n">exact_state</span><span class="p">%</span><span class="n">commit</span><span class="p">(</span><span class="n">exact_current_load</span><span class="p">,</span><span class="n">dil</span><span class="p">(:,:,</span><span class="n">exact_cur</span><span class="p">),</span><span class="n">dm</span><span class="p">(:,</span><span class="n">exact_cur</span><span class="p">),</span><span class="n">dlambda</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="n">exact_cur</span><span class="p">))</span>
+<span class="k">else</span>
+<span class="k">   call </span><span class="n">exact_state</span><span class="p">%</span><span class="n">commit</span><span class="p">(</span><span class="n">exact_current_load</span><span class="p">)</span>
+<span class="k">endif</span>
+</code></pre></div>
+<p>The same placement in <code>OptSeaLevelSolver.step</code> (<code>python/slevolve/solver_opt.py</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># ---- hereditary advance -----------------------------------------</span>
+<span class="n">t0</span> <span class="o">=</span> <span class="n">pc</span><span class="p">()</span>
+<span class="n">viscous</span><span class="p">,</span> <span class="n">radial</span><span class="p">,</span> <span class="n">sum_il</span><span class="p">,</span> <span class="n">sum_m</span><span class="p">,</span> <span class="n">exact_tsl</span><span class="p">,</span> <span class="n">exact_trr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">advance_and_read</span><span class="p">()</span>
+<span class="n">mark</span><span class="p">(</span><span class="s2">"memory"</span><span class="p">,</span> <span class="n">t0</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="c1"># -------------------------------------------------------- commit ----</span>
+<span class="n">t0</span> <span class="o">=</span> <span class="n">pc</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">use_nb</span><span class="p">:</span>
+    <span class="n">K</span><span class="o">.</span><span class="n">current_load</span><span class="p">(</span><span class="n">dicestar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_inc_lm</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">rhoi</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">rhow</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_load</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">dicestar</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">rhoi</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">current_load</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">load_inc_lm</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">rhow</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sp2</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">current_load</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sp2</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">current_load</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tpw</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_load</span><span class="p">,</span> <span class="n">dil_cur</span><span class="p">,</span> <span class="n">dm_cur</span><span class="p">,</span> <span class="n">dlam_cur2</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_load</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="43-extrapolated-inner-start">4.3 Extrapolated inner start<a class="headerlink" href="#43-extrapolated-inner-start" title="Permanent link">&para;</a></h3>
+<p>The coefficients are computed by <code>extrap_coeffs</code> in <code>fortran/src/modal_state_mod.f90</code>; for equal
+steps they are exactly 2 and -1:</p>
+<div class="highlight"><pre><span></span><code><span class="c">! Coefficients of the extrapolated inner start (variable steps):</span>
+<span class="c">!   dS0_j = dt_j [ Sdot_{j-1} + (Sdot_{j-1} - Sdot_{j-2}) (dt_j + dt_{j-1}) / (dt_{j-1} + dt_{j-2}) ],</span>
+<span class="c">!   Sdot_i = dS_i / dt_i,   i.e.  dS0_j = c1 dS_{j-1} + c2 dS_{j-2};</span>
+<span class="c">! equal steps give exactly c1 = 2, c2 = -1.  dt0 = dt_j, dtm1 = dt_{j-1}, dtm2 = dt_{j-2}.</span>
+<span class="k">pure subroutine </span><span class="n">extrap_coeffs</span><span class="p">(</span><span class="n">dt0</span><span class="p">,</span><span class="w"> </span><span class="n">dtm1</span><span class="p">,</span><span class="w"> </span><span class="n">dtm2</span><span class="p">,</span><span class="w"> </span><span class="n">c1</span><span class="p">,</span><span class="w"> </span><span class="n">c2</span><span class="p">)</span>
+<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dt0</span><span class="p">,</span><span class="w"> </span><span class="n">dtm1</span><span class="p">,</span><span class="w"> </span><span class="n">dtm2</span>
+<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">c1</span><span class="p">,</span><span class="w"> </span><span class="n">c2</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dt0</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">dtm1</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">dtm1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">dtm2</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">     </span><span class="n">c1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.0_dp</span><span class="p">;</span><span class="w"> </span><span class="n">c2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mf">1.0_dp</span>
+<span class="w">  </span><span class="k">else</span>
+<span class="k">     </span><span class="n">c1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dt0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">dtm1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mf">1.0_dp</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">dt0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dtm1</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">dtm1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dtm2</span><span class="p">))</span>
+<span class="w">     </span><span class="n">c2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">dt0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">dtm2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">((</span><span class="n">dt0</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dtm1</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">dtm1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dtm2</span><span class="p">))</span>
+<span class="w">  </span><span class="k">endif</span>
+<span class="k">end subroutine </span><span class="n">extrap_coeffs</span>
+</code></pre></div>
+<p>and applied in <code>sl_solver</code> (<code>fortran/src/sl_model_mod.f90</code>), where <code>dtr</code> is the length of the
+current step (from the times file, else the build-time <code>DT</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="c">! extrap: linear-in-time extrapolation of the converged</span>
+<span class="c">! increment; the cumulative current load that the first rotation</span>
+<span class="c">! evaluation reads is made consistent with it.  For uniform steps this</span>
+<span class="c">! is 2 dS(n-1) - dS(n-2); for variable steps the rate dS/dt is</span>
+<span class="c">! extrapolated linearly between step midpoints and scaled by dt(n).</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">inner_mode</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">   if</span><span class="w"> </span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="nb">allocated</span><span class="p">(</span><span class="n">extrap_dsm1</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      allocate</span><span class="p">(</span><span class="n">extrap_dsm1</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="n">norder</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="n">norder</span><span class="p">),</span><span class="w"> </span><span class="n">extrap_dsm2</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="n">norder</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="n">norder</span><span class="p">))</span>
+<span class="w">      </span><span class="n">extrap_dsm1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">);</span><span class="w"> </span><span class="n">extrap_dsm2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="w">   </span><span class="k">endif</span>
+<span class="k">   if</span><span class="w"> </span><span class="p">(</span><span class="n">inner_nhist</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">      </span><span class="c">! paper Sect. 2.5: dS0_j = c1 dS_{j-1} + c2 dS_{j-2} (modal_state_mod::extrap_coeffs)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">extrap_coeffs</span><span class="p">(</span><span class="n">dtr</span><span class="p">,</span><span class="w"> </span><span class="n">extrap_dtm1</span><span class="p">,</span><span class="w"> </span><span class="n">extrap_dtm2</span><span class="p">,</span><span class="w"> </span><span class="n">extrap_c1</span><span class="p">,</span><span class="w"> </span><span class="n">extrap_c2</span><span class="p">)</span>
+<span class="w">      </span><span class="c">!$omp parallel do schedule(static) default(shared) private(m)</span>
+<span class="w">      </span><span class="k">do </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="n">norder</span>
+<span class="w">         </span><span class="n">load_inc_lm</span><span class="p">(:,</span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">extrap_c1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">extrap_dsm1</span><span class="p">(:,</span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">extrap_c2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">extrap_dsm2</span><span class="p">(:,</span><span class="n">m</span><span class="p">)</span>
+<span class="w">         </span><span class="n">deltaS</span><span class="p">(:,</span><span class="n">m</span><span class="p">,</span><span class="n">exact_cur</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">deltaS</span><span class="p">(:,</span><span class="n">m</span><span class="p">,</span><span class="n">exact_prev</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">load_inc_lm</span><span class="p">(:,</span><span class="n">m</span><span class="p">)</span>
+<span class="w">      </span><span class="k">enddo</span>
+<span class="w">      </span><span class="c">!$omp end parallel do</span>
+<span class="w">   </span><span class="k">endif</span>
+<span class="k">   </span><span class="n">inner_nh</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">inner_lastmixed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.;</span><span class="w"> </span><span class="n">inner_plain_rest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.;</span><span class="w"> </span><span class="n">inner_nrefreeze</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+</code></pre></div>
+<p>The Python version is <code>extrap_guess</code> in <code>python/slevolve/solver_opt.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">extrap_guess</span><span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="n">h2</span><span class="p">,</span> <span class="n">dt0</span><span class="p">,</span> <span class="n">dt1</span><span class="p">,</span> <span class="n">dt2</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Extrapolated inner start of step j (paper Sect. 2.5):</span>
+
+<span class="sd">        dS0_j = dt_j [ Sdot_{j-1} + (Sdot_{j-1} - Sdot_{j-2}) (dt_j + dt_{j-1}) / (dt_{j-1} + dt_{j-2}) ],</span>
+<span class="sd">        Sdot_i = dS_i / dt_i,</span>
+
+<span class="sd">    with h1 = dS_{j-1}, h2 = dS_{j-2}, dt0 = dt_j, dt1 = dt_{j-1}, dt2 = dt_{j-2}.  Equal steps give</span>
+<span class="sd">    exactly 2 dS_{j-1} - dS_{j-2}."""</span>
+    <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dt0</span> <span class="o">==</span> <span class="n">dt1</span> <span class="o">==</span> <span class="n">dt2</span><span class="p">:</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">-=</span> <span class="n">h2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">dt0</span> <span class="o">+</span> <span class="n">dt1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">dt1</span> <span class="o">+</span> <span class="n">dt2</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="n">dt0</span> <span class="o">/</span> <span class="n">dt1</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">w</span><span class="p">),</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">-=</span> <span class="p">(</span><span class="n">dt0</span> <span class="o">/</span> <span class="n">dt2</span> <span class="o">*</span> <span class="n">w</span><span class="p">)</span> <span class="o">*</span> <span class="n">h2</span>
+    <span class="k">return</span> <span class="n">out</span>
+</code></pre></div>
+<p>called in <code>OptSeaLevelSolver.step</code> with the lengths of the current and the two previous steps:</p>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">acc</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dS_nhist</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="n">h1</span><span class="p">,</span> <span class="n">h2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dS_hist</span>  <span class="c1"># dS_{n-1}, dS_{n-2}</span>
+    <span class="c1"># linear-in-time extrapolation of the increment: for uniform steps</span>
+    <span class="c1"># 2 dS_{n-1} - dS_{n-2}; for variable steps the rate dS/dt is</span>
+    <span class="c1"># extrapolated between step midpoints and scaled by dt_n</span>
+    <span class="n">extrap_guess</span><span class="p">(</span><span class="n">h1</span><span class="p">,</span> <span class="n">h2</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt_hist</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dt_hist</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                 <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">load_inc_lm</span><span class="p">)</span>
+    <span class="c1"># the rotation block of iteration 1 reads deltaS_cur: give it the</span>
+    <span class="c1"># same guess (plain iteration 1 reads 0 here)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">deltaS_prev</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_inc_lm</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">deltaS_cur</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="44-love-number-file-read">4.4 Love-number file read<a class="headerlink" href="#44-love-number-file-read" title="Permanent link">&para;</a></h3>
+<p>The reader in <code>sl_solver</code> (<code>fortran/src/sl_model_mod.f90</code>), executed once per run: one
+header line, then per degree the number of modes, the decay rates, the elastic and asymptotic
+lines, and the h, l, k residues, followed for l &gt;= 2 by the same lines for the tidal numbers:</p>
+<div class="highlight"><pre><span></span><code><span class="k">open</span><span class="p">(</span><span class="n">unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">201</span><span class="p">,</span><span class="w"> </span><span class="k">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">planetfolder</span><span class="p">)</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">planetmodel</span><span class="p">),</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'old'</span><span class="p">)</span>
+<span class="c">! Reader as in the legacy code of Han et al. (2022)</span>
+<span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span>
+<span class="k">do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="n">norder</span>
+<span class="w">   </span><span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">legord</span><span class="p">(</span><span class="n">j</span><span class="p">),</span><span class="w"> </span><span class="n">nmodes</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+<span class="w">   </span><span class="n">nm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nmodes</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+<span class="w">   </span><span class="n">xn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">real</span><span class="p">(</span><span class="n">legord</span><span class="p">(</span><span class="n">j</span><span class="p">))</span>
+<span class="w">   </span><span class="n">ll</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">legord</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+<span class="w">   </span><span class="n">nmod</span><span class="p">(</span><span class="n">ll</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nm</span>
+<span class="w">   </span><span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">s</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">nm</span><span class="p">)</span>
+<span class="w">   </span><span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">elast</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">elast</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">taurr</span><span class="p">,</span><span class="w"> </span><span class="n">taurt</span><span class="p">,</span><span class="w"> </span><span class="n">elast</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="n">ll</span><span class="p">)</span>
+<span class="w">   </span><span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">asymv</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">asymv</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">taurr</span><span class="p">,</span><span class="w"> </span><span class="n">taurt</span><span class="p">,</span><span class="w"> </span><span class="n">asymv</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="n">ll</span><span class="p">)</span>
+<span class="w">   </span><span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">resh</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">nm</span><span class="p">)</span>
+<span class="w">   </span><span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">resl</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">nm</span><span class="p">)</span>
+<span class="w">   </span><span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">resk</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">nm</span><span class="p">)</span>
+<span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">xn</span><span class="w"> </span><span class="p">.</span><span class="n">lt</span><span class="p">.</span><span class="w"> </span><span class="mf">1.5</span><span class="p">)</span><span class="w"> </span><span class="k">cycle</span>
+<span class="k">   read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">telast</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">telast</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">dmx</span><span class="p">,</span><span class="w"> </span><span class="n">dmy</span><span class="p">,</span><span class="w"> </span><span class="n">telast</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="n">ll</span><span class="p">)</span>
+<span class="w">   </span><span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">tasymv</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">tasymv</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">dmx</span><span class="p">,</span><span class="w"> </span><span class="n">dmy</span><span class="p">,</span><span class="w"> </span><span class="n">tasymv</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="n">ll</span><span class="p">)</span>
+<span class="w">   </span><span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">tresh</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">nm</span><span class="p">)</span>
+<span class="w">   </span><span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">tresl</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">nm</span><span class="p">)</span>
+<span class="w">   </span><span class="k">read</span><span class="p">(</span><span class="mi">201</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">tresk</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">ll</span><span class="p">),</span><span class="w"> </span><span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">nm</span><span class="p">)</span>
+<span class="k">enddo</span>
+<span class="k">close</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span>
+</code></pre></div>
+<p><code>solver.LoveNumbers</code> in <code>python/slevolve/solver.py</code> reads the same layout.</p>
+<h3 id="45-horizontal-displacement-read-out">4.5 Horizontal-displacement read-out<a class="headerlink" href="#45-horizontal-displacement-read-out" title="Permanent link">&para;</a></h3>
+<p>In <code>sl_solver</code> (<code>fortran/src/sl_model_mod.f90</code>), between the inner iteration and the
+commit: the modal states are read with the <code>l</code> weights and combined with the elastic <code>l</code> number and
+the degree-2 rotational term:</p>
+<div class="highlight"><pre><span></span><code><span class="k">call </span><span class="n">exact_state</span><span class="p">%</span><span class="n">read_horizontal</span><span class="p">(</span><span class="n">exact_spec</span><span class="p">,</span><span class="w"> </span><span class="n">exact_horiz</span><span class="p">,</span><span class="w"> </span><span class="n">exact_thl</span><span class="p">)</span>
+<span class="n">hzlm</span><span class="p">(:,:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nmelt</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">   </span><span class="c">!$omp parallel do schedule(static) default(shared) private(l,m,ttl,exact_idx)</span>
+<span class="w">   </span><span class="k">do </span><span class="n">l</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="n">norder</span>
+<span class="w">      </span><span class="n">ttl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mf">4.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">pi</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">radius</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">mass</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mf">2.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="kt">real</span><span class="p">(</span><span class="n">l</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">1.0</span><span class="p">))</span><span class="w"> </span><span class="c">! (eq. B16)</span>
+<span class="w">      </span><span class="k">do </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="n">l</span>
+<span class="w">         </span><span class="n">exact_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lm_index</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">)</span>
+<span class="w">         </span><span class="n">hzlm</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ttl</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">elast</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">l</span><span class="p">)</span><span class="o">/</span><span class="kt">real</span><span class="p">(</span><span class="n">l</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">rhoi</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">deltaicestar</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">exact_cur</span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                  </span><span class="p">&amp;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">rhow</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">deltaS</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">exact_prev</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">rhow</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">load_inc_lm</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">m</span><span class="p">))</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                  </span><span class="p">&amp;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ttl</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">exact_horiz</span><span class="p">(</span><span class="n">exact_idx</span><span class="p">)</span>
+<span class="w">      </span><span class="k">enddo</span>
+<span class="k">   enddo</span>
+<span class="w">   </span><span class="c">!$omp end parallel do</span>
+<span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tpw</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">norder</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      do </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span>
+<span class="w">         </span><span class="n">hzlm</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">hzlm</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">((</span><span class="n">telast</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">deltalambda</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">exact_prev</span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                  </span><span class="p">&amp;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dlambda</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">exact_cur</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">exact_thl</span><span class="p">(</span><span class="n">m</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">gacc</span>
+<span class="w">      </span><span class="k">enddo</span>
+<span class="k">   endif</span>
+<span class="k">endif</span>
+</code></pre></div>
+<p>The Python version, from <code>SeaLevelSolver.horizontal_lm</code> in <code>python/slevolve/solver.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">visc_h</span><span class="p">,</span> <span class="n">thl</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">read_horizontal</span><span class="p">()</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">rhoi</span> <span class="o">*</span> <span class="n">deltaicestar</span> <span class="o">+</span> <span class="n">p</span><span class="o">.</span><span class="n">rhow</span> <span class="o">*</span> <span class="n">deltaS_prev</span>
+<span class="n">A</span> <span class="o">+=</span> <span class="n">p</span><span class="o">.</span><span class="n">rhow</span> <span class="o">*</span> <span class="n">load_inc_lm</span>
+<span class="n">hz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ttlle</span> <span class="o">*</span> <span class="n">A</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ttl</span> <span class="o">*</span> <span class="n">visc_h</span>
+<span class="n">hz</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">sg</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"_msign"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tpw</span> <span class="ow">and</span> <span class="n">rot_tot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">norder</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="n">rot</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">love</span><span class="o">.</span><span class="n">lTE</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">rot_tot</span> <span class="o">+</span> <span class="n">thl</span><span class="p">)</span> <span class="o">/</span> <span class="n">p</span><span class="o">.</span><span class="n">gacc</span>
+    <span class="n">rot</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">sg</span>
+    <span class="n">hz</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+=</span> <span class="n">rot</span>
+<span class="k">if</span> <span class="n">sg</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>  <span class="c1"># raw (sign-free) backend: V = (-1)^m U -&gt; U</span>
+    <span class="n">hz</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mf">1.0</span>
+<span class="k">return</span> <span class="n">hz</span>
+</code></pre></div>
+<h2 id="5-where-to-change-what">5. Where to change what<a class="headerlink" href="#5-where-to-change-what" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>modification</th>
+<th>where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>New Earth model</td>
+<td>Write a Love-number file in the layout of <a href="lovenum.html">Love numbers</a> (<code>python/tools/write_lovenum.py</code>) into <code>INPUT_FILES/earthmodel/</code>. Fortran: <code>PLANETMODEL=&lt;file&gt;</code> in <code>fortran/build.sh</code> (compiled into <code>user_specs_mod</code>). Python: <code>--earth &lt;file&gt;</code> (<code>run_ais.py</code>, <code>run_outer.py</code>)</td>
+</tr>
+<tr>
+<td>New ice history</td>
+<td>Grids <code>&lt;prefix&gt;&lt;k&gt;</code> (<code>.npy</code>, <code>.bin</code> or text), k = 0..N, in <code>INPUT_FILES/icemodel/</code>. Fortran: <code>ICEMODEL=&lt;prefix&gt;</code>, <code>NSTEPS</code>, <code>DT</code> in <code>build.sh</code>. Python: <code>--icedir</code>, <code>--icepfx</code>, <code>--steps</code>, <code>--dt</code> (<code>run_ais.py</code>); <code>--inputs</code>, <code>--icepfx</code>, <code>--nfiles</code>, <code>--dt</code> (<code>run_outer.py</code>). Input trees for the cases: <code>tools/</code></td>
+</tr>
+<tr>
+<td>Spectral truncation</td>
+<td>Fortran: <code>NORDER</code> in <code>build.sh</code> (<code>norder</code> in <code>user_specs_mod</code>). Python: <code>--norder</code>/<code>--lmax</code> (<code>run_ais.py</code>), <code>--lmax</code> (<code>run_outer.py</code>)</td>
+</tr>
+<tr>
+<td>Grid size</td>
+<td>Fortran: <code>nglv</code> is fixed at 512 in the support module (<code>build.sh</code> substitutes only <code>norder</code>); change it in <code>support_mod.f90</code> and the <code>chk</code> list of <code>build.sh</code>, and supply matching <code>grid/</code> files. Python: <code>--nglv</code></td>
+</tr>
+<tr>
+<td>Inner tolerance</td>
+<td>Fortran: <code>EPS1</code> in <code>build.sh</code> (<code>epsilon1</code>; <code>epsilon2</code> stays 1.0E-5). Python: <code>--epsilon1</code></td>
+</tr>
+<tr>
+<td>Step length and number of steps</td>
+<td>Fortran: <code>DT</code>, <code>NSTEPS</code> in <code>build.sh</code> (any integer <code>DT</code>; non-uniform steps from a times file, see <a href="inputs.html#times-file-optional-non-uniform-time-steps">Input files</a>). Python: <code>--steps</code>, <code>--dt</code> in years (<code>run_ais.py</code>, default 1), <code>--dt</code> in years, <code>--nfiles</code> (<code>run_outer.py</code>)</td>
+</tr>
+<tr>
+<td>Inner-iteration start</td>
+<td>Fortran: <code>SLEVOLVE_INNER=off|extrap|anderson</code> (<code>inner_read_options</code>; code in <code>sl_solver</code>). Python: <code>--inner</code></td>
+</tr>
+<tr>
+<td>Warm start across outer passes</td>
+<td>Fortran: <code>SLEVOLVE_REUSE=warm</code> (<code>warm_read</code>, <code>warm_write</code>). Python: <code>run_outer.py --reuse warm</code></td>
+</tr>
+<tr>
+<td>Horizontal output</td>
+<td>Fortran: <code>SLEVOLVE_HORIZ=1</code> (<code>horiz&lt;N&gt;.npy</code>) or <code>2</code> (also <code>Psi&lt;N&gt;.npy</code>); in snapshot mode add <code>horiz</code>/<code>Psi</code> to <code>SLEVOLVE_SNAP_FIELDS</code>. Python: <code>--horizontal</code> or <code>--horizontal-grid</code> (<code>horiz.gradient</code>); <code>python/tools/horiz_grad.py</code> for Fortran output</td>
+</tr>
+<tr>
+<td>Transform backend</td>
+<td>Fortran: <code>SHT=blas|otf</code> (production) or <code>exact|ref</code> (verification) and <code>FFT=fftw|fft991</code>, <code>SYM=1|0</code> in <code>build.sh</code>; <code>SLEVOLVE_FFT</code> at run time (<code>sht_env_init</code>). Python: <code>--sht numpy|ducc</code> (<code>run_ais.py</code>, <code>make_sht</code> in <code>sht_ducc.py</code>); <code>run_outer.py</code> always uses ducc0</td>
+</tr>
+<tr>
+<td>Rotation, marine check</td>
+<td>Fortran: positional <code>TPW</code>, <code>CHECKMARINE</code> arguments of <code>build.sh</code>. Python: <code>--tpw</code>, <code>--checkmarine</code></td>
+</tr>
+<tr>
+<td>Output selection and format</td>
+<td>Fortran: <code>SLEVOLVE_SNAP</code>, <code>SLEVOLVE_SNAP_FIELDS</code>, <code>SLEVOLVE_FMT</code>, <code>SLEVOLVE_TEXT</code> (<code>io_mod</code>). Python: <code>--save-fields</code> (<code>run_ais.py</code>), <code>--save-steps</code> (<code>run_outer.py</code>)</td>
+</tr>
+<tr>
+<td>New output field</td>
+<td>Fortran: add a <code>pp_write_grid</code> (grid) or <code>pp_write_cplx</code> (spectral) call in <code>sl_solver</code> after the commit, next to the existing <code>tgrid</code>/<code>ocean</code> writes; to make it selectable in snapshot mode, add its name to <code>pp_field_bit</code> in <code>io_mod.f90</code>. Python: add the field to the dict returned by <code>OptSeaLevelSolver.step</code> (and <code>SeaLevelSolver.step</code>) and save it in the step loop of <code>run_ais.py</code>/<code>run_outer.py</code> with <code>np.save</code> or <code>npyio.save_spectral</code></td>
+</tr>
+<tr>
+<td>Physical constants</td>
+<td>Fortran: the support module (default <code>rhoi=920</code>, <code>radius=6.371E6</code>; <code>LEGACY_CONSTANTS=1</code> in <code>build.sh</code> gives the legacy 910 / 6.371229E6). Python: <code>--rhoi</code>, <code>--radius</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Next:</strong> <a href="reference/glossary.html">Glossary</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

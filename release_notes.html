@@ -1,0 +1,1600 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Recursive-state 1-D normal-mode GIA sea-level solver (Fortran and Python)">
+      
+      
+      
+      
+        <link rel="prev" href="degree1.html">
+      
+      
+        <link rel="next" href="lineage.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="img/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Release notes and known limitations - SLEvolve v1.0</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="css/header.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#release-notes-and-known-limitations" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="SLEvolve v1.0" class="md-header__button md-logo" aria-label="SLEvolve v1.0" data-md-component="logo">
+      
+  <img src="img/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SLEvolve v1.0
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Release notes and known limitations
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="teal"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="teal"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="install.html" class="md-tabs__link">
+          
+  
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="benchmarks.html" class="md-tabs__link">
+          
+  
+  
+  User guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="options.html" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="method.html" class="md-tabs__link">
+          
+  
+  
+  Background
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="SLEvolve v1.0" class="md-nav__button md-logo" aria-label="SLEvolve v1.0" data-md-component="logo">
+      
+  <img src="img/logo.svg" alt="logo">
+
+    </a>
+    SLEvolve v1.0
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="install.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="quickstart.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="verify.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Verifying the installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="benchmarks.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the benchmark cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="own_case.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting up a new case
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lovenum.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Love numbers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="horizontal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Horizontal displacement output
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="conversion.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File conversion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reproduce.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducing the published results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="options.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command-line options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="inputs.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="outputs.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="formats.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="structure.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/glossary.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Background
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Background
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="method.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="provenance.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark provenance and differences from Han et al. (2022)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="degree1.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Degree-1 Love numbers and reference frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release notes and known limitations
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="release_notes.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release notes and known limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v1.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#names-changed-from-the-development-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Names changed from the development versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checks-made-during-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checks made during development
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lineage.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage and references
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v1.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#names-changed-from-the-development-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Names changed from the development versions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checks-made-during-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checks made during development
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="release-notes-and-known-limitations">Release notes and known limitations<a class="headerlink" href="#release-notes-and-known-limitations" title="Permanent link">&para;</a></h1>
+<p>This page lists the contents of v1.0, its differences from the legacy code and its known limitations.</p>
+<h2 id="v10">v1.0<a class="headerlink" href="#v10" title="Permanent link">&para;</a></h2>
+<p><strong>Contents of the release</strong></p>
+<ul>
+<li><code>fortran/</code>: the Fortran solver (<code>src/</code>), the build script <code>build.sh</code> with presets for the three
+  benchmark cases, and the tools <code>make_cache</code>, <code>text2npy</code> and <code>npy2text</code> (<code>tools/</code>).</li>
+<li><code>python/</code>: the Python solver (<code>run_ais.py</code> forward run, <code>run_outer.py</code> ice age run with outer
+  iteration, <code>init_topo_segmented.py</code> first-pass initial topography) and the converters and
+  post-processing tools in <code>python/tools/</code>.</li>
+<li><code>pyproject.toml</code>: the Python solver as the pip-installable package <code>slevolve</code> 1.0.0 (sources in
+  <code>python/slevolve/</code>, subpackage <code>slevolve.tools</code>; extras <code>fast</code>, <code>plot</code>, <code>netcdf</code>, <code>all</code>) with the
+  console scripts <code>slevolve-forward</code>, <code>slevolve-outer</code>, <code>slevolve-init-topo</code>, <code>slevolve-text2npy</code>,
+  <code>slevolve-npy2text</code>, <code>slevolve-npy2nc</code>. The scripts in <code>python/</code> remain the no-install route.</li>
+<li><code>tools/</code>: input preparation for the benchmark cases (<code>build_case1_total_ice.py</code>, <code>regrid.py</code>,
+  <code>prepare_case2_inputs.sh</code>, <code>prepare_case3_nadi.py</code>). No input data are redistributed.</li>
+<li><code>lovenum/</code>: the Love-number files of the three cases, in the degree-1 frame CE (k_1 = 0), and
+  <code>DEGREE1_NOTES.md</code> on degree-1 Love numbers. Case 1 (<code>prem_512.l60K2C.sum18p6.dum19p2.tz19p4.lm22</code>)
+  is the file distributed with Han et al. (2022), included unchanged; it is CE in its elastic and fluid
+  limits but carries a degree-1 initialisation defect in its residues, which changes the degree-1
+  R, G and horizontal outputs but not sea level or topography. Cases 2 and 3
+  (<code>prem_512.l120C.ump5.lm5</code>, <code>prem_512.l96C.ump3.lm1</code>) were computed with the collocation method of
+  Mitrovica and Peltier (1992) (after Peltier 1985).</li>
+<li><code>tools/make_grid.py</code> (grid files <code>GLlat_512.txt</code>, <code>GLlon_512.txt</code>) and
+  <code>python/tools/write_lovenum.py</code> (Love numbers of your own Earth model in the solver's layout).</li>
+<li><code>reference/</code>: reference outputs of the three cases, checked with <code>tests/check_reference.py</code>.</li>
+<li><code>tests/</code>: the Python tests <code>python tests/run_all.py</code> (recursion vs explicit history sum, transform
+  round trip, idealised small case, the extrapolated inner start for uniform and non-uniform steps,
+  the small case with non-uniform steps), the Fortran test <code>tests/test_fortran_python.sh</code> (Fortran vs
+  Python on a synthetic Earth), its non-uniform-step twin <code>tests/test_fortran_python_vardt.sh</code>
+  (times file; also checks that a uniform times file reproduces the run without one exactly), the Fortran-only test <code>tests/test_fortran_synthetic.sh</code> (no Python;
+  against <code>reference/synthetic/tgrid8.npy</code>) and <code>tests/check_reference.py</code>.</li>
+<li><code>tools/make_synthetic_case.py</code> and its Fortran twin <code>tools/make_synthetic_case.f90</code> (synthetic-Earth
+  input tree: an Earth-like random topography from a fixed seed, shipped as
+  <code>reference/synthetic/topography_seed.npy</code>, and two melting Vialov ice sheets),
+  <code>python/tools/plot_fields.py</code> (Mollweide and south polar stereographic maps with coastlines) and
+  <code>tools/plot_reference.py</code> (maps of the reference results).</li>
+<li><code>examples/</code>: the quick start <code>quickstart.py</code>, run scripts for the three benchmark cases
+  (<code>case1_forward.sh</code>, <code>case2_one_pass.sh</code>, <code>case3_ice_age.sh</code>, each for Fortran or Python) and the
+  in-process outer-iteration wrapper <code>run_outer_mem.sh</code>.</li>
+<li><code>docs/</code>: this manual.</li>
+</ul>
+<p><strong>Differences from the legacy code of Han et al. (2022)</strong></p>
+<ul>
+<li>The viscous history terms (sea level, radial displacement and the four degree-2 rotational terms)
+  are carried in a recursive normal-mode state, advanced by one decay factor per step, instead of an
+  explicit sum over the load history. The recursion is exact.</li>
+<li>One process runs all time steps with the Earth model, modal state and transform tables resident;
+  binary <code>.npy</code> input and output, with text &lt;-&gt; <code>.npy</code> converters in Fortran and Python.</li>
+<li>Fewer spherical-harmonic transforms per step; Legendre transform by an on-the-fly recurrence or a
+  BLAS table; FFTW; north-south symmetry; OpenMP.</li>
+<li>Optional extrapolated start of the inner iteration and warm start of outer passes (these change only
+  the starting point of an iteration; the converged result agrees within the inner tolerance).</li>
+<li>Ice age runs: partially relaxed (segmented) first-pass initial topography, and an in-process
+  outer-iteration driver.</li>
+<li>Optional output of the horizontal surface displacement.</li>
+<li>The longitude FFT routine <code>fft99b</code> of the transform module is used in a corrected form.</li>
+</ul>
+<p>The code lineage is described in <a href="lineage.html">Lineage and references</a>.</p>
+<p><strong>Known limitations</strong></p>
+<ul>
+<li><strong>Ice-sheet coupling.</strong> The ice-sheet coupling interface inherited from the legacy code (the <code>coupling</code> flag and the coupled
+  ice-input path in <code>fortran/src/sl_model_mod.f90</code>) is retained in the Fortran source but is
+  not used by any benchmark case, is absent from the Python version, and has not been tested with the
+  recursive state in v1.0.</li>
+<li><strong>Time steps.</strong> Uniform steps (the benchmark cases use 1 yr, 200 yr and 500 yr): Python <code>--dt</code> in
+  years (<code>run_ais.py</code>, default 1; <code>run_outer.py</code>; <code>init_topo_segmented.py</code>), printed at start-up;
+  Fortran compiled in by <code>build.sh DT=&lt;years&gt;</code> (the forward driver <code>run_from_zero_plus</code> uses the build-time <code>DT</code>,
+  verified against Python with <code>DT=1</code> and <code>DT=5</code>). Non-uniform steps: an optional times file, one time in years per ice file
+  (<a href="inputs.html#times-file-optional-non-uniform-time-steps">format</a>), read by Fortran at run time from
+  <code>INPUT_FILES/others/times</code> or <code>SLEVOLVE_TIMES=&lt;path&gt;</code> (build with <code>DT</code> unset) and by Python with
+  <code>--times &lt;file&gt;</code>. The benchmark cases use uniform steps; the non-uniform mode is verified on the
+  idealised small case and the synthetic Earth (<code>tests/test_small_case_vardt.py</code>,
+  <code>tests/test_fortran_python_vardt.sh</code>), not on a benchmark case.</li>
+</ul>
+<p>What the times file changes (step <code>j</code> has length <code>dt_j = t_j - t_(j-1)</code>):</p>
+<pre><code>1. the decay factors of the modal-state update, `d_k = exp(-s_k dt_j)`, recomputed whenever the
+   step length changes (cached otherwise), in both solvers; the recursion remains exact for the
+   step-wise load history (`tests/test_recursion.py`, `tests/test_small_case_vardt.py`);
+2. the extrapolated inner start: from step 3 on,
+   `dS0_j = dt_j [Sdot_(j-1) + (Sdot_(j-1) - Sdot_(j-2)) (dt_j + dt_(j-1)) / (dt_(j-1) + dt_(j-2))]`,
+   `Sdot_i = dS_i / dt_i`, which is exactly `2 dS_(j-1) - dS_(j-2)` for equal steps
+   (`tests/test_extrap_formula.py`);
+3. the time stamps: Fortran `OUTPUT_SLM/times` holds `t_0 .. t_N` (written as `ES24.16E3` instead of
+   the uniform-step `ES14.4E2`, so that non-integer times are kept); Python `run_log.json` and
+   `outer_log.json` store `times_years` (`run_log.json` `dt_years` = `"variable"`);
+4. Python `init_topo_segmented.py --times`: the segment ages are `t_N - t_n` instead of `dt (N - n)`.
+</code></pre>
+<p>Unchanged: the step indexing (ice file k is read at step k; the Fortran <code>NSTEPS</code>, <code>L_sim/dt1</code>, the
+  time window <code>TIMEWINDOW</code>, the checkpoint cadence and the <code>--save-steps</code>/<code>SLEVOLVE_SNAP</code> step numbers
+  count steps, not years). Without a times file the code paths are those of uniform steps, and a
+  uniform times file reproduces them exactly. The legacy <code>input_times</code>/<code>timearray</code> flag of
+  <code>user_specs_mod</code> is not used (it still stops the exact-memory path when set).
+* <strong>Fortran grid and names.</strong> <code>nglv</code> is fixed at 512, and the input file names are compiled in: every
+  new case needs a rebuild.
+* <strong>Love numbers</strong> are read, not computed (<a href="lovenum.html">Love numbers</a>).
+* <strong>Python defaults.</strong> <code>run_ais.py</code> has development defaults for <code>--earth</code>, <code>--icedir</code>, <code>--topo</code> and
+  <code>--out</code>, and <code>run_outer.py</code> the Case 3 defaults <code>--icepfx nadi_ --nfiles 51 --dt 500</code>; always pass
+  them explicitly.
+* <strong>Converters.</strong> Self-describing metadata (grid, units, time axis) exist only via <code>npy2nc.py</code>. The
+  checkpoint and <code>reuse_&lt;k&gt;.bin</code> record files are not converted to <code>.npy</code>.
+* <strong>Build portability.</strong> Only the macOS / Apple-silicon configuration of <a href="install.html#tested-environment">Installation</a>
+  has been tested; the non-conda (<code>FFTW_PREFIX</code>) and OpenBLAS paths have not.
+* Anderson mixing, the secant outer update and the <code>--reuse</code> variants other than <code>warm</code> are
+  experimental and were not used in the paper.
+* The example scripts in <code>examples/</code> are templates for the benchmark cases; they expect the input
+  trees produced by the scripts in <code>tools/</code>.</p>
+<h2 id="names-changed-from-the-development-versions">Names changed from the development versions<a class="headerlink" href="#names-changed-from-the-development-versions" title="Permanent link">&para;</a></h2>
+<p>Files, environment variables and identifiers were renamed for the release; scripts written for the
+development versions need these changes.</p>
+<table>
+<thead>
+<tr>
+<th>development name</th>
+<th>release name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fortran/build6.sh</code>, <code>fortran/src6/</code></td>
+<td><code>fortran/build.sh</code>, <code>fortran/src/</code></td>
+</tr>
+<tr>
+<td>build directory <code>fortran/build/pp6_case1_c2021_otf_fftw_sym1_omp8_n511_tpwT_cmT_N550/</code></td>
+<td><code>fortran/build/case1/</code> (suffixes only for non-default switches)</td>
+</tr>
+<tr>
+<td>build defaults <code>SHT=blas</code>, <code>OMP=0</code>, <code>NORDER=512</code></td>
+<td><code>SHT=otf</code>, <code>OMP=8</code>, <code>NORDER=511</code></td>
+</tr>
+<tr>
+<td><code>C2021=1</code> (default constants), <code>C2021=0</code></td>
+<td>removed (the default); <code>LEGACY_CONSTANTS=1</code></td>
+</tr>
+<tr>
+<td><code>sl_model_mod_pureplus.f90</code></td>
+<td><code>sl_model_mod.f90</code></td>
+</tr>
+<tr>
+<td><code>exact_response_memory_mod_stage2.f90</code>, module <code>exact_response_memory_mod</code></td>
+<td><code>modal_state_mod.f90</code>, module <code>modal_state_mod</code></td>
+</tr>
+<tr>
+<td><code>pureplus_io_mod.f90</code>, module <code>pureplus_io_mod</code></td>
+<td><code>io_mod.f90</code>, module <code>io_mod</code></td>
+</tr>
+<tr>
+<td><code>support_runtime_real512_orig.f90</code></td>
+<td><code>support_mod.f90</code></td>
+</tr>
+<tr>
+<td><code>PUREPLUS3_OPT</code></td>
+<td><code>SLEVOLVE_OPT</code></td>
+</tr>
+<tr>
+<td><code>PUREPLUS_INNER</code>, <code>_INNER_LOG</code>, <code>_AA_M</code>, <code>_AA_MASK</code>, <code>_REUSE</code>, <code>_OUTER</code>, <code>_ICECACHE</code>, <code>_SNAP</code>, <code>_SNAP_FIELDS</code>, <code>_HORIZ</code>, <code>_FMT</code>, <code>_TEXT</code>, <code>_BIN</code>, <code>_BININ</code>, <code>_CKPT</code>, <code>_BATCH</code>, <code>_FFT</code>, <code>_ZERO</code>, <code>_COMPAT</code>, <code>_SHTPROF</code></td>
+<td><code>SLEVOLVE_INNER</code>, ... (same suffix)</td>
+</tr>
+<tr>
+<td>Fortran <code>dSlm</code>, <code>dsllm</code>, <code>deltasllm</code> (Python <code>dSlm</code>, ...)</td>
+<td><code>load_inc_lm</code>, <code>sl_inc_lm</code>, <code>sl_tot_lm</code></td>
+</tr>
+<tr>
+<td>Fortran prefixes <code>pp3_</code> (transform reductions), <code>pp4_</code> (inner iteration), <code>pp4_dtm*/dsm*/c1/c2</code> (extrapolation), <code>pp4_ru_</code>, <code>pp4_reuse_</code> (warm start), <code>pp4_outer</code>, <code>pp4_secant</code></td>
+<td><code>opt_</code>, <code>inner_</code>, <code>extrap_</code>, <code>warm_</code>, <code>outer_mode</code>, <code>outer_secant</code></td>
+</tr>
+<tr>
+<td><code>examples/quickstart_disc.py</code></td>
+<td><code>examples/quickstart.py</code> (synthetic Earth)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="checks-made-during-development">Checks made during development<a class="headerlink" href="#checks-made-during-development" title="Permanent link">&para;</a></h2>
+<p>These checks were made during development with tools that are not part of this release; they are
+recorded here and are not meant to be repeated.</p>
+<p><strong>Exactness against the legacy solver</strong></p>
+<ul>
+<li>Run both solvers on the same inputs and configuration with <code>SLEVOLVE_INNER=off</code> and no warm start.
+  The legacy reference build uses the corrected <code>fft99b</code>. The legacy build scripts and the comparison
+  scripts used during development are not part of this release.</li>
+<li><strong>Pass criteria:</strong></li>
+<li>final topography differs by <strong>&lt; 1e-11 m</strong> between exact SLEvolve variants and the legacy solver
+    (binary output);</li>
+<li>identical <code>numiter</code> at every step;</li>
+<li>identical <code>ocean</code> and <code>beta</code> masks.</li>
+<li>Comparisons against legacy <em>text</em> output are limited by the ES16.9E2 print precision (~4e-6 m).</li>
+</ul>
+<p><strong>Acceptance criteria used during development</strong></p>
+<ul>
+<li>Every stage was accepted only after it reproduced the preceding stage numerically on the benchmark
+  cases (paper Sect. 2.8): same inner-iteration counts and masks, and topography within round-off.</li>
+<li>Switches that only change the iteration start (extrap, warm, T0 guess) were accepted on agreement
+  within <code>epsilon1</code> and on the converged outer misfit.</li>
+<li>Fortran and Python are cross-checked against each other.</li>
+<li>Repeat runs give identical output.</li>
+</ul>
+<p><strong>File converters</strong></p>
+<ul>
+<li>Converters, on one file of each text layout (<code>row-e.18</code>, <code>row-e16.7</code>, <code>row-E18.10</code>):</li>
+<li>Fortran- and Python-written <code>.npy</code> files are identical.</li>
+<li><code>np.load</code> of the Fortran file equals the text parse.</li>
+<li>text -&gt; npy -&gt; text reproduces the original file exactly in its own format, in both languages.</li>
+<li><code>es16.9</code> output is identical between Fortran and Python and round-trips exactly.</li>
+<li>The Fortran reader also handles fortran_order=True and <code>|i1</code> files.</li>
+<li>Solver, 20 Case 1 steps with all snapshot fields: reading <code>&lt;f4</code> <code>.npy</code> ice and a <code>&lt;f8</code> <code>.npy</code>
+  topography gives output identical to reading the headerless <code>.bin</code> caches, and all scalar text
+  outputs are identical (except CPU time).</li>
+<li>Python, 20 steps, lmax 511: reading the Fortran-written <code>.npy</code> inputs gives output identical to
+  reading the text files; the <code>.npy</code> headers of <code>tgrid</code>, <code>ocean</code> and <code>dS_converged</code> are identical to
+  the Fortran files'.</li>
+</ul>
+<p><strong>Next:</strong> <a href="lineage.html">Lineage and references</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
