@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use SLEvolve, please cite the article below."
+title: SLEvolve
+version: "1.0.0"
+type: software
+authors:
+  - family-names: Bao
+    given-names: Xiyuan
+    affiliation: Harvard University
+    email: xiyuanbao@fas.harvard.edu
+license: GPL-3.0-or-later
+repository-code: "https://github.com/xiyuanbao/slevolve"
+url: "https://xiyuanbao.github.io/slevolve/"
+abstract: >-
+  Recursive-state 1-D normal-mode GIA sea-level solver (Fortran and Python) for forward and
+  ice age runs on a spherically symmetric viscoelastic Earth.
+keywords:
+  - glacial isostatic adjustment
+  - sea level
+  - viscoelastic Earth
+  - normal modes
+preferred-citation:
+  type: article
+  title: "An exact finite-state representation of viscoelastic memory for accelerated sea-level modeling: SLEvolve v1.0"
+  authors:
+    - family-names: Bao
+      given-names: Xiyuan
+      affiliation: "Department of Earth and Planetary Sciences, Harvard University"
+    - family-names: Mousavi
+      given-names: S. Mostafa
+      affiliation: "Department of Earth and Planetary Sciences, Harvard University"
+    - family-names: Latychev
+      given-names: Konstantin
+      affiliation: "Seakon, Toronto, ON, Canada"
+    - family-names: Mitrovica
+      given-names: Jerry X.
+      affiliation: "Department of Earth and Planetary Sciences, Harvard University"
+  journal: Geoscientific Model Development
+  status: submitted
+  year: 2026

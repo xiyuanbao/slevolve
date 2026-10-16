@@ -1,0 +1,14 @@
+# build and run products
+fortran/build/
+docs/site/
+python/cache/
+runs/
+slevolve_fortran_test/
+OUT_*/
+results/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.DS_Store

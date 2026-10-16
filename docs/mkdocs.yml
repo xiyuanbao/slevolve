@@ -1,0 +1,60 @@
+site_name: SLEvolve v1.0
+site_description: Recursive-state 1-D normal-mode GIA sea-level solver (Fortran and Python)
+docs_dir: src
+site_dir: site
+use_directory_urls: false
+theme:
+  name: material
+  logo: img/logo.svg
+  favicon: img/favicon.svg
+  palette:
+    - scheme: default
+      primary: custom
+      accent: teal
+      toggle: {icon: material/brightness-7, name: Dark mode}
+    - scheme: slate
+      primary: blue grey
+      accent: teal
+      toggle: {icon: material/brightness-4, name: Light mode}
+  features: [navigation.tabs, navigation.sections, navigation.top, search.highlight, content.code.copy]
+markdown_extensions:
+  - tables
+  - toc: {permalink: true}
+  - pymdownx.arithmatex: {generic: true}
+  - pymdownx.superfences
+  - admonition
+  - attr_list
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+validation:
+  links: {anchors: warn}
+plugins:
+  - search
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: install.md
+      - Quick start: quickstart.md
+      - Verifying the installation: verify.md
+  - User guide:
+      - Running the benchmark cases: benchmarks.md
+      - Setting up a new case: own_case.md
+      - Love numbers: lovenum.md
+      - Horizontal displacement output: horizontal.md
+      - File conversion: conversion.md
+      - Reproducing the published results: reproduce.md
+  - Reference:
+      - Command-line options: options.md
+      - Input files: inputs.md
+      - Output fields: outputs.md
+      - File formats: formats.md
+      - Code structure: structure.md
+      - Glossary: reference/glossary.md
+  - Background:
+      - Method overview: method.md
+      - Benchmark provenance and differences from Han et al. (2022): provenance.md
+      - Degree-1 Love numbers and reference frames: degree1.md
+      - Release notes and known limitations: release_notes.md
+      - Lineage and references: lineage.md
+extra_css:
+  - css/header.css

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slevolve"
+version = "1.0.0"
+description = "SLEvolve: exact-memory gravitationally self-consistent sea-level solver (Python implementation)"
+readme = "README.md"
+authors = [{ name = "Xiyuan Bao" }]
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE", "LICENSE-upstream-MIT"]
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "scipy"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.optional-dependencies]
+fast = ["numba", "ducc0"]
+plot = ["matplotlib"]
+netcdf = ["netCDF4"]
+all = ["numba", "ducc0", "matplotlib", "netCDF4"]
+
+[project.scripts]
+slevolve-forward = "slevolve.run_ais:main"
+slevolve-outer = "slevolve.run_outer:main"
+slevolve-init-topo = "slevolve.init_topo_segmented:main"
+slevolve-text2npy = "slevolve.tools.text2npy:main"
+slevolve-npy2text = "slevolve.tools.npy2text:main"
+slevolve-npy2nc = "slevolve.tools.npy2nc:main"
+
+[tool.setuptools]
+package-dir = { "" = "python" }
+packages = ["slevolve", "slevolve.tools"]
