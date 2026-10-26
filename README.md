@@ -12,7 +12,9 @@ symmetric viscoelastic Earth, based on the normal-mode (Love-number) formulation
 runs (outer iteration on the initial topography). The viscoelastic memory is carried in a recursive
 modal state instead of a sum over the full load history, so the total cost grows as O(N) instead of
 O(N^2) in the number of time steps N. A Fortran solver derived from the legacy code of Han et al.
-(2022) and a Python solver written from scratch give results identical to round-off (below 1e-11 m in the three benchmark cases).
+(2022) and a Python solver written from scratch; the paper's version (Zenodo v1.0.0, doi 10.5281/zenodo.23422438) reproduces the legacy solver to round-off (below 1e-11 m in the three
+benchmark cases, with the Fortran and Python solvers identical to round-off); the current code additionally applies the corrected floating-ice convention (see
+[Provenance](https://xiyuanbao.github.io/slevolve/provenance.html)).
 
 ## What is new relative to the legacy code
 
@@ -26,6 +28,8 @@ O(N^2) in the number of time steps N. A Fortran solver derived from the legacy c
 - Faster spherical-harmonic transforms (on-the-fly Legendre recurrence or BLAS table, FFTW, N-S
   symmetry, OpenMP); binary `.npy` I/O with text <-> `.npy` converters in Fortran and Python.
 - Horizontal surface displacement output (scalar potential Psi_lm, gradient on the grid).
+- Floating-ice convention corrected: the ocean under floating ice shelves carries water load
+  (grounded-ice mask of Kendall et al. 2005, eqs 43-44, flotation on the current topography).
 
 Details: [Method overview](https://xiyuanbao.github.io/slevolve/method.html).
 

@@ -11,7 +11,7 @@ a suffix is added only for a switch that differs from its default.
 * Positional arguments (normally none is given):
   * `TPW` = `T|F`: rotational feedback on or off (default `T`).
   * `CHECKMARINE` = `T|F`: marine check on or off; with `T` ice that would float on the current
-    topography is removed from the load (default `T`).
+    topography iterate is removed from the load (default `T`).
   * `NSTEPS`: number of steps compiled in (default from `CASE`, 550 without `CASE`); `L_sim = Ldt1 = DT * NSTEPS`.
 
 ### Case presets

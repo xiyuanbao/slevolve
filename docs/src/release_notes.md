@@ -4,6 +4,17 @@ This page lists the contents of v1.0, its differences from the legacy code and i
 
 ## v1.0
 
+**Note of 2026-10-26: floating-ice convention.** The ice function \(\beta\) is now the grounded-ice
+mask of Kendall et al. (2005, eqs 43-44): the ocean under floating ice shelves carries water load and
+belongs to the ocean area of the conservation term, and the flotation check uses the current
+topography iterate of the inner iteration (mask updated at most three times per step). The legacy
+code, and the code of the paper (Zenodo v1.0.0, doi 10.5281/zenodo.23422438), excluded every
+ice-covered cell, floating shelves included, from the water-loading ocean and tested flotation
+against the initial topography of the pass. The change applies to both solvers and has no switch;
+`reference/`, the expected outputs of the tests and the documentation figures were recomputed with
+it. New test: `tests/test_floating_ice.py`. See
+[Benchmark provenance](provenance.md#differences-from-the-runs-of-han-et-al-2022).
+
 **Contents of the release**
 
 - `fortran/`: the Fortran solver (`src/`), the build script `build.sh` with presets for the three
@@ -137,7 +148,8 @@ development versions need these changes.
 These checks were made during development with tools that are not part of this release; they are
 recorded here and are not meant to be repeated.
 
-**Exactness against the legacy solver**
+**Exactness against the legacy solver** (code of the paper, Zenodo v1.0.0, before the floating-ice
+correction of 2026-10-26)
 
 * Run both solvers on the same inputs and configuration with `SLEVOLVE_INNER=off` and no warm start.
   The legacy reference build uses the corrected `fft99b`. The legacy build scripts and the comparison

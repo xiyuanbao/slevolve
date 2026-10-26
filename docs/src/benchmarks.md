@@ -93,18 +93,18 @@ python tests/check_reference.py --case case1 --dir RUN_case1/OUTPUT_SLM      # F
 The Fortran example writes only `tgrid0` and `tgrid550`, so for it `check_reference.py` compares
 `dtopo_550` and the inner-iteration counts (from the text file `OUTPUT_SLM/numiter`), reports the
 other reference fields as `SKIP` and lists them at the end. For the Fortran example output it
-reported `dtopo_550` max |diff| 8.2e-12 m and identical iteration counts (2099). To compare all
+reported `dtopo_550` max |diff| 1.2e-7 m and 2852 inner iterations against the 2851 of the reference (one step needs one more iteration; pass `--iter-slack 1`): a cell at flotation makes the grounded mask sensitive to round-off, so on this case the two solvers agree to about 1e-7 m rather than to round-off. To compare all
 fields, run the Fortran example with `SLEVOLVE_SNAP=1,100,550 SLEVOLVE_SNAP_FIELDS=tgrid,ocean`.
 
 **Expected result.** Topography change at step 550 (`reference/case1/dtopo_550.npy`, south polar
 stereographic view and global Mollweide view; colormap PuOr_r with fixed limits +-400 m as in
-Fig. 3a of the paper, arrows on the colour bar for values beyond; maximum 390 m; black line: coast of
+Fig. 3a of the paper, arrows on the colour bar for values beyond; maximum 307 m; black line: coast of
 the initial topography):
 
 ![Case 1 reference: topography change at step 550](img/ref_case1_dtopo550.png)
 
-The unloading of the West Antarctic ice sheet raises the bed by up to 390 m after 550 years on this
-low-viscosity Earth, with subsidence where ice thickens. Area-weighted RMS 12.3 m; 2099 inner
+The unloading of the West Antarctic ice sheet raises the bed by up to 307 m after 550 years on this
+low-viscosity Earth, with subsidence where ice thickens. Area-weighted RMS 8.87 m; 2851 inner
 iterations in 550 steps.
 
 **Variants**
@@ -161,12 +161,12 @@ The paper reports this case as one pass only.
 **Expected result.** Topography change at step 1200 of the pass from the present topography
 (`reference/case2/dtopo_1200.npy`, Mollweide view; colormap PuOr_r with fixed limits +-200 m, the
 99th percentile of |change| (173 m) rounded up, arrows on the colour bar for values beyond; maximum
-283 m; black line: present coast):
+282 m; black line: present coast):
 
 ![Case 2 reference: topography change at step 1200](img/ref_case2_dtopo1200.png)
 
 The largest changes are under the former North American and Eurasian ice sheets. Area-weighted RMS
-27.4 m, which is also the outer misfit of this pass (`reference/case2.json`, `misfit_rms`).
+27.3 m, which is also the outer misfit of this pass (`reference/case2.json`, `misfit_rms`).
 
 ## Case 3: ICE-NADI-1 (50 × 0.5 kyr), full outer iteration
 
@@ -237,8 +237,8 @@ python tests/check_reference.py --case case3 --dir OUT_case3_py --topo-pres /pat
 ```
 
 **Expected result.** Topography change at step 50 of pass 5 (`reference/case3/dtopo_p5_s50.npy`,
-Mollweide view; colormap PuOr_r with fixed limits +-600 m, the 99th percentile of |change| (512 m)
-rounded up, arrows on the colour bar for values beyond; maximum 1025 m; black line: present coast):
+Mollweide view; colormap PuOr_r with fixed limits +-600 m, the 99th percentile of |change| (511 m)
+rounded up, arrows on the colour bar for values beyond; maximum 1014 m; black line: present coast):
 
 ![Case 3 reference: topography change at step 50 of pass 5](img/ref_case3_dtopo50.png)
 
@@ -249,7 +249,7 @@ relative to the sea floor.
 ![Case 3 reference: outer misfit per pass](img/ref_case3_misfit.png)
 
 The outer misfit, the area-weighted RMS of predicted minus observed present topography, falls from
-12.0 m after pass 1 to 0.074 m after pass 5 (`reference/case3.json`, `misfit_rms`).
+1.30 m after pass 1 to 0.0045 m after pass 5 (`reference/case3.json`, `misfit_rms`).
 
 The figures of this page are made with
 `python tools/plot_reference.py --outdir DIR --topo1 T1 --topo2 T2 --topo3 T3` from `reference/`,

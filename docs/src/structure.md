@@ -248,7 +248,7 @@ solver_opt.OptSeaLevelSolver  (subclass of solver.SeaLevelSolver, overrides step
   ocean and beta functions, their spectra) and creates the state `ExactMemory`;
   `OptSeaLevelSolver.__init__` replaces it by `ExactMemoryFast` when `numba` is selected.
 * `OptSeaLevelSolver.step` follows the same sequence as `sl_solver`: `state.advance_and_read()`,
-  ice and ocean grids (`kernels.icestar_beta_cstar_tO`), ice analysis and increments, eustatic guess,
+  grounded ice I* on the previous converged topography, beta and ocean grids, ice analysis and increments, eustatic guess,
   extrapolated start (`inner != "off"`), warm start (`reuse_store`), inner loop (rotation,
   `kernels.b18`, synthesis, conservation, `kernels.dS_update`, convergence measure `xi`,
   ocean-function update or Anderson mixing), history push, `R`/`G` from `radial`, optional

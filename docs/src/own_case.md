@@ -22,10 +22,13 @@ are given in [6. Running](#6-running). Input formats: [File formats](formats.md)
   converts).
 * **Units.** Ice thickness in metres of ice (ice density `rhoi` = 920 kg m^-3, `--rhoi` to change).
 * **Grounded or total ice.** With the marine check on (`--checkmarine T`, the default) the solver keeps
-  only ice that is grounded: ice of thickness H on a cell whose initial topography T0 (step 0) is not
-  positive is kept if `rhoi * H > rhow * |T0|` (`rhow` = 1000 kg m^-3), otherwise it is treated as
-  floating and removed from the load. You can then give the total (grounded plus floating) thickness. With the marine check off,
-  give grounded ice only: floating ice would be counted as load.
+  only ice that is grounded: ice of thickness H on a cell whose topography T is not positive is kept
+  if `rhoi * H > rhow * |T|` (`rhow` = 1000 kg m^-3), otherwise it is treated as floating and removed
+  from the load. T is the current topography iterate of the inner iteration. The ocean under floating
+  ice carries water load (grounded-ice mask of Kendall et al. 2005, eqs 43-44;
+  [Method overview](method.md#sea-level-equation-eq-1-of-the-paper)). You can then give the total
+  (grounded plus floating) thickness. With the marine check off, give grounded ice only: floating ice
+  would be counted as load.
 * **File naming and time.** Files `<prefix>0`, `<prefix>1`, ..., `<prefix>N`, one per step. File 0 is
   the initial state (the oldest time). With uniform spacing `dt`, file k is the ice at time `k * dt`
   after the start; with a times file, file k is the ice at time `t_k` of line k + 1 of the file
@@ -206,7 +209,7 @@ Run passes until it stops decreasing by a meaningful amount for your application
 * The benchmark cases and `tests/check_reference.py` check a full-size configuration against
   `reference/` ([Verifying the installation](verify.md#benchmark-reference-check)).
 * For your own case, look at:
-  * `numiter` (inner iterations per step; Case 1 needs 2099 in 550 steps): compare a step that needs
+  * `numiter` (inner iterations per step; Case 1 needs 2851 in 550 steps): compare a step that needs
     many more than its neighbours with the change of `ocean<N>` at that step;
   * the ice volume (`run_log.json` `scalars`, Fortran `ice_volume`) against the volume of your input
     files, which shows what the marine check removed;

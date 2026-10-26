@@ -89,6 +89,15 @@ fields are `.npy` complex `(L+1, L+1)` in Fortran order. See [File formats](form
 Deliberate deviations of the benchmark set-up from the archived runs of Han et al. (2022), with the
 reason. "Not verified" marks statements that could not be confirmed from the archive or the paper.
 
+* *Floating-ice convention.* The legacy code excludes every ice-covered cell, floating shelves
+  included, from the water-loading ocean and tests flotation against the initial topography of the
+  pass. SLEvolve uses the grounded-ice mask of Kendall et al. (2005, eqs 43-44), so the ocean under
+  floating shelves carries water load and belongs to the ocean area of the conservation term, and
+  tests flotation against the current topography. In the paper, SLEvolve and the legacy solver were
+  compared with the same floating-ice treatment (that of the legacy code), which established the
+  round-off agreement; the released code differs from those runs only by this convention, and
+  `reference/` is computed with it.
+
 **Case 1 (Antarctic forward run).**
 
 * *Total-ice forcing instead of the archived grounded ice, with the marine check on.* The 551 archived
@@ -101,7 +110,8 @@ reason. "Not verified" marks statements that could not be confirmed from the arc
   shelves of the initial state enter the elastic and mass-conservation terms (and the rotational
   feedback) at step 1 but not the viscous memory. SLEvolve and the released legacy code include them
   in all terms alike, which leaves 2.05 m area-weighted RMS against the archived 550-yr topography on a
-  12.3 m signal (0.024 m with that initialization mimicked). The released legacy code behaves like
+  12.3 m signal (0.024 m with that initialization mimicked); these values are for the paper's version, with the legacy floating-ice
+  convention. The released legacy code behaves like
   SLEvolve, so the archived run differs from the released code in this initialization; the default
   follows the released code.
 * *Love-number file as distributed* (`prem_512.l60K2C.sum18p6.dum19p2.tz19p4.lm22`, unchanged). The

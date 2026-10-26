@@ -23,8 +23,9 @@ There are two implementations.
 
 **What is exact and what is not.**
 
-* These parts are exact and reproduce the legacy solution to round-off (< 1e-11 m in final
-  topography, identical inner-iteration counts and masks):
+* These parts are exact: with them, the paper's version (Zenodo v1.0.0, doi 10.5281/zenodo.23422438)
+  reproduces the legacy solver to round-off (< 1e-11 m in final topography, identical inner-iteration
+  counts and masks); the current code additionally applies the corrected floating-ice convention (see [Provenance](provenance.md#differences-from-the-runs-of-han-et-al-2022)):
   * the recursive state,
   * resident I/O,
   * the transform reductions,
@@ -61,7 +62,21 @@ $$
 * \(C_j\): ocean function, 1 where sea level is positive (sea surface above the solid surface), 0 elsewhere.
 * \(\beta_j\): ice function, 0 where grounded ice covers the surface, 1 elsewhere. The marine check: marine ice
   counts as grounded only where its thickness exceeds the water depth times \(\rho_w/\rho_I\); thinner
-  ice floats and is not part of the load.
+  ice floats and is not part of the load. \(\beta_j\) is the grounded-ice mask of Kendall et al.
+  (2005, eqs 43-44): it is 0 exactly where the grounded ice \(I^*_j\) is non-zero, so the ocean under
+  floating ice shelves is part of the water-loading ocean \(C_j\beta_j\) and of the ocean area of
+  the conservation term. A floating shelf together with the water beneath it weighs as much as a
+  water column up to the sea surface, so a change of sea level under a shelf changes the load as in
+  the open ocean. The flotation check uses the current topography iterate
+  \(T_j^{(i)} = T_0 - \Delta\mathcal{SL}_j^{(i)}\) of the inner iteration (the topography that also
+  defines the re-guessed ocean function); the first iterate of a step uses the converged topography
+  of the previous step. Mask update rule: \(I^*_j\), its spectrum (the ice-load increment),
+  \(\beta_j\) and \(C_j\beta_j\) are re-evaluated with every re-guess of the ocean function; the
+  ice analysis is repeated only when the grounded flag of at least one cell changed, and the grounded
+  mask is updated at most three times per step (a cell at flotation can otherwise make the mask
+  alternate between two states); after that it is kept for the rest of the step. The viscous state is
+  still advanced once per step with the converged load of the previous step. With the marine check
+  off, \(I^*_j = I_j\) and only the mask definition applies.
 * \(T_0\): topography at \(t_0\); prescribed in a forward run, found by the outer iteration in an ice age run.
 
 The equation is nonlinear because \(C_j\) and \(\beta_j\) depend on the sea level being solved for. At
@@ -202,6 +217,7 @@ Section numbers refer to Sect. 2 of the paper.
 | 7b | Anderson mixing (experimental, not used in the paper) | `SLEVOLVE_INNER=anderson`, `SLEVOLVE_AA_M`, `SLEVOLVE_AA_MASK`; Python `--inner anderson` | Changes the iteration path |
 | 8 | **Warm start across outer passes.** Pass k starts step n from the converged dS_n and ocean mask of pass k−1. | Fortran: `SLEVOLVE_REUSE=warm` (file `OUTPUT_SLM/reuse_<k>.bin`, or in memory with `run_outer_mem`). Python: `run_outer.py --reuse warm` | Changes the iteration start only |
 | 9 | **Partially relaxed (segmented) initial topography.** The ice-volume history is split into monotonic segments. Each segment's net load change is responded to with Love numbers relaxed for its mean age τ_i. The result is the T0 guess for outer pass 1. | Python only: `python/init_topo_segmented.py` (function `segmented_guess`, CLI; 5-point running mean, legs below 1 % of the range pruned, `--threshold`) | Changes the outer starting point only |
+| 0 | **Floating-ice convention.** \(\beta_j\) is the grounded-ice mask of Kendall et al. (2005, eqs 43-44), and the flotation check uses the current topography iterate (see the definition of \(\beta_j\) above). | `sl_model_mod.f90`: `gr_ground`, `gr_reguess`, `gr_update_now`. Python: `solver.py::_grounded_reguess` | Yes (a correction of the legacy convention, which excluded every ice-covered cell from the water-loading ocean and tested flotation against the initial topography of the pass) |
 | 10 | **In-process outer iteration driver.** One process runs passes K0..K1. Earth model, transform tables, FFTW plans, state allocation, ice grids and the warm-start store stay resident. | `fortran/src/run_outer_mem.f90` (`./exe LAST K0 K1`). One pass per process: `run_outer_plus.f90` (`./exe LAST ITERSL`). Python: `run_outer.py` | No. Picard update `tinit_0 ← tinit_0 + (T_obs − T_pred)` as in the legacy code. `SLEVOLVE_OUTER=secant` is an experimental alternative |
 
 The longitude FFT routine `fft99b` of the transform module of the legacy code is used in a corrected

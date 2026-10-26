@@ -75,13 +75,13 @@ gone.
 quickstart: synthetic Earth, grid 128x256, lmax 63, 8 steps of 1000 yr, rotation on, marine check on
 step 1: ice  2625 m (pole)  2400 m (mid-lat)  inner iterations 6  ocean-mean RSL change  +7.990 m  far field  +8.570 m
 ...
-step 8: ice     0 m (pole)     0 m (mid-lat)  inner iterations 7  ocean-mean RSL change +76.462 m  far field +78.062 m
+step 8: ice     0 m (pole)     0 m (mid-lat)  inner iterations 7  ocean-mean RSL change +76.463 m  far field +78.070 m
 inner iterations per step: [6, 4, 6, 7, 7, 7, 7, 7] (marine check off: [6, 4, 6, 7, 7, 7, 7, 7])
-final RSL change, near field (82S 270E, under the polar ice):  -481.299 m (marine check off  -481.286 m)
-final RSL change, intermediate (55S 0E, ocean):   +65.457 m (marine check off   +65.425 m)
-final RSL change, far field (10N 180E, ocean):   +78.062 m (marine check off   +78.068 m)
+final RSL change, near field (82S 270E, under the polar ice):  -481.278 m (marine check off  -481.286 m)
+final RSL change, intermediate (55S 0E, ocean):   +65.410 m (marine check off   +65.425 m)
+final RSL change, far field (10N 180E, ocean):   +78.070 m (marine check off   +78.068 m)
 quickstart: 0.1 s
-figures written to . (colour limits: topography change +-600 m, ocean sea-level change +-100 m, departure from the ocean mean +-40 m; ocean mean +76.462 m)
+figures written to . (colour limits: topography change +-600 m, ocean sea-level change +-100 m, departure from the ocean mean +-40 m; ocean mean +76.463 m)
 ```
 
 Each `step` line gives the ice thickness of both sheets, the number of inner iterations needed to
@@ -107,7 +107,7 @@ floor has moved down relative to the sea surface by the global sea-level rise (l
 ![Relative sea-level change over the ocean, its departure from the ocean mean, and topography change after 8 kyr](img/quickstart_map.png)
 
 (a) Relative sea-level change after 8 kyr over the initial ocean (land white), colour limits +-100 m.
-(b) The same minus its ocean-area-weighted mean of +76 m (+76.462 m): the departure from the ocean
+(b) The same minus its ocean-area-weighted mean of +76 m (+76.463 m): the departure from the ocean
 mean, colour limits +-40 m. (c) Topography change everywhere (uplift positive), colour limits
 +-600 m. Limits: 99th percentile of |field| over the plotted cells rounded up to a nice number; arrows
 on the colour bars mark values beyond them. Black: initial coast; dashed: ice margin at step 0;

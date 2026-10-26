@@ -5,7 +5,7 @@ prints.
 
 | check | implementation covered | needs | time |
 |---|---|---|---|
-| [Python tests](#python-tests) `python tests/run_all.py` | Python solver | numpy (ducc0 optional) | about 3 s |
+| [Python tests](#python-tests) `python tests/run_all.py` | Python solver | numpy (ducc0 optional) | about 4 s |
 | [Fortran test](#fortran-test) `bash tests/test_fortran_python.sh` | Fortran solver, against the Python solver | Fortran toolchain, numpy | about 30 s |
 | [Non-uniform-step Fortran test](#non-uniform-time-steps-times-file) `bash tests/test_fortran_python_vardt.sh` | Fortran solver with a times file (non-uniform and uniform), against the Python solver | Fortran toolchain, numpy | about 2 min |
 | [Fortran-only test](#fortran-only-test) `bash tests/test_fortran_synthetic.sh` | Fortran solver and Fortran input generator, against a shipped reference | Fortran toolchain only (no Python) | about 30 s |
@@ -17,7 +17,7 @@ prints.
 python tests/run_all.py
 ```
 
-Five plain scripts (no pytest), all of the **Python solver**; the three below, and the two non-uniform-step tests of [the next section](#non-uniform-time-steps-times-file):
+Six plain scripts (no pytest), all of the **Python solver**; the four below, and the two non-uniform-step tests of [the next section](#non-uniform-time-steps-times-file):
 
 * `test_recursion.py`: synthetic modal spectrum (random decay rates and residues) and a random
   step-wise load history with non-uniform steps; the recursive update of `solver.ExactMemory` is
@@ -33,6 +33,10 @@ Five plain scripts (no pytest), all of the **Python solver**; the three below, a
   converged iterate (information only: the convergence criterion of the solver, the ratio of Kendall
   et al. (2005) eq. 83, bounds the change of the coefficient sums between iterations, not this
   residual).
+* `test_floating_ice.py`: the floating-ice convention on the case of `test_small_case.py`: the plain
+  and the optimised solver (with the numba kernels when numba is installed) must agree to < 1e-9 m,
+  beta must be 0 exactly on the grounded ice, and the ocean under the floating cap margin must carry
+  water load (beta = 1).
 
 **Expected output** (numbers may differ in the last digits on other machines):
 
@@ -46,7 +50,7 @@ test_sht_roundtrip: PASS
 == test_small_case.py
 ...
 test_small_case: (a) recursive vs (c) explicit history: max |diff| 4.547e-13 m (topography and radial displacement, all steps)
-test_small_case: (a) plain vs (b) extrapolated start: max |diff| 7.352e-05 m (max |sea-level change| 205.3 m, ratio 3.6e-07; epsilon1 = 1e-05)
+test_small_case: (a) plain vs (b) extrapolated start: max |diff| 3.253e-03 m (max |sea-level change| 203.3 m, ratio 1.6e-05; epsilon1 = 1e-05)
 ...
 test_small_case: PASS
 == test_extrap_formula.py
@@ -55,12 +59,18 @@ test_extrap_formula: PASS
 == test_small_case_vardt.py
 ...
 test_small_case_vardt: PASS
-== 5/5 passed in 3.2 s
+== test_floating_ice.py
+test_floating_ice: inner iterations [4, 4, 5, 8, 6, 6, 5, 6] (optimised [4, 4, 5, 8, 6, 6, 5, 6]); grounded-ice re-guesses / ice analyses redone 36 / 1
+test_floating_ice: plain vs optimised+numba solver: max |diff| 0.000e+00 m
+test_floating_ice: step 3 (ice maximum): cells with floating ice 256, of which water-loading ocean (beta = 1) 256; beta = 0 exactly on grounded ice: True
+...
+test_floating_ice: PASS
+== 6/6 passed in 3.6 s
 ```
 
-The difference of 7.4e-5 m between (a) and (b) is expected: the two inner iterations start from
+The difference of 3.3e-3 m between (a) and (b) is expected: the two inner iterations start from
 different first guesses and stop when the change between iterations falls below epsilon1 = 1e-5, so
-they agree to within that tolerance (a ratio of 3.6e-7 of the signal), not to round-off.
+they differ at the level that tolerance allows (a ratio of 1.6e-5 of the signal), not at round-off.
 
 ## Non-uniform time steps (times file)
 
@@ -83,7 +93,7 @@ they agree to within that tolerance (a ratio of 3.6e-7 of the signal), not to ro
 test_extrap_formula: Python extrap_guess vs formula: max relative error 2.216e-16
 test_extrap_formula: Fortran extrap_coeffs vs formula: max relative error 2.216e-16
 test_extrap_formula: PASS
-test_small_case_vardt: (a) recursive vs (c) explicit history: max |diff| 4.547e-13 m (topography and radial displacement, all steps; max |sea-level change| 68.5 m)
+test_small_case_vardt: (a) recursive vs (c) explicit history: max |diff| 1.137e-13 m (topography and radial displacement, all steps; max |sea-level change| 71.6 m)
 test_small_case_vardt: (d) uniform times file vs no times file: max |diff| (a) 0.0 m, (b) 0.0 m
 test_small_case_vardt: PASS
 ```
@@ -95,7 +105,7 @@ test_small_case_vardt: PASS
 (`t_k = k` yr; Fortran through `SLEVOLVE_TIMES=<file>`) and without one. About two minutes.
 
 ```
-(1) non-uniform steps: tgrid8 max |Fortran - Python| = 7.822e-11 m (max |topography change| 314.2 m; uniform 1-yr run 221.6 m; vardt - uniform run differ by 92.6 m)
+(1) non-uniform steps: tgrid8 max |Fortran - Python| = 7.844e-11 m (max |topography change| 314.2 m; uniform 1-yr run 221.6 m; vardt - uniform run differ by 92.6 m)
 (2) uniform times file vs no times file: Fortran max |diff| = 0.0 m, Python = 0.0 m (no times file, Fortran - Python 5.548e-11 m)
 (3) Fortran OUTPUT_SLM/times (non-uniform): [0.0, 1.0, 3.0, 8.0, 18.0, 38.0, 88.0, 188.0, 388.0]
 test_fortran_python_vardt: PASS
@@ -144,8 +154,9 @@ tgrid8: max |Fortran - Python| = 5.548e-11 m (max |topography change| 221.6 m)
 test_fortran_python: PASS
 ```
 
-The two codes run the same inner iterations (5, 5, 6, 6, 6, 5, 5, 5 per step) and agree to round-off
-(about 6e-11 m on a signal of 220 m).
+The two codes run the same inner iterations (5, 5, 6, 6, 5, 5, 5, 5 per step) and agree to round-off
+(about 6e-11 m on a signal of 220 m). The Fortran run log ends with the number of grounded-ice
+re-guesses and of repeated ice analyses (`== SLEvolve grounded-ice mask: ...`).
 
 ![Synthetic Earth of the Fortran tests and the reference result](img/synthetic_test.png)
 
@@ -198,7 +209,7 @@ test_fortran_synthetic: PASS
 
 On other hardware or BLAS libraries the round-off differs; a difference of up to about 1e-10 m is
 still round-off (`max |B|` is the largest absolute value of the reference topography `tgrid8.npy`, not a change). A larger difference while the inner-iteration counts in `RUN_fortran/OUTPUT_SLM/numiter` are still
-those listed above for the Fortran test (5, 5, 6, 6, 6, 5, 5, 5) points to a build problem.
+those listed above for the Fortran test (5, 5, 6, 6, 5, 5, 5, 5) points to a build problem.
 
 ## Benchmark reference check
 
@@ -238,8 +249,9 @@ field, the RMS and max summaries, the worst site, the inner-iteration counts, th
 ends with `check_reference case1: PASS`, or `FAIL` and the quantities that differ (exit status 1).
 Reference fields whose files are not in the run directory are reported as `SKIP` and listed at the
 end. The Fortran Case 1 example writes only `tgrid0` (the initial topography snapshot) and `tgrid550`, so `dtopo_550` and the iteration counts (from
-`OUTPUT_SLM/numiter`) are compared; on the tested machine this gives `dtopo_550` max |diff| 8.2e-12 m,
-identical iteration counts (2099 in all) and `check_reference case1: PASS, 5 item(s) skipped`.
+`OUTPUT_SLM/numiter`) are compared; on the tested machine this gives `dtopo_550` max |diff| 1.2e-7 m and 2852
+inner iterations against 2851 (one step one more; a cell at flotation makes the grounded mask
+sensitive to round-off), so use `--iter-slack 1`: `check_reference case1: PASS, 5 item(s) skipped`.
 
 **Tolerances.** The default tolerance is 1e-6 m (`--tol`) for every field and summary, and identical
 inner-iteration counts (`--iter-slack 0`). A rerun on the same machine reproduces every field exactly.

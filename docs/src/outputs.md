@@ -47,7 +47,7 @@ residues, which changes degree-1 `R` and `G` but not sea level or topography
 |---|---|---|---|
 | `tgrid<N>` | topography T at the end of step N: solid surface (bedrock) minus sea surface. `tgrid0` is the initial topography of the run (or of the outer pass) | m | positive up (land), negative in the ocean; absolute |
 | `ocean<N>` | ocean function C: 1 where `tgrid<N>` < 0, else 0. It does not look at the ice: marine cells under grounded ice have C = 1. The ocean that carries water load is C * beta | 0/1 | absolute |
-| `beta<N>` | ice-free mask: 1 where the ice thickness of ice file N is zero (below machine epsilon), else 0. The raw ice file is used, before the marine check | 0/1 | absolute |
+| `beta<N>` | grounded-ice mask: 1 where the grounded ice of step N (after the marine check, flotation on the topography of the last inner re-guess) is zero (below machine epsilon), else 0, so the ocean under floating shelves has beta = 1. `beta0` is the same mask for ice file 0 on the initial topography | 0/1 | absolute |
 | `R<N>` | radial displacement of the solid surface since step 0, including the rotational term | m | positive up; cumulative since step 0; degree 1 in the Love-number frame |
 | `G<N>` | change of the sea surface (geoid plus the spatially uniform term from mass conservation) since step 0, `G = dSL + R` | m | positive up; cumulative since step 0; degree 1 in the Love-number frame |
 | `dS_converged<N>` | spherical-harmonic coefficients of the change of ocean (water) thickness since step 0, after the inner iteration of step N has converged. The water load is `rhow * dS` | m of water | cumulative since step 0 |

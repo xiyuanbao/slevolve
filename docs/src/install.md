@@ -82,7 +82,7 @@ name directly.
 | argument | values | default | meaning |
 |---|---|---|---|
 | `TPW` | `T`, `F` | `T` | rotational feedback (true polar wander) |
-| `CHECKMARINE` | `T`, `F` | `T` | marine check: ice that would float on the current topography is removed from the load |
+| `CHECKMARINE` | `T`, `F` | `T` | marine check: ice that would float on the current topography iterate is removed from the load |
 | `NSTEPS` | integer | from `CASE` (550 without `CASE`) | number of time steps compiled in (`L_sim = DT * NSTEPS`); also settable as `NSTEPS=` |
 
 **Switches and when to choose them** (environment variables; full table in
