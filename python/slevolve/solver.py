@@ -31,6 +31,11 @@ from .sht import SHT
 PI = 3.1415926535898
 II = 1j
 EPS0 = float(np.finfo(np.float64).eps)  # Fortran epsilon(0.0) under -fdefault-real-8
+# Floating-ice convention: beta = 1 where the grounded ice I* is zero (Kendall et al. 2005,
+# eqs 43-44), flotation on the current topography iterate.  A cell at flotation can make the grounded mask alternate between two states
+# from one inner iterate to the next, so the mask is updated at most GR_MAXACC times per step and
+# then kept for the rest of the step (the ocean function is still re-guessed every iterate).
+GR_MAXACC = 3
 NPAM = 500
 
 
@@ -395,13 +400,18 @@ class SeaLevelSolver:
         self.tinit_0 = np.ascontiguousarray(topo0, dtype=np.float64)
         self.tinit = self.tinit_0  # Travel == 0 for the standard chronology
         self.cxy0 = (self.tinit_0 < 0).astype(np.float64)
-        self.beta0 = (ice0 == 0).astype(np.float64)
-        self.cstar0 = self.cxy0 * self.beta0
-        self.cxy = self.cxy0.copy()  # nmelt == 1 at the first marching step
 
         # checkmarine helpers (tinit is constant for the standard chronology)
         self._marine_pos = self.tinit > 0
         self._marine_thr = np.abs(self.tinit) * self.p.rhow / self.p.rhoi
+
+        # grounded-ice mask (Kendall et al. 2005, eqs 43-44): beta = 1 where I* = 0
+        g0 = self._icestar(ice0) if self.checkmarine else ice0
+        self.beta0 = (g0 < EPS0).astype(np.float64)
+        self.cstar0 = self.cxy0 * self.beta0
+        self.cxy = self.cxy0.copy()  # nmelt == 1 at the first marching step
+        self._topo_prev = self.tinit.copy()  # flotation reference of the next step
+        self.gr_counts = {"reguess": 0, "ice_analyses": 0}
 
         nl = self.nl
         self.clm0 = sht.analysis(self.cxy0, out=np.zeros((nl, nl), complex))
@@ -466,6 +476,8 @@ class SeaLevelSolver:
         self._sp1 = z()
         self._sp2 = z()
 
+        self._gr_new = None
+        self._gr_nacc = 0
         self.iter = 0
         self.icexy_prev = np.ascontiguousarray(ice0, dtype=np.float64)
         self.prof = {}
@@ -478,6 +490,37 @@ class SeaLevelSolver:
         keep = self._marine_pos | (ice > self._marine_thr)
         np.multiply(ice, keep, out=out)
         return out
+
+    def _icestar_on(self, ice, topo, out):
+        """Grounded ice on the topography ``topo`` (flotation test of eq. 44)."""
+        keep = (topo > 0) | (ice > np.abs(topo) * self.p.rhow / self.p.rhoi)
+        np.multiply(ice, keep, out=out)
+        return out
+
+    def _grounded_reguess(self, icexy_cur, oldice):
+        """checkmarine: grounded ice I*, beta on the topography iterate ``self.topoxy``.
+
+        Called wherever the ocean function is re-guessed (after ``topoxy``/``cxy`` are set, before
+        ``cstarxy``).  Only if the grounded flag of at least one cell changed are I*, beta, the
+        ice spectrum (one analysis) and the ice-load increments updated.  Returns that count.
+        """
+        if self._gr_nacc >= GR_MAXACC:
+            return 0
+        if self._gr_new is None:
+            self._gr_new = np.zeros_like(self.icestarxy)
+        self._icestar_on(icexy_cur, self.topoxy, out=self._gr_new)
+        bnew = self._gr_new < EPS0
+        nd = int(np.count_nonzero(bnew != (self.beta != 0.0)))
+        self.gr_counts["reguess"] += 1
+        if nd:
+            self.icestarxy[:] = self._gr_new
+            self.beta[:] = bnew
+            self.sht.analysis(self.icestarxy, out=self.icestarlm)
+            np.subtract(self.icestarlm, oldice, out=self.dicestarlm)
+            np.add(self.state.p_ice, self.dicestarlm, out=self.deltaicestarlm)
+            self.gr_counts["ice_analyses"] += 1
+            self._gr_nacc += 1
+        return nd
 
     # ------------------------------------------------------------- one step
     def horizontal_lm(self, deltaicestar, deltaS_prev, load_inc_lm, rot_tot):
@@ -542,8 +585,11 @@ class SeaLevelSolver:
 
         # ---- ice part -------------------------------------------------------
         t0 = time.perf_counter()
-        if self.checkmarine:
-            self._icestar(icexy_cur, out=self.icestarxy)
+        gr_cm = self.checkmarine
+        self._gr_nacc = 0
+        if gr_cm:
+            # flotation on the converged topography of the previous step (step 0: tinit)
+            self._icestar_on(icexy_cur, self._topo_prev, out=self.icestarxy)
             src = self.icestarxy
         else:
             src = icexy_cur
@@ -563,8 +609,12 @@ class SeaLevelSolver:
         dicestar = self.dicestarlm
         deltaicestar = self.deltaicestarlm
 
+        oldice = self.oldicestarlm
         # ---- ocean part -----------------------------------------------------
-        self.beta[:] = icexy_cur < EPS0
+        if gr_cm:
+            self.beta[:] = self.icestarxy < EPS0  # grounded-ice mask (Kendall et al. 2005, eqs 43-44)
+        else:
+            self.beta[:] = icexy_cur < EPS0
         np.multiply(self.cxy, self.beta, out=self.cstarxy)
         t0 = time.perf_counter()
         sht.analysis(self.cstarxy, out=self.cstarlm)
@@ -686,6 +736,8 @@ class SeaLevelSolver:
             if xi > self.epsilon1:
                 np.subtract(self.tinit, self.deltaslxy, out=self.topoxy)
                 self.cxy[:] = self.topoxy < 0.0
+                if gr_cm:
+                    self._grounded_reguess(icexy_cur, oldice)
                 np.multiply(self.cxy, self.beta, out=self.cstarxy)
                 t0 = time.perf_counter()
                 sht.analysis(self.cstarxy, out=self.cstarlm)
@@ -743,6 +795,7 @@ class SeaLevelSolver:
         # ------------------------------------------------- topography/ocean -
         np.subtract(self.tinit, self.deltaslxy, out=self.topoxy)
         self.cxy[:] = self.topoxy < 0.0
+        self._topo_prev[:] = self.topoxy
 
         t0 = time.perf_counter()
         np.multiply(self.deltaslxy, self.cxy, out=self.tmpg)

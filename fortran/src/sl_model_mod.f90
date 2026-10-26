@@ -216,6 +216,20 @@ module sl_model_mod
    logical :: opt_rg_needed = .true.
    character(6) :: opt_stepstr = ''
    integer(8) :: opt_cnt(4) = 0_8   ! analysis fields, analysis sweeps, synthesis fields, synthesis sweeps
+   ! floating-ice convention: beta = 1 where the grounded ice I* is zero (Kendall et al. 2005,
+   ! eqs 43-44), and the flotation check uses the current topography iterate tinit - deltaSL; I*, its
+   ! spectrum, beta and cstar are re-evaluated whenever the ocean function is re-guessed.
+   real, dimension(:,:), allocatable :: gr_topo     ! converged topography of the previous step
+   real, dimension(:,:), allocatable :: gr_icenew, gr_betanew   ! re-guessed I* and beta
+   integer :: gr_ndiff = 0                          ! cells whose grounded flag changed in the re-guess
+   logical :: gr_pending = .false.                  ! merge path: re-guessed ice analysed in this sweep
+   integer :: gr_slot = 0                           ! merge path: pp_gbuf/pp_ubuf slot of the ice field
+   integer(8) :: gr_cnt(2) = 0_8                    ! re-guesses evaluated, ice analyses redone
+   ! A cell at flotation can make the grounded mask alternate between two states from one inner
+   ! iterate to the next.  The grounded mask is therefore updated at most gr_maxacc times per step;
+   ! after that it is kept for the rest of the step (the ocean function is still re-guessed).
+   integer, parameter :: gr_maxacc = 3
+   integer :: gr_nacc = 0                           ! grounded-mask updates accepted in this step
 
    contains
 
@@ -894,9 +908,15 @@ module sl_model_mod
 
       !========================== beta function =========================
       ! calculate initial beta
+      ! grounded-ice mask (Kendall et al. 2005, eqs 43-44): flotation on the step-0 topography
       do j = 1,2*nglv
          do i = 1,nglv
-            if (icexy(i,j,1)==0) then
+            if (checkmarine) then
+               xn = gr_ground(icexy(i,j,1), tinit_0(i,j))
+            else
+               xn = icexy(i,j,1)
+            endif
+            if (xn < epsilon(0.0)) then
                beta0(i,j)=1
             else
                beta0(i,j)=0
@@ -1352,19 +1372,18 @@ module sl_model_mod
       ! the grounded-ice grid does not depend on anything
       ! the ocean part computes, so its analysis rides in the first-guess
       ! sweep below (slot 1 of pp_gbuf) instead of costing a sweep of its own.
+      ! flotation on the converged topography of the previous step (step 0: tinit)
+      call gr_alloc()
+      if (iter == 1) gr_topo(:,:) = tinit(:,:)
+      gr_nacc = 0
       if (checkmarine) then
          !$omp parallel do schedule(static) default(shared) private(i,j)
          do j = 1,2*nglv
             do i = 1,nglv
-               if (tinit(i,j) > 0) then
-                  icestarxy(i,j) = icexy(i,j,exact_cur)
-               elseif (icexy(i,j,exact_cur) > (abs(tinit(i,j))*rhow/rhoi)) then
-                  icestarxy(i,j) = icexy(i,j,exact_cur)
-               else
-                  icestarxy(i,j) = 0
-               endif
+               icestarxy(i,j) = gr_ground(icexy(i,j,exact_cur), gr_topo(i,j))
             enddo
          enddo
+         !$omp end parallel do
          if (opt_icebatch) then
             !$omp parallel do schedule(static) default(shared) private(j)
             do j = 1,2*nglv
@@ -1424,6 +1443,20 @@ module sl_model_mod
 
       ! Calculate beta (STEP 3) (eq. 44)
       ! Calculate current beta based on iceload at the current timestep
+      if (checkmarine) then
+         ! grounded-ice mask: beta = 1 where I* = 0 (Kendall et al. 2005, eqs 43-44)
+         !$omp parallel do schedule(static) default(shared) private(i,j)
+         do j = 1, 2 * nglv
+            do i = 1, nglv
+                if (icestarxy(i, j) < epsilon(0.0)) then
+                   beta(i,j) = 1
+                else
+                   beta(i,j) = 0
+                endif
+            enddo
+         enddo
+         !$omp end parallel do
+      else
       !$omp parallel do schedule(static) default(shared) private(i,j)
       do j = 1, 2 * nglv
          do i = 1, nglv
@@ -1434,6 +1467,7 @@ module sl_model_mod
              endif
          enddo
       enddo
+      endif
 
       ! SLEVOLVE_REUSE=warm: converged ocean mask of step n from the
       ! previous outer iteration replaces the previous step's mask as first guess
@@ -1687,6 +1721,7 @@ module sl_model_mod
             ! frozen mask is the plain-iteration mask and nothing is lost.
             inner_frozen_it = (inner_mode == 2 .and. ninner >= 2 .and. .not. inner_plain_rest)
             inner_did_reguess = .not. inner_frozen_it
+            gr_pending = .false.
             inner_ndiff = 0
             if (inner_frozen_it) then
                inner_ndiff = 0
@@ -1700,6 +1735,55 @@ module sl_model_mod
                inner_cnt(4) = inner_cnt(4) + 1
                opt_nf = 1                                   ! rO (- tO) only
                inner_cnt(5) = inner_cnt(5) + 1
+            else if (checkmarine) then
+            ! speculative re-guess of topography / ocean function (eq. 39, 65, 70) and of the
+            ! grounded ice I* and beta on that topography.  The new I* rides in the same sweep
+            ! (one more field) only when its grounded flag changed somewhere; it is accepted
+            ! together with the cstar spectrum if this iteration is not the converged one.
+            !$omp parallel do schedule(static) default(shared) private(i,j)
+            do j = 1,2*nglv
+               do i = 1,nglv
+                  topoxy(i,j) = tinit(i,j) - deltaslxy(i,j)
+                  if (topoxy(i,j) >= 0.0) then
+                     cxy(i,j) = 0.0
+                  else
+                     cxy(i,j) = 1.0
+                  endif
+               enddo
+            enddo
+            !$omp end parallel do
+            if (gr_nacc < gr_maxacc) then
+               call gr_reguess()
+            else
+               gr_ndiff = 0
+               !$omp parallel do schedule(static) default(shared) private(j)
+               do j = 1,2*nglv
+                  gr_betanew(:,j) = beta(:,j)
+               enddo
+               !$omp end parallel do
+            endif
+            !$omp parallel do schedule(static) default(shared) private(i,j)
+            do j = 1,2*nglv
+               do i = 1,nglv
+                  cstarxy(i,j) = cxy(i,j) * gr_betanew(i,j)
+                  tOxy(i,j) = tinit(i,j) * (cstarxy(i,j) - cstar0(i,j))
+                  pp_gbuf(i,j,2) = cstarxy(i,j)
+               enddo
+               if (.not. opt_rt) pp_gbuf(:,j,3) = tOxy(:,j)
+            enddo
+            !$omp end parallel do
+            opt_nf = 2
+            if (.not. opt_rt) opt_nf = 3
+            if (gr_ndiff > 0) then
+               opt_nf = opt_nf + 1
+               gr_slot = opt_nf
+               !$omp parallel do schedule(static) default(shared) private(j)
+               do j = 1,2*nglv
+                  pp_gbuf(:,j,gr_slot) = gr_icenew(:,j)
+               enddo
+               !$omp end parallel do
+               gr_pending = .true.
+            endif
             else
             ! speculative re-guess of topography / ocean function (eq. 39, 65, 70)
             !$omp parallel do schedule(static) default(shared) private(i,j)
@@ -1843,6 +1927,16 @@ module sl_model_mod
                   if (.not. opt_rt) tOlm(:,m) = pp_ubuf(:,m,3)
                enddo
                !$omp end parallel do
+               if (gr_pending) then
+                  ! accept the re-guessed grounded ice (analysed in the same sweep)
+                  call gr_accept_grids()
+                  !$omp parallel do schedule(static) default(shared) private(m)
+                  do m = 0,norder
+                     icestarlm(:,m) = pp_ubuf(:,m,gr_slot)
+                  enddo
+                  !$omp end parallel do
+                  call gr_increments()
+               endif
             else
             ! new guess to the topography correction
             !$omp parallel do schedule(static) default(shared) private(j)
@@ -1862,6 +1956,9 @@ module sl_model_mod
                   endif
                enddo
             enddo
+
+            ! grounded ice and beta on the new topography iterate
+            if (checkmarine) call gr_update_now()
 
             !new guess to ocean*beta function
             ! new guess to the topo correction
@@ -1923,6 +2020,17 @@ module sl_model_mod
                   enddo
                enddo
                !$omp end parallel do
+               if (checkmarine) then
+                  call gr_update_now()
+                  if (gr_ndiff > 0) then
+                     !$omp parallel do schedule(static) default(shared) private(j)
+                     do j = 1,2*nglv
+                        cstarxy(:,j) = cxy(:,j) * beta(:,j)
+                        tOxy(:,j) = tinit(:,j) * (cstarxy(:,j) - cstar0(:,j))
+                     enddo
+                     !$omp end parallel do
+                  endif
+               endif
                call opt_ana(cstarxy, cstarlm)
                inner_cnt(3) = inner_cnt(3) + 1
                inner_cnt(5) = inner_cnt(5) - 1
@@ -2088,6 +2196,9 @@ module sl_model_mod
          topoxy(:,j) = tinit(:,j) - deltaslxy(:,j) ! (eq. 12)
       enddo
       !$omp end parallel do
+      ! grounded-ice convention: this converged topography is the flotation reference of the
+      ! first inner iterate of the next step
+      gr_topo(:,:) = topoxy(:,:)
 
       ! Update ocean function
       !$omp parallel do schedule(static) default(shared) private(i,j)
@@ -2773,6 +2884,100 @@ module sl_model_mod
       il = 0.0; mm = 0.0; lambda = 0.0
    end subroutine sl_outer_reset
 
+   !=======================================================================================================================!
+   ! grounded-ice convention helpers
+   !=======================================================================================================================!
+
+   ! grounded part of the ice thickness `ice` on topography `t` (eq. 44 region test)
+   pure real function gr_ground(ice, t)
+      real, intent(in) :: ice, t
+      if (t > 0) then
+         gr_ground = ice
+      elseif (ice > (abs(t)*rhow/rhoi)) then
+         gr_ground = ice
+      else
+         gr_ground = 0
+      endif
+   end function gr_ground
+
+   subroutine gr_alloc()
+      if (.not. allocated(gr_topo)) allocate(gr_topo(nglv,2*nglv), gr_icenew(nglv,2*nglv), gr_betanew(nglv,2*nglv))
+   end subroutine gr_alloc
+
+   ! Re-guess of I* and beta on the topography iterate topoxy (already set by the caller):
+   ! gr_icenew, gr_betanew and the number gr_ndiff of cells whose grounded flag changed.
+   subroutine gr_reguess()
+      integer :: ii_, jj_, nd
+      nd = 0
+      !$omp parallel do schedule(static) default(shared) private(ii_,jj_) reduction(+:nd)
+      do jj_ = 1,2*nglv
+         do ii_ = 1,nglv
+            gr_icenew(ii_,jj_) = gr_ground(icexy(ii_,jj_,exact_cur), topoxy(ii_,jj_))
+            if (gr_icenew(ii_,jj_) < epsilon(0.0)) then
+               gr_betanew(ii_,jj_) = 1
+            else
+               gr_betanew(ii_,jj_) = 0
+            endif
+            if (gr_betanew(ii_,jj_) /= beta(ii_,jj_)) nd = nd + 1
+         enddo
+      enddo
+      !$omp end parallel do
+      gr_ndiff = nd
+      gr_cnt(1) = gr_cnt(1) + 1
+   end subroutine gr_reguess
+
+   ! Accept the re-guess: I* and beta grids; the caller provides icestarlm (the analysis of the
+   ! new I*), after which gr_increments rebuilds the ice-load increments.
+   subroutine gr_accept_grids()
+      integer :: jj_
+      !$omp parallel do schedule(static) default(shared) private(jj_)
+      do jj_ = 1,2*nglv
+         icestarxy(:,jj_) = gr_icenew(:,jj_)
+         beta(:,jj_) = gr_betanew(:,jj_)
+      enddo
+      !$omp end parallel do
+      gr_cnt(2) = gr_cnt(2) + 1
+      gr_nacc = gr_nacc + 1
+   end subroutine gr_accept_grids
+
+   ! ice-load increments from icestarlm (same statements as after the first-guess sweep)
+   subroutine gr_increments()
+      integer :: ll_, mm_, idx_
+      !$omp parallel do schedule(static) default(shared) private(mm_)
+      do mm_ = 0,norder
+         dicestarlm(:,mm_) = icestarlm(:,mm_) - oldicestarlm(:,mm_)
+         deltaicestarlm(:,mm_) = dicestarlm(:,mm_)
+      enddo
+      !$omp end parallel do
+      !$omp parallel do schedule(static) default(shared) private(ll_,mm_,idx_)
+      do ll_ = 0,norder
+         do mm_ = 0,ll_
+            idx_ = lm_index(ll_,mm_)
+            deltaicestarlm(ll_,mm_) = exact_state%p_ice(idx_) + dicestarlm(ll_,mm_)
+         enddo
+      enddo
+      !$omp end parallel do
+      !$omp parallel do schedule(static) default(shared) private(mm_)
+      do mm_ = 0,norder
+         dicestar(:,mm_,exact_cur) = dicestarlm(:,mm_)
+         deltaicestar(:,mm_,exact_cur) = deltaicestarlm(:,mm_)
+      enddo
+      !$omp end parallel do
+   end subroutine gr_increments
+
+   ! non-merge re-guess sites: topoxy and cxy are set; update I*, its spectrum and beta
+   ! (one extra analysis, only if the grounded flag of at least one cell changed)
+   subroutine gr_update_now()
+      gr_ndiff = 0
+      if (gr_nacc >= gr_maxacc) return
+      call gr_reguess()
+      if (gr_ndiff > 0) then
+         call gr_accept_grids()
+         call opt_ana(icestarxy, icestarlm)
+         call gr_increments()
+      endif
+   end subroutine gr_update_now
+
    subroutine sl_print_counts(u)
       integer, intent(in) :: u
       write(u,'(A,I10,A,I10,A,I10,A,I10)') '== SLEvolve transforms: analyses ', opt_cnt(1), ' in sweeps ', opt_cnt(2), &
@@ -2781,6 +2986,8 @@ module sl_model_mod
            ' : mixed, fallbacks, forced-mask-updates, frozen-iters, cstar-analyses-skipped, steps =', inner_cnt
       write(u,'(A,4F9.3,A,F9.3)') '== SLEvolve setup s: init, ice-read, truetopo-read, tgrid0-quantize =', &
            pp_t_init, pp_t_ice, pp_t_topo, pp_t_quant, ' ; pp_read_grid total', pp_io_read
+      if (checkmarine) write(u,'(A,I10,A,I10)') &
+           '== SLEvolve grounded-ice mask: grounded-ice re-guesses', gr_cnt(1), ' ; ice analyses redone', gr_cnt(2)
       if (warm_mode /= 0) write(u,'(A,I6,A,F8.3,A)') '== SLEvolve reuse=warm: warm-started steps', &
            warm_nwarm, ' ; reuse file I/O ', warm_tio, ' s'
    end subroutine sl_print_counts

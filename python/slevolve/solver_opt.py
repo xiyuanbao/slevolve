@@ -383,24 +383,22 @@ class OptSeaLevelSolver(SeaLevelSolver):
 
         # ---- ice + ocean grid block (one fused pass) ---------------------
         t0 = pc()
-        if use_nb:
-            if self.checkmarine:
-                K.icestar_beta_cstar_tO(
-                    icexy_cur, self._marine_pos_b, self._marine_thr_c, self.cxy,
-                    self.cstar0, self.tinit, EPS0,
-                    self.icestarxy, self.beta, self.cstarxy, self.tOxy,
-                )
-                src = self.icestarxy
-            else:
-                K.beta_cstar_tO(icexy_cur, self.cxy, self.cstar0, self.tinit, EPS0,
-                                self.beta, self.cstarxy, self.tOxy)
-                src = icexy_cur
+        gr_cm = self.checkmarine
+        self._gr_nacc = 0
+        if gr_cm:
+            # grounded-ice mask, flotation on the converged topography of the previous step
+            self._icestar_on(icexy_cur, self._topo_prev, out=self.icestarxy)
+            src = self.icestarxy
+            self.beta[:] = self.icestarxy < EPS0
+            np.multiply(self.cxy, self.beta, out=self.cstarxy)
+            np.subtract(self.cstarxy, self.cstar0, out=self.tOxy)
+            np.multiply(self.tinit, self.tOxy, out=self.tOxy)
+        elif use_nb:
+            K.beta_cstar_tO(icexy_cur, self.cxy, self.cstar0, self.tinit, EPS0,
+                            self.beta, self.cstarxy, self.tOxy)
+            src = icexy_cur
         else:
-            if self.checkmarine:
-                self._icestar(icexy_cur, out=self.icestarxy)
-                src = self.icestarxy
-            else:
-                src = icexy_cur
+            src = icexy_cur
             self.beta[:] = icexy_cur < EPS0
             np.multiply(self.cxy, self.beta, out=self.cstarxy)
             np.subtract(self.cstarxy, self.cstar0, out=self.tOxy)
@@ -701,7 +699,14 @@ class OptSeaLevelSolver(SeaLevelSolver):
                     self._aa.push(old, new)  # this pair seeds the history
                     frozen = True
                 t0 = pc()
-                if use_nb:
+                if gr_cm:
+                    np.subtract(self.tinit, self.deltaslxy, out=self.topoxy)
+                    self.cxy[:] = self.topoxy < 0.0
+                    self._grounded_reguess(icexy_cur, oldice)
+                    np.multiply(self.cxy, self.beta, out=self.cstarxy)
+                    np.subtract(self.cstarxy, self.cstar0, out=self.tOxy)
+                    np.multiply(self.tinit, self.tOxy, out=self.tOxy)
+                elif use_nb:
                     K.topo_ocean_cstar_tO(self.tinit, self.deltaslxy, self.beta,
                                           self.cstar0, self.topoxy, self.cxy,
                                           self.cstarxy, self.tOxy)
@@ -723,7 +728,14 @@ class OptSeaLevelSolver(SeaLevelSolver):
 
             if xi > self.epsilon1:
                 t0 = pc()
-                if use_nb:
+                if gr_cm:
+                    np.subtract(self.tinit, self.deltaslxy, out=self.topoxy)
+                    self.cxy[:] = self.topoxy < 0.0
+                    self._grounded_reguess(icexy_cur, oldice)
+                    np.multiply(self.cxy, self.beta, out=self.cstarxy)
+                    np.subtract(self.cstarxy, self.cstar0, out=self.tOxy)
+                    np.multiply(self.tinit, self.tOxy, out=self.tOxy)
+                elif use_nb:
                     K.topo_ocean_cstar_tO(self.tinit, self.deltaslxy, self.beta,
                                           self.cstar0, self.topoxy, self.cxy,
                                           self.cstarxy, self.tOxy)
@@ -807,6 +819,7 @@ class OptSeaLevelSolver(SeaLevelSolver):
         else:
             np.subtract(self.tinit, self.deltaslxy, out=self.topoxy)
             self.cxy[:] = self.topoxy < 0.0
+        self._topo_prev[:] = self.topoxy
         mark("grid", t0)
 
         # --------------------------------------------------- GMSL / areas ---
@@ -860,7 +873,7 @@ class OptSeaLevelSolver(SeaLevelSolver):
             ent["dS"][:] = self.load_inc_lm
             np.not_equal(self.cxy, 0.0, out=ent["cxy"])  # 0/1 mask stored as bool
             if use_ice:
-                ent["gm"] = gm_cur
+                ent["gm"] = (src != 0.0)  # I* may have changed in the inner loop
                 if "icelm" not in ent:
                     ent["icelm"] = np.empty_like(self.icestarlm)
                 ent["icelm"][:] = self.icestarlm

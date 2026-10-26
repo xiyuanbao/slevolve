@@ -79,30 +79,9 @@ def icestar(ice, marine_pos, thr, out):
 
 
 @njit(parallel=True, **_JIT)
-def icestar_beta_cstar_tO(ice, marine_pos, thr, cxy, cstar0, tinit, eps0,
-                          icestarxy, beta, cstarxy, tOxy):
-    """The whole top-of-step grid block in one pass over the six 2 MB grids.
-
-        icestarxy = ice * (marine_pos | ice > thr)      (checkmarine)
-        beta      = (ice < eps0)
-        cstarxy   = cxy * beta
-        tOxy      = tinit * (cstarxy - cstar0)
-    """
-    n0, n1 = ice.shape
-    for i in prange(n0):
-        for j in range(n1):
-            v = ice[i, j]
-            icestarxy[i, j] = v if (marine_pos[i, j] or v > thr[i, j]) else 0.0
-            b = 1.0 if v < eps0 else 0.0
-            beta[i, j] = b
-            c = cxy[i, j] * b
-            cstarxy[i, j] = c
-            tOxy[i, j] = tinit[i, j] * (c - cstar0[i, j])
-
-
-@njit(parallel=True, **_JIT)
 def beta_cstar_tO(ice, cxy, cstar0, tinit, eps0, beta, cstarxy, tOxy):
-    """Same as above without the checkmarine projection (``--checkmarine F``)."""
+    """beta = (ice < eps0), cstarxy = cxy * beta, tOxy = tinit * (cstarxy - cstar0) in one pass
+    (``--checkmarine F``; with checkmarine beta is the grounded-ice mask, set in solver_opt)."""
     n0, n1 = ice.shape
     for i in prange(n0):
         for j in range(n1):
@@ -297,7 +276,6 @@ def warmup(nl=8, ng=(8, 16)):
     nm = np.full(nl, 2, dtype=np.int64)
     advance_and_read(R, w, w, w, w, nm, s, s.copy(), s.copy())
     icestar(g, gb, g, g.copy())
-    icestar_beta_cstar_tO(g, gb, g, g, g, g, 1e-16, g.copy(), g.copy(), g.copy(), g.copy())
     beta_cstar_tO(g, g, g, g, 1e-16, g.copy(), g.copy(), g.copy())
     add_const(g, 1.0, g.copy())
     rO_only(g, g, g.copy())
