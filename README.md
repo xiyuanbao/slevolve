@@ -70,9 +70,10 @@ slevolve-forward --help              # = python python/run_ais.py; also slevolve
 
 Tests:
 
-- `python tests/run_all.py` runs the Python tests ("== 5/5 passed").
-- `bash tests/test_fortran_python.sh` (Fortran vs Python, synthetic Earth) and
-  `bash tests/test_fortran_python_vardt.sh` (non-uniform steps) print "PASS".
+- `python tests/run_all.py` runs the Python tests ("== 7/7 passed").
+- `bash tests/test_fortran_python.sh` (Fortran vs Python, synthetic Earth),
+  `bash tests/test_fortran_python_vardt.sh` (non-uniform steps) and
+  `bash tests/test_fortran_python_ramp.sh` (optional second-order placement and rates) print "PASS".
 
 See [Verifying the installation](https://xiyuanbao.github.io/slevolve/verify.html) and the tested environment in
 [Installation](https://xiyuanbao.github.io/slevolve/install.html).

@@ -103,6 +103,7 @@ name directly.
 | `BLASLIB` | `accelerate` on macOS, else `openblas` | the BLAS library (`OPENBLAS_PREFIX` if not in the conda env) |
 | `EPS1` | 1.0E-5 | inner-iteration tolerance epsilon1 |
 | `LEGACY_CONSTANTS=1` | unset | ice density 910 kg m^-3 and radius 6.371229e6 m of the older legacy code, instead of 920 and 6.371e6 (Han et al. 2022) |
+| `RAMP=1` | unset (`0`) | second-order load placement: each load increment accrues linearly over its step instead of being applied at the end of it ([Method](method.md#second-order-load-placement-optional)); directory suffix `_ramp`. Leave unset to reproduce the paper and `reference/`. The analytic rates are a run-time switch, `SLEVOLVE_RATES=1`, in either build |
 | `FC`, `FFTW_PREFIX`, `OPENBLAS_PREFIX`, `CONDA_ENV` | `gfortran`, `$CONDA_PREFIX` | toolchain without an activated conda env (not tested) |
 
 Compiler flags: `-O3 -ffree-line-length-none -fdefault-real-8 -fdefault-double-8 -cpp`.

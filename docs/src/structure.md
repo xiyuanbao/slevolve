@@ -86,11 +86,13 @@ lovenum/
   DEGREE1_NOTES.md, DEGREE1_NOTES_zh.md
                                    notes on degree-1 Love numbers (English, Chinese)
 tests/
-  run_all.py                       runs the five Python tests below
+  run_all.py                       runs the seven Python tests below
   test_recursion.py, test_sht_roundtrip.py, test_small_case.py,
-  test_extrap_formula.py, test_small_case_vardt.py
+  test_extrap_formula.py, test_small_case_vardt.py, test_floating_ice.py,
+  test_ramp.py                     (second-order placement and analytic rates)
   test_fortran_python.sh           Fortran test: Fortran vs Python on the synthetic Earth
   test_fortran_python_vardt.sh     Fortran test with a variable-step times file (Fortran vs Python)
+  test_fortran_python_ramp.sh      Fortran test with RAMP=1 and SLEVOLVE_RATES=1 (Fortran vs Python)
   test_fortran_synthetic.sh        Fortran-only test: Fortran vs reference/synthetic/tgrid8.npy
   npy_maxdiff.f90                  max |A - B| of two .npy grids (used by the Fortran-only test)
   check_reference.py               compares a benchmark run with reference/
@@ -351,6 +353,11 @@ def commit(self, current_load, dil=None, dm=None, dlambda=None):
     if dlambda is not None:
         self.p_lambda += dlambda
 ```
+
+(shown without the branch of the optional second-order placement: with `ramp` on, the commit first
+adds \((1-\varphi_k)\) times the increment to every state, `ExactMemory._ramp_commit_load` and
+`kernels.py::ramp_commit` in Python, `state_ramp_commit` in Fortran; see
+[Method](method.md#second-order-load-placement-optional)).
 
 ### 4.2 Placement of advance and commit in the time step
 

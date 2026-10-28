@@ -5,9 +5,10 @@ prints.
 
 | check | implementation covered | needs | time |
 |---|---|---|---|
-| [Python tests](#python-tests) `python tests/run_all.py` | Python solver | numpy (ducc0 optional) | about 4 s |
+| [Python tests](#python-tests) `python tests/run_all.py` | Python solver | numpy (ducc0 optional) | about 5 s |
 | [Fortran test](#fortran-test) `bash tests/test_fortran_python.sh` | Fortran solver, against the Python solver | Fortran toolchain, numpy | about 30 s |
 | [Non-uniform-step Fortran test](#non-uniform-time-steps-times-file) `bash tests/test_fortran_python_vardt.sh` | Fortran solver with a times file (non-uniform and uniform), against the Python solver | Fortran toolchain, numpy | about 2 min |
+| [Second-order placement Fortran test](#second-order-load-placement-and-rates) `bash tests/test_fortran_python_ramp.sh` | Fortran solver with `RAMP=1` and `SLEVOLVE_RATES=1` (uniform and non-uniform steps), against the Python solver | Fortran toolchain, numpy | about 3 min |
 | [Fortran-only test](#fortran-only-test) `bash tests/test_fortran_synthetic.sh` | Fortran solver and Fortran input generator, against a shipped reference | Fortran toolchain only (no Python) | about 30 s |
 | [Benchmark reference check](#benchmark-reference-check) `python tests/check_reference.py` | either solver, on a benchmark case | the benchmark data | 20-40 s per case |
 
@@ -17,7 +18,7 @@ prints.
 python tests/run_all.py
 ```
 
-Six plain scripts (no pytest), all of the **Python solver**; the four below, and the two non-uniform-step tests of [the next section](#non-uniform-time-steps-times-file):
+Seven plain scripts (no pytest), all of the **Python solver**; the four below, the two non-uniform-step tests of [the next section](#non-uniform-time-steps-times-file) and `test_ramp.py` ([second-order placement](#second-order-load-placement-and-rates)):
 
 * `test_recursion.py`: synthetic modal spectrum (random decay rates and residues) and a random
   step-wise load history with non-uniform steps; the recursive update of `solver.ExactMemory` is
@@ -65,7 +66,10 @@ test_floating_ice: plain vs optimised+numba solver: max |diff| 0.000e+00 m
 test_floating_ice: step 3 (ice maximum): cells with floating ice 256, of which water-loading ocean (beta = 1) 256; beta = 0 exactly on grounded ice: True
 ...
 test_floating_ice: PASS
-== 6/6 passed in 3.6 s
+== test_ramp.py
+...
+test_ramp: PASS
+== 7/7 passed in 5.2 s
 ```
 
 The difference of 3.3e-3 m between (a) and (b) is expected: the two inner iterations start from
@@ -113,6 +117,50 @@ test_fortran_python_vardt: PASS
 
 `test_recursion.py` sets the non-uniform step lengths through `ExactMemory.set_dt`, the per-step path
 the solvers use with a times file, and checks that the decay factors equal exp(-s_k dt / 1000) exactly (zero difference).
+
+## Second-order load placement and rates
+
+`tests/test_ramp.py` (run by `run_all.py`) checks the optional second-order load placement
+(`--ramp`) and the analytic rates on the idealised polar ice cap of `test_small_case.py`:
+
+1. the ramp factor phi(x) = (1 - exp(-x)) / x: phi(0) = 1, phi + (1 - phi) = 1, the series and the
+   closed form agree at the switch x = 1e-4;
+2. the default is unchanged: `ramp=False` with the rates switched on gives exactly the default run;
+3. the recursive ramp state against an explicit full-history sum of the ramp kernel
+   sum_j dL_j sum_k a_k (1 - phi(s_k dt_j) exp(-s_k (t_n - t_j))), uniform and non-uniform steps
+   (< 1e-9 m);
+4. the plain and the optimised solver with the ramp (numba kernels and raw ducc0 when installed;
+   extrapolated inner start): topography, R and the rates agree;
+5. the analytic rates (`ExactMemory.read_rate` and the rotational rates) against a left difference
+   over 0.01 yr on a piecewise-linear prescribed load (< 1e-5 relative).
+
+```
+test_ramp: (1) ramp factor limits ok
+test_ramp: (2) ramp=False with rates vs default run: max |diff| 0.0e+00 m
+test_ramp: (3) ramp, recursive vs explicit history: max |diff| 4.55e-13 m (uniform), 4.55e-13 m (steps [1000.0, 500.0, 2000.0, 250.0, 1000.0, 750.0, 1500.0, 500.0]); ramp - step placement up to 27.7 m
+test_ramp: (4) ramp, plain vs optimised (numba + raw ducc0): topography/R 5.27e-11 m, rates 1.77e-14 m/yr, m-dot 6.4e-13 relative; extrapolated start 2.27e-03 m (max |sea-level change| 207 m, epsilon1 1e-05)
+test_ramp: (5) analytic rate vs left difference (eps 0.01 yr): non-rotational 7.23e-08, m-dot 3.12e-08, rotational sea level 5.99e-07 (relative); extra point changes the response by 2.1e-10
+test_ramp: PASS
+```
+
+`bash tests/test_fortran_python_ramp.sh [WORKDIR]` (default `./slevolve_fortran_ramp`) builds the
+Fortran solver twice on the synthetic Earth (`RAMP=1` into `fortran/build/fortran_ramp/`, the default
+into `fortran/build/fortran_test/`), runs both with `SLEVOLVE_RATES=1`, and compares with the Python
+solver (`--ramp`, `--save-fields tgrid,dSLdt,dRdt`): the ramp with uniform 1-yr steps, the ramp with
+the non-uniform steps of the times-file test, and the default placement with the rates on. It also
+checks that switching the rates on leaves `tgrid8` unchanged. About three minutes.
+
+```
+(ramp) tgrid8 5.55e-11 m; dSLdt8 2.41e-13 of max 2.916e+01 m/yr; dRdt8 2.61e-13 of max 1.985e+01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative) ok
+(ramp_vardt) tgrid8 8.00e-11 m; dSLdt8 2.59e-13 of max 4.109e-01 m/yr; dRdt8 2.39e-13 of max 4.259e-01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative) ok
+(step) tgrid8 5.55e-11 m; dSLdt8 2.38e-13 of max 2.916e+01 m/yr; dRdt8 2.60e-13 of max 1.985e+01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative) ok
+Fortran default placement: tgrid8 with rates - without rates = 0.0 m; ramp - default placement 0.20 m (max |topography change| 221.6 m)
+test_fortran_python_ramp: PASS
+```
+
+The `TPWrate` files are text with 9 significant digits, so their Fortran and Python copies are
+identical. The ramp changes this 8-yr case by only 0.2 m because the steps (1 yr) are short against
+the relaxation times; `test_ramp.py` (1-kyr steps) shows changes of up to 28 m.
 
 ## Fortran test
 

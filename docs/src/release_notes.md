@@ -4,6 +4,27 @@ This page lists the contents of v1.0, its differences from the legacy code and i
 
 ## v1.0
 
+**Note of 2026-10-28: optional second-order load placement and analytic rates.** Two opt-in
+additions, both off by default, so every default output, `reference/` and the results of the paper
+are unchanged:
+
+- *Second-order load placement* (Fortran build switch `RAMP=1`, Python `--ramp` for `run_ais.py` and
+  `run_outer.py`): each load increment accrues linearly over its step instead of being applied at its
+  end. Each mode picks up the factor phi(s dt) = (1 - exp(-s dt)) / (s dt) in its memory and the
+  same-step weight 1 - phi; the elastic and direct sea-level terms stay at the end of the step, and the
+  polar-motion equation is solved in closed form with the implicit current increment. The time
+  stepping becomes second order where the load is smooth in time; works with non-uniform steps, the
+  extrapolated inner start and the warm start. See
+  [Method](method.md#second-order-load-placement-optional).
+- *Analytic rates* (Fortran `SLEVOLVE_RATES=1`, Python `--save-fields ...,dSLdt,dRdt` or
+  `run_outer.py --rates`): the rates of sea level and radial displacement at the end of a step
+  (`dSLdt<N>`, `dRdt<N>`, m/yr) and of the rotational quantities (`TPWrate<N>`), read from the modal
+  states instead of a two-point difference; output only, with or without the ramp. See
+  [Output fields](outputs.md#analytic-rates-optional).
+
+The placement was derived and verified in a separate study. New tests: `tests/test_ramp.py` (in
+`run_all.py`) and `tests/test_fortran_python_ramp.sh` ([Verifying the installation](verify.md#second-order-load-placement-and-rates)).
+
 **Note of 2026-10-26: floating-ice convention.** The ice function \(\beta\) is now the grounded-ice
 mask of Kendall et al. (2005, eqs 43-44): the ocean under floating ice shelves carries water load and
 belongs to the ocean area of the conservation term, and the flotation check uses the current

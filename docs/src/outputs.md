@@ -52,6 +52,7 @@ residues, which changes degree-1 `R` and `G` but not sea level or topography
 | `G<N>` | change of the sea surface (geoid plus the spatially uniform term from mass conservation) since step 0, `G = dSL + R` | m | positive up; cumulative since step 0; degree 1 in the Love-number frame |
 | `dS_converged<N>` | spherical-harmonic coefficients of the change of ocean (water) thickness since step 0, after the inner iteration of step N has converged. The water load is `rhow * dS` | m of water | cumulative since step 0 |
 | `horiz<N>`, `Psi<N>`, `utheta<N>`, `uphi<N>` | optional horizontal displacement, see [Horizontal displacement](horizontal.md) | m | since step 0 |
+| `dSLdt<N>`, `dRdt<N>` | optional analytic rates of sea level and radial displacement at the end of step N, see [below](#analytic-rates-optional) | m/yr | instantaneous rate at t_N |
 
 The sea-level change itself, `dSL = G - R`, is not written as a separate file; it equals
 `tgrid0 - tgrid<N>`.
@@ -63,6 +64,30 @@ The sea-level change itself, `dSL = G - R`, is not written as a separate file; i
 `f = sum_l [ a[l,0] c_l0(mu) + 2 Re sum_{m>=1} a[l,m] c_lm(mu) exp(i m phi) ]` with
 `c_lm = 1.41421356 * P~_lm`, `P~_lm` orthonormal on [-1, 1] without the Condon-Shortley phase.
 `python/slevolve/sht.py` (`SHT.synthesis`) and `sht_ducc.py` synthesise it.
+
+### Analytic rates (optional)
+
+Off by default; Fortran `SLEVOLVE_RATES=1`, Python `run_ais.py --save-fields ...,dSLdt,dRdt` or
+`run_outer.py --rates`. Output only: every other output is unchanged. The formulas are in
+[Method](method.md#analytic-present-day-rates-optional).
+
+| file | meaning | units |
+|---|---|---|
+| `dSLdt<N>` (`.npy` grid) | rate of the sea-level change dSL (sea surface minus solid surface) at the end of step N, including the rotational term and, in degree 0, the rate of the conservation term on the ocean function of step N. `-dSLdt` is the rate of topography change | m/yr |
+| `dRdt<N>` (`.npy` grid) | rate of the radial displacement (uplift rate), including the rotational term | m/yr |
+| `TPWrate<N>` (Fortran, text) / `TPWrate<N>.txt` (Python) | with rotation: the rates of the three records of `TPW<N>`, in the same layout: il-dot (9 values, kg m^2/yr), m-dot (3 values, 1/yr; m1-dot, m2-dot is the polar-motion (true polar wander) rate in rad/yr), Lambda-dot (18 values, m^2 s^-2 /yr) | as stated |
+
+The rate of the sea surface is `dGdt = dSLdt + dRdt`. Present-day J2-dot and the true-polar-wander
+rate follow from these: with \(\dot G_{20}\) the (2,0) coefficient of `dGdt` (spharmt convention
+of `dS_converged`, whose (l,0) functions are the 4-pi-normalised Legendre functions to a relative
+1.7e-9) and \(\dot\Lambda_{20}\) from `TPWrate<N>`,
+\(\dot J_2=-\sqrt5\,(\dot G_{20}-\dot\Lambda_{20}/g)/a\) (the centrifugal potential removed), and the
+TPW speed is \(|\dot m_1+i\,\dot m_2|\) rad/yr (times \(180/\pi\cdot10^6\) for degrees per Myr).
+
+They are the rates at \(t_N\) read from the modal states, not the mean rate over the last step that a
+difference `(X<N> - X<N-1>) / dt` gives. With the second-order placement (`RAMP=1`, `--ramp`) they
+are second order in the step length; with the default placement only the last increment is read as
+accruing linearly over its step.
 
 ## 3. Scalar outputs
 
@@ -76,6 +101,7 @@ The sea-level change itself, `dSL = G - R`, is not written as a separate file; i
 | inner iterations | iterations of the ocean-load update to reach `epsilon1` at each step | count | `numiter` (one line per step 1..N) | `numiter.npy` |
 | time | `k * dt` since the start; with a times file `t_k` as given in it | yr | `times` (`0, dt, 2 dt, ...`, one line per step 0..N, `ES14.4E2`; with a times file `t_0, t_1, ..., t_N` in `ES24.16E3`) | not written; `run_log.json` has `dt_years`, and with `--times` `times_years` (`t_0..t_N`); `outer_log.json` has `times_years` |
 | rotation | see below | | `TPW<N>` | not written |
+| rotation rates (optional) | rates of the `TPW<N>` quantities, [see above](#analytic-rates-optional) | | `TPWrate<N>` (with `SLEVOLVE_RATES=1`) | `TPWrate<N>.txt` (with `dSLdt` or `dRdt` in `--save-fields`) |
 
 The Fortran scalar files are text, one value per line (`ES14.4E2`), line 1 = step 0, line N+1 = step N
 (the GMSL files start with 0 at step 0). They are appended at every step and are written also in
@@ -117,16 +143,20 @@ snapshot mode only when `SLEVOLVE_OUTER` is set.
   line in each scalar file;
 * with `SLEVOLVE_SNAP=<list>` only the listed steps (step 0 always) and the fields in
   `SLEVOLVE_SNAP_FIELDS` (default `tgrid`) are written as grids; `snap_index.txt` lists them. The Case 1
-  example (`SLEVOLVE_SNAP=550 SLEVOLVE_SNAP_FIELDS=tgrid`) writes `tgrid0.npy` and `tgrid550.npy`.
+  example (`SLEVOLVE_SNAP=550 SLEVOLVE_SNAP_FIELDS=tgrid`) writes `tgrid0.npy` and `tgrid550.npy`;
+* with `SLEVOLVE_RATES=1`: `dSLdt<N>`, `dRdt<N>` (snapshot fields `dSLdt`, `dRdt`) and `TPWrate<N>`
+  at the steps where either rate grid is written.
 
 **Python `run_ais.py`** (`--out`):
 
 * step 0: `tgrid0.npy`, `ocean0.npy`, `beta0.npy` (always);
-* each step N: the fields named in `--save-fields` (default `tgrid,ocean,beta`; also `R`, `G`, `dS`);
-  `dS` is written as `dS_converged<N>.npy`;
+* each step N: the fields named in `--save-fields` (default `tgrid,ocean,beta`; also `R`, `G`, `dS`,
+  `dSLdt`, `dRdt`); `dS` is written as `dS_converged<N>.npy`; with `dSLdt` or `dRdt` and rotation also
+  `TPWrate<N>.txt`;
 * at the end: `numiter.npy`, `step_wall_seconds.npy`, `run_log.json` (settings, timings, `scalars`).
 
-**Python `run_outer.py`** (`--out`): the files of §4, plus `horiz<k>_it<p>.npy` with `--horizontal`.
+**Python `run_outer.py`** (`--out`): the files of §4, plus `horiz<k>_it<p>.npy` with `--horizontal`
+and `dSLdt<k>_it<p>.npy`, `dRdt<k>_it<p>.npy`, `TPWrate<k>_it<p>.txt` with `--rates`.
 
 To convert: `python/tools/npy2text.py` (text), `python/tools/npy2nc.py` (NetCDF with latitude,
 longitude and time axes; the time comes from `OUTPUT_SLM/times` when present, otherwise from
@@ -158,6 +188,11 @@ short checklist of the files, by solver (section 5 gives the same per driver, wi
 * Fortran `SLEVOLVE_HORIZ=1`: `horiz<N>.npy` (spectral Psi_lm); `SLEVOLVE_HORIZ=2`: also `Psi<N>.npy`
   (Psi on the grid). Python `--horizontal`: `horiz<N>.npy`; `--horizontal-grid`: also `utheta<N>.npy`,
   `uphi<N>.npy`. Grid components for Fortran output: `python/tools/horiz_grad.py horiz<N>.npy`.
+
+**Optional analytic rates** (off by default; [above](#analytic-rates-optional))
+
+* Fortran `SLEVOLVE_RATES=1`: `dSLdt<N>.npy`, `dRdt<N>.npy`, `TPWrate<N>`. Python: `dSLdt`, `dRdt` in
+  `--save-fields` (`run_ais.py`) or `--rates` (`run_outer.py`).
 
 ### Python
 

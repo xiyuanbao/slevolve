@@ -160,6 +160,92 @@ depends only on the converged \(\Delta L(t_{j-1})\). Hence:
 Trial iterates never enter the stored history, so every iteration sees exactly the viscous response of
 the full-history sum, and both formulations take the same inner iterations.
 
+### Second-order load placement (optional)
+
+The placement rule above is the step placement of Kendall et al. (2005): the increment of step \(j\)
+is applied at \(t_j\) as a step load, so its viscous response starts at \(t_j\). On average the
+response then lags by half a step, and the time stepping is first order in \(\delta t\). As an option,
+each increment can instead be taken to accrue linearly over its step \((t_{j-1},t_j]\) (a ramp). The
+viscous kernel integrated over the ramp is
+
+$$
+\int_{t_{j-1}}^{t_j}\left(1-e^{-s(t-\tau)}\right)\frac{d\tau}{\delta t_j}
+=1-\varphi(s\,\delta t_j)\,e^{-s(t-t_j)},\qquad
+\varphi(x)=\frac{1-e^{-x}}{x}\quad(t\ge t_j)
+$$
+
+for each mode, so the ramp only replaces the unit amplitude of the decaying exponential by
+\(\varphi(s^\ell_k\delta t_j)\). \(\varphi(x)=1-x/2+x^2/6-\dots\) tends to 1 as \(\delta t_j\to0\) (the step
+response is recovered); the code uses this series below \(x=10^{-4}\). The elastic term and the
+direct sea-level terms (\(E_\ell\), the ocean function, the conservation term) are unchanged, because a
+ramp is complete at \(t_j\). The response is exact for a load that is piecewise linear in time and
+second order for a smooth load.
+
+In the recursion the state stays one field per mode, and the extra term is local to the step:
+
+1. **advance-and-read** is unchanged. The current increment has the viscous response
+   \(\sum_k a^\ell_k c^\ell_k\,\delta L^j_{\ell m}\) at \(t_j\), with \(c^\ell_k=1-\varphi(s^\ell_k\delta t_j)\). It is
+   linear in \(\delta L^j\), like the elastic term, so it enters the inner iteration as an addition to
+   the elastic coefficient of the current increment:
+   \(T_\ell[E_\ell\Delta L_{\ell m}+V_{\ell m}+C_\ell\,\delta L^j_{\ell m}]\), \(C_\ell=\sum_k a^\ell_k c^\ell_k\)
+   (radial displacement: the radial weights);
+2. **commit** adds \(c^\ell_k\,\delta L^j_{\ell m}\) to every modal state \(R^k_{\ell m}\) before \(\Delta L\) is
+   updated. One step later the increment contributes \(d\,c+(1-d)=1-d\,\varphi\), the ramp kernel, and the
+   identity carries over to all later steps.
+
+\(c^\ell_k\) uses the length \(\delta t_j\) of the step in which the increment accrued, so non-uniform
+steps (a times file) need nothing else; the coefficients are recomputed once per distinct step length.
+The rotational states take the same two changes. The polar-motion equation becomes implicit in the
+current increment and is solved in closed form (\(i=1,2\)):
+
+$$
+m_i=\frac{\alpha\left[\dfrac{(1+k^E_2)\,I_{i3}+\Sigma^I_{i3}+c_I\,\delta I_{i3}}{C-A}+\dfrac{\Sigma^m_i-c_m\,m_i^{\,j-1}}{k_f}\right]}{1-\alpha\,c_m/k_f},
+\qquad \alpha=\frac{1}{1-k^{T,E}_2/k_f}
+$$
+
+with \(\Sigma^I\), \(\Sigma^m\) the read modal sums, \(c_I=\sum_k a^I_k c_k\) and \(c_m=\sum_k a^m_k c_k\)
+(degree-2 weights of the moment of inertia and of the tidal potential); \(m_3\) uses
+\(\Sigma^I_{33}+c_I\,\delta I_{33}\). The viscous tidal terms of sea level and radial displacement gain
+\(c_{tsl}\,\delta\Lambda\) and \(c_{trr}\,\delta\Lambda\). The cost is one multiply-add per mode and coefficient at
+the commit (the advance has three) and nothing in the inner iteration beyond one multiply-add per
+coefficient.
+
+The ramp removes the lag of the viscous response. Events that the step sequence resolves only to one
+step remain first order: a marine basin that floods in the step in which its ice cover vanishes (the
+shoreline term), and ice that grounds or floats. They leave a first-order remainder on margins and
+forebulges.
+
+**Default off.** The paper and the shipped `reference/` results use the step placement of Kendall
+et al. (2005), so the default keeps it and every default output is unchanged. The option is the
+build switch `RAMP=1` (Fortran) and `--ramp` (Python `run_ais.py`, `run_outer.py`). The method was
+derived and verified in a separate study.
+
+### Analytic present-day rates (optional)
+
+Rates are read from the modal states at the end of a step (left derivative), the current increment
+taken to accrue linearly over the step. Inside the step every state obeys
+\(dR^k/dt=s_k(P-R^k)\), with \(P\) the cumulative driver, so
+
+$$
+\frac{d\,\Delta\mathcal{SL}_{\ell m}}{dt}\Big|_{t_j}=T_\ell\left[E_\ell\frac{\delta L^j_{\ell m}}{\delta t_j}
++\sum_k a^\ell_k s^\ell_k\left(\Delta L_{\ell m}(t_j)-R^k_{\ell m}(t_j)-c^\ell_k\,\delta L^j_{\ell m}\right)\right]
+$$
+
+(radial displacement: \(h^E_\ell\) and the radial weights), with \(R^k\) the state after the advance of
+step \(j\). The degree-2 rotational rates differentiate the polar-motion equation, which is explicit in
+\(\dot m\): the current-increment term becomes \(s_k(m-r^m_k)\) with the ramp-consistent state
+\(r^m_k+c_k\delta m\), \(\dot I=\delta I/\delta t_j\), and \(\dot\Lambda\) follows by the chain rule. Degree 0 of
+\(d\mathcal{SL}/dt\) is the rate of the conservation term on the ocean function \(C^*_j\) of the end of the
+step: \(\bigl(-(\rho_I/\rho_w)\,\delta I^*_{00}/\delta t_j-\overline{C^*_j\,\dot{\mathcal{SL}}}\bigr)/\overline{C^*_j}\)
+(overbar: global mean; \(\dot{\mathcal{SL}}\) without degree 0).
+
+A two-point difference of the outputs, \((X_j-X_{j-1})/\delta t_j\), is the mean rate over the last step,
+centred at \(t_j-\delta t_j/2\): first order in \(\delta t\) whatever the placement. The analytic read-out
+is the rate at \(t_j\) and, with the ramp, second order. It is available with the step placement too:
+the history is then that of the step placement and only the last increment is read as a ramp. The rates
+are output only (Fortran `SLEVOLVE_RATES=1`, Python `--save-fields ...,dSLdt,dRdt` or `run_outer.py
+--rates`; [Output fields](outputs.md#analytic-rates-optional)).
+
 ### Extrapolated inner start (Sect. 2.5 of the paper)
 
 $$
@@ -219,6 +305,7 @@ Section numbers refer to Sect. 2 of the paper.
 | 9 | **Partially relaxed (segmented) initial topography.** The ice-volume history is split into monotonic segments. Each segment's net load change is responded to with Love numbers relaxed for its mean age τ_i. The result is the T0 guess for outer pass 1. | Python only: `python/init_topo_segmented.py` (function `segmented_guess`, CLI; 5-point running mean, legs below 1 % of the range pruned, `--threshold`) | Changes the outer starting point only |
 | 0 | **Floating-ice convention.** \(\beta_j\) is the grounded-ice mask of Kendall et al. (2005, eqs 43-44), and the flotation check uses the current topography iterate (see the definition of \(\beta_j\) above). | `sl_model_mod.f90`: `gr_ground`, `gr_reguess`, `gr_update_now`. Python: `solver.py::_grounded_reguess` | Yes (a correction of the legacy convention, which excluded every ice-covered cell from the water-loading ocean and tested flotation against the initial topography of the pass) |
 | 10 | **In-process outer iteration driver.** One process runs passes K0..K1. Earth model, transform tables, FFTW plans, state allocation, ice grids and the warm-start store stay resident. | `fortran/src/run_outer_mem.f90` (`./exe LAST K0 K1`). One pass per process: `run_outer_plus.f90` (`./exe LAST ITERSL`). Python: `run_outer.py` | No. Picard update `tinit_0 ← tinit_0 + (T_obs − T_pred)` as in the legacy code. `SLEVOLVE_OUTER=secant` is an experimental alternative |
+| 11 | **Second-order load placement and analytic rates** (optional, off by default; [above](#second-order-load-placement-optional)). | `modal_state_mod.f90`: `update_ramp`, `state_ramp_commit`, `state_read_rate`; `sl_model_mod.f90`: `rate_spectra`, `rate_grids`, the `ramp` branches of the rotation, sea-level, radial and horizontal assembly; build `RAMP=1`, run time `SLEVOLVE_RATES=1`. Python: `solver.py::ramp_factor`, `ExactMemory.read_rate`, `SeaLevelSolver._rate_spectra`; `kernels.py::ramp_commit`, `rate_sums`, `ramp_add` | `RAMP=1` changes the result (second-order time stepping); the rates are output only |
 
 The longitude FFT routine `fft99b` of the transform module of the legacy code is used in a corrected
 form (`fortran/src/spharmt_otf.f90`).

@@ -37,6 +37,7 @@ a suffix is added only for a switch that differs from its default.
 | `NORDER` | integer | 511 | maximum spherical-harmonic degree; 512 (the legacy default) remains selectable |
 | `EPS1` | float | `1.0E-5` | inner-iteration tolerance `epsilon1` |
 | `LEGACY_CONSTANTS` | `1`, unset | unset | `1`: ice density 910 kg m^-3 and radius 6.371229e6 m of the older legacy code; unset: 920 and 6.371e6 (Han et al. 2022), used by all benchmark cases |
+| `RAMP` | `0`, `1` | `0` | `1`: second-order load placement, each load increment accrues linearly over its step ([Method](method.md#second-order-load-placement-optional)); build directory suffix `_ramp`. `0`: the step placement of Kendall et al. (2005), used by the paper and `reference/`. Changes the result |
 | `SHT` | `otf`, `blas`, `exact`, `ref` | `otf` | Legendre transform: `otf` computes the associated Legendre functions on the fly (fastest from about 4 threads, half the memory); `blas` uses a precomputed table and DGEMM; `exact` and `ref`: verification only (they reproduce the legacy transform) |
 | `FFT` | `fftw`, `fft991` | `fftw` | longitude FFT: FFTW, or the routine of the legacy code (no FFTW needed) |
 | `SYM` | `1`, `0` | `1` | `1` uses the north-south symmetry of the Legendre functions (fewer operations); `0` for checks only |
@@ -63,8 +64,9 @@ The last column says whether the switch changes the numerical result.
 | `SLEVOLVE_OUTER` | `picard`/`secant` | unset | outer iteration: `picard` is the legacy update of the initial topography; `secant` uses a per-cell secant update from pass 3 (experimental). Setting either also writes the outer-iteration files `pred_pres_topo_<k>`, `tgrid0_<k>` in snapshot mode | `secant` changes the iterates |
 | `SLEVOLVE_ICECACHE` | 0/1 | 1 | `run_outer_mem` only: keeps the ice grids in memory across passes instead of re-reading them | no |
 | `SLEVOLVE_SNAP` | `all`/`none`/list (`1,2,5`, `1-20,50`) | unset = every step | writes the per-step grids only at the listed steps (step 0 is always added); `none` writes none | no |
-| `SLEVOLVE_SNAP_FIELDS` | `tgrid[,ocean,beta,dS,R,G,horiz,Psi]`/`all` | `tgrid` | fields written at the steps of `SLEVOLVE_SNAP` | no |
+| `SLEVOLVE_SNAP_FIELDS` | `tgrid[,ocean,beta,dS,R,G,horiz,Psi,dSLdt,dRdt]`/`all` | `tgrid` | fields written at the steps of `SLEVOLVE_SNAP` | no |
 | `SLEVOLVE_HORIZ` | 0/1/2 | 0 | horizontal displacement ([Horizontal displacement output](horizontal.md)): 1 writes `horiz<N>.npy` (Psi_lm), 2 also `Psi<N>.npy` | no (output only) |
+| `SLEVOLVE_RATES` | 0/1 | 0 | analytic rates at the end of each step ([Output fields](outputs.md#analytic-rates-optional)): `dSLdt<N>.npy`, `dRdt<N>.npy` (m/yr; snapshot fields `dSLdt`, `dRdt`) and, with rotation, `TPWrate<N>`. Works with and without `RAMP=1` | no (output only) |
 | `SLEVOLVE_FMT` | `npy`/`bin` | `npy` | binary output container: `.npy` or headerless little-endian `.bin` | no |
 | `SLEVOLVE_TEXT` | 0/1 | 0 | also writes the grids as legacy text files (slow, large) | no |
 | `SLEVOLVE_BIN` | 0/1 | 1 | `0` suppresses the binary grid output | no |
@@ -98,6 +100,7 @@ Note: `SLEVOLVE_INNER=anderson` requires `SLEVOLVE_OPT` to include `merge` and `
 | `planetmodel`, `icemodel`, `topomodel`, `topo_initial` | input file names | `PLANETMODEL`, `ICEMODEL`, `TOPOMODEL`, `TOPO_INITIAL` |
 | `rhoi`, `radius` | ice density, Earth radius | default 920, 6.371E6; `LEGACY_CONSTANTS=1`: 910, 6.371229E6 |
 | `iceVolume`, `calcRG` | legacy switches | fixed by the sed (`.true.`) |
+| `ramp` | second-order load placement (not in the legacy code) | `RAMP=1` (default `.false.`) |
 
 `nglv` is fixed at 512 in the support module (`support_mod.f90`); `build.sh` has no switch for it.
 
@@ -138,7 +141,8 @@ defaults of `--icepfx`, `--earth`, `--topo` are the Case 1 names):
 | `--icedir`, `--icepfx` | development cache / `AISload_gd_Run85_0_0_` | ice files `<icedir>/<icepfx><k>` (`.npy`, `.bin` or text), read directly. Pass explicitly |
 | `--topo` | development tree | initial topography (`.npy`, `.bin` or text). Pass explicitly |
 | `--earth` | development tree | Love-number file. Pass explicitly |
-| `--save-fields` | `tgrid,ocean,beta` | fields written at every step: any of `tgrid,ocean,beta,dS,R,G` |
+| `--save-fields` | `tgrid,ocean,beta` | fields written at every step: any of `tgrid,ocean,beta,dS,R,G,dSLdt,dRdt`; `dSLdt`, `dRdt` are the analytic rates (m/yr; with `--tpw T` also `TPWrate<N>.txt`), output only |
+| `--ramp` | off | second-order load placement: each load increment accrues linearly over its step ([Method](method.md#second-order-load-placement-optional)); off: the step placement of Kendall et al. (2005), used by the paper and `reference/`. Changes the result |
 | `--rebuild-cache` | off | rebuild the binary ice cache (`python/cache/`). The cache is keyed by a JSON manifest next to it (ice directory, prefix, file count, size and mtime of every ice file) and is rebuilt automatically, with a message, when any of these change |
 | `--horizontal` | off | write `horiz<N>.npy` (Psi_lm, [Horizontal displacement output](horizontal.md)) every step; output only |
 | `--horizontal-grid` | off | also `utheta<N>.npy`, `uphi<N>.npy` (ducc0) |
@@ -175,6 +179,8 @@ defaults of `--icepfx`, `--earth`, `--topo` are the Case 1 names):
 | `--count-sht` | off | transform counts per pass in the log |
 | `--out` | **required** | output directory (`outer_log.json`, `pred_pres_topo_<k>.npy`, `tgrid0_<k>.npy`, `T0_next.npy`, saved steps) |
 | `--horizontal`, `--horizontal-grid` | off | `horiz<N>_it<k>.npy` (and `utheta/uphi<N>_it<k>.npy`) at `--save-steps` and the last step |
+| `--ramp` | off | as for `run_ais.py` |
+| `--rates` | off | analytic rates `dSLdt<N>_it<k>.npy`, `dRdt<N>_it<k>.npy` (m/yr) and `TPWrate<N>_it<k>.txt` at `--save-steps` and the last step of every pass; output only |
 
 `run_outer.py` has no `--sht` and no `--mem-threads` option. It always uses ducc. With `--opt numba`
 (default) the modal-state advance runs in the numba thread pool, sized by `--threads`; `solver_opt.py`
