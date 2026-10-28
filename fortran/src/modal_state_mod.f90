@@ -1,8 +1,17 @@
 module modal_state_mod
   use iso_fortran_env, only: real64, int64
+  use iso_c_binding, only: c_double
   implicit none
   private
   integer, parameter, public :: dp = real64
+
+  interface
+     ! C99 expm1 (libm), for the ramp factor phi(x) = -expm1(-x)/x without cancellation
+     pure real(c_double) function c_expm1(x) bind(C, name='expm1')
+       import :: c_double
+       real(c_double), value, intent(in) :: x
+     end function c_expm1
+  end interface
 
   public :: extrap_coeffs
   type, public :: response_spectrum
@@ -43,12 +52,23 @@ module modal_state_mod
      real(dp), allocatable :: r_il(:,:,:)
      real(dp), allocatable :: r_m(:,:)
      complex(dp), allocatable :: r_lambda(:,:)
+     ! Second-order load placement (ramp) and analytic rate read-out, for the step length
+     ! ramp_dt_years: phi(s dt) and 1 - phi(s dt) per mode; per-degree sums
+     ! c_sl, c_rr = sum_k a_k (1 - phi_k), ws_sl, ws_rr = sum_k a_k s_k,
+     ! wsphi_sl, wsphi_rr = sum_k a_k s_k phi_k (per year); degree-2 rotational c_il, c_m, c_tsl, c_trr.
+     ! Not part of the checkpoint: recomputed from the spectrum when the step length changes.
+     real(dp), allocatable :: phi(:,:), omphi(:,:)
+     real(dp), allocatable :: c_sl(:), c_rr(:), ws_sl(:), ws_rr(:), wsphi_sl(:), wsphi_rr(:)
+     real(dp) :: c_il = 0.0_dp, c_m = 0.0_dp, c_tsl = 0.0_dp, c_trr = 0.0_dp
+     real(dp) :: ramp_dt_years = -huge(1.0_dp)
   contains
      procedure :: init => state_init
      procedure :: zero => state_zero
      procedure :: advance_and_read => state_advance_and_read
      procedure :: read_horizontal => state_read_horizontal
      procedure :: commit => state_commit
+     procedure :: ramp_commit => state_ramp_commit
+     procedure :: read_rate => state_read_rate
      procedure :: save_checkpoint => state_save_checkpoint
      procedure :: load_checkpoint => state_load_checkpoint
      procedure :: bytes => state_bytes
@@ -175,6 +195,9 @@ contains
     if (allocated(self%r_il)) deallocate(self%r_il)
     if (allocated(self%r_m)) deallocate(self%r_m)
     if (allocated(self%r_lambda)) deallocate(self%r_lambda)
+    if (allocated(self%phi)) deallocate(self%phi, self%omphi, self%c_sl, self%c_rr, self%ws_sl, &
+                                        self%ws_rr, self%wsphi_sl, self%wsphi_rr)
+    self%ramp_dt_years=-huge(1.0_dp)
     self%lmax=0; self%max_modes=0; self%ncoef=0; self%nstate=0_int64
     self%cached_dt_years=-huge(1.0_dp)
     self%p_il=0.0_dp; self%p_m=0.0_dp; self%p_lambda=(0.0_dp,0.0_dp)
@@ -200,6 +223,7 @@ contains
     type(response_spectrum), intent(in) :: spec
     real(dp), intent(in) :: dt_years
     integer :: ll,kk
+    call update_ramp(self,spec,dt_years)
     if (abs(dt_years-self%cached_dt_years) <= epsilon(1.0_dp)*max(1.0_dp,abs(dt_years))) return
     self%decay=0.0_dp
     do ll=1,self%lmax
@@ -209,6 +233,55 @@ contains
     end do
     self%cached_dt_years=dt_years
   end subroutine update_decay
+
+  ! phi(x) = (1 - e^{-x})/x and 1 - phi(x) for x = s dt / 1000 of every mode, and the per-degree
+  ! sums used by the ramp (same-step weights) and by the rate read-out.  Series below x = 1e-4.
+  subroutine update_ramp(self,spec,dt_years)
+    class(response_memory_state), intent(inout) :: self
+    type(response_spectrum), intent(in) :: spec
+    real(dp), intent(in) :: dt_years
+    integer :: ll,kk
+    real(dp) :: x,w
+    if (allocated(self%phi) .and. dt_years == self%ramp_dt_years) return
+    if (.not.allocated(self%phi)) then
+       allocate(self%phi(self%max_modes,0:self%lmax), self%omphi(self%max_modes,0:self%lmax))
+       allocate(self%c_sl(0:self%lmax), self%c_rr(0:self%lmax), self%ws_sl(0:self%lmax), &
+                self%ws_rr(0:self%lmax), self%wsphi_sl(0:self%lmax), self%wsphi_rr(0:self%lmax))
+    endif
+    self%phi=1.0_dp; self%omphi=0.0_dp
+    self%c_sl=0.0_dp; self%c_rr=0.0_dp; self%ws_sl=0.0_dp; self%ws_rr=0.0_dp
+    self%wsphi_sl=0.0_dp; self%wsphi_rr=0.0_dp
+    do ll=1,self%lmax
+       do kk=1,self%nmod(ll)
+          x=spec%s(kk,ll)*(dt_years/1000.0_dp)
+          if (abs(x) < 1.0e-4_dp) then
+             self%phi(kk,ll)=1.0_dp-x/2.0_dp+x*x/6.0_dp-x**3/24.0_dp
+             self%omphi(kk,ll)=x/2.0_dp-x*x/6.0_dp+x**3/24.0_dp
+          else
+             self%phi(kk,ll)=-c_expm1(-x)/x
+             self%omphi(kk,ll)=(x+c_expm1(-x))/x
+          endif
+          self%c_sl(ll)=self%c_sl(ll)+spec%a_sl(kk,ll)*self%omphi(kk,ll)
+          self%c_rr(ll)=self%c_rr(ll)+spec%a_rr(kk,ll)*self%omphi(kk,ll)
+          w=spec%a_sl(kk,ll)*spec%s(kk,ll)/1000.0_dp
+          self%ws_sl(ll)=self%ws_sl(ll)+w
+          self%wsphi_sl(ll)=self%wsphi_sl(ll)+w*self%phi(kk,ll)
+          w=spec%a_rr(kk,ll)*spec%s(kk,ll)/1000.0_dp
+          self%ws_rr(ll)=self%ws_rr(ll)+w
+          self%wsphi_rr(ll)=self%wsphi_rr(ll)+w*self%phi(kk,ll)
+       end do
+    end do
+    self%c_il=0.0_dp; self%c_m=0.0_dp; self%c_tsl=0.0_dp; self%c_trr=0.0_dp
+    if (self%lmax >= 2) then
+       do kk=1,self%nmod(2)
+          self%c_il=self%c_il+self%omphi(kk,2)*spec%a_il(kk,2)
+          self%c_m=self%c_m+self%omphi(kk,2)*spec%a_m(kk,2)
+          self%c_tsl=self%c_tsl+self%omphi(kk,2)*spec%a_tsl(kk,2)
+          self%c_trr=self%c_trr+self%omphi(kk,2)*spec%a_trr(kk,2)
+       end do
+    end if
+    self%ramp_dt_years=dt_years
+  end subroutine update_ramp
 
   subroutine state_advance_and_read(self,spec,dt_years,viscous,radial,sum_il,sum_m,sum_lambda_sl,sum_lambda_rr)
     class(response_memory_state), intent(inout) :: self
@@ -305,6 +378,69 @@ contains
     if (present(dm)) self%p_m=self%p_m+dm
     if (present(dlambda)) self%p_lambda=self%p_lambda+dlambda
   end subroutine state_commit
+
+  ! Second-order load placement: the converged increment of this step already carries 1 - phi_k of
+  ! its viscous response in every mode (R_k += (1 - phi_k) dL); one step later it contributes
+  ! d c + (1 - d) = 1 - d phi, the ramp kernel.  Called just before commit (ramp only).
+  subroutine state_ramp_commit(self,current_load,dil,dm,dlambda)
+    class(response_memory_state), intent(inout) :: self
+    complex(dp), intent(in) :: current_load(:)
+    real(dp), intent(in), optional :: dil(3,3),dm(3)
+    complex(dp), intent(in), optional :: dlambda(0:2)
+    integer :: ll,kk,ibase,rstart,rend
+    real(dp) :: c
+    !$omp parallel do schedule(dynamic,4) default(shared) private(ll,kk,ibase,rstart,rend,c)
+    do ll=1,self%lmax
+       ibase=lm_index(ll,0)
+       do kk=1,self%nmod(ll)
+          c=self%omphi(kk,ll)
+          rstart=int(self%roffset(ll))+(kk-1)*(ll+1)
+          rend=rstart+ll
+          self%r_load(rstart:rend)=self%r_load(rstart:rend)+current_load(ibase:ibase+ll)*c
+       end do
+    end do
+    !$omp end parallel do
+    if (self%lmax >= 2) then
+       do kk=1,self%nmod(2)
+          c=self%omphi(kk,2)
+          if (present(dil)) self%r_il(kk,:,:)=self%r_il(kk,:,:)+c*dil(:,:)
+          if (present(dm)) self%r_m(kk,:)=self%r_m(kk,:)+c*dm(:)
+          if (present(dlambda)) self%r_lambda(kk,:)=self%r_lambda(kk,:)+c*dlambda(:)
+       end do
+    end if
+  end subroutine state_ramp_commit
+
+  ! Analytic rate read-out (per year) of the viscous sea-level and radial terms at the end of the
+  ! step, the current increment dL taken to accrue linearly over the step:
+  !   sum_k a_k s_k (P + dL - R_k - (1 - phi_k) dL) = ws P - sum_k a_k s_k R_k + wsphi dL,
+  ! P = p_load (committed before this step).  Call between advance_and_read and commit; the state
+  ! is not modified.
+  subroutine state_read_rate(self,spec,current_load,rate_sl,rate_rr)
+    class(response_memory_state), intent(in) :: self
+    type(response_spectrum), intent(in) :: spec
+    complex(dp), intent(in) :: current_load(:)
+    complex(dp), intent(out) :: rate_sl(:),rate_rr(:)
+    integer :: ll,kk,ibase,rstart,rend
+    real(dp) :: w1,w2
+    rate_sl=(0.0_dp,0.0_dp); rate_rr=(0.0_dp,0.0_dp)
+    !$omp parallel do schedule(dynamic,4) default(shared) private(ll,kk,ibase,rstart,rend,w1,w2)
+    do ll=1,self%lmax
+       ibase=lm_index(ll,0)
+       do kk=1,self%nmod(ll)
+          w1=spec%a_sl(kk,ll)*spec%s(kk,ll)/1000.0_dp
+          w2=spec%a_rr(kk,ll)*spec%s(kk,ll)/1000.0_dp
+          rstart=int(self%roffset(ll))+(kk-1)*(ll+1)
+          rend=rstart+ll
+          rate_sl(ibase:ibase+ll)=rate_sl(ibase:ibase+ll)+self%r_load(rstart:rend)*w1
+          rate_rr(ibase:ibase+ll)=rate_rr(ibase:ibase+ll)+self%r_load(rstart:rend)*w2
+       end do
+       rate_sl(ibase:ibase+ll)=self%ws_sl(ll)*self%p_load(ibase:ibase+ll)-rate_sl(ibase:ibase+ll) &
+                              +self%wsphi_sl(ll)*current_load(ibase:ibase+ll)
+       rate_rr(ibase:ibase+ll)=self%ws_rr(ll)*self%p_load(ibase:ibase+ll)-rate_rr(ibase:ibase+ll) &
+                              +self%wsphi_rr(ll)*current_load(ibase:ibase+ll)
+    end do
+    !$omp end parallel do
+  end subroutine state_read_rate
 
   subroutine state_save_checkpoint(self,filename)
     class(response_memory_state), intent(in) :: self

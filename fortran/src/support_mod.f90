@@ -29,6 +29,8 @@ module user_specs_mod
   integer :: norder=512, nglv=512
   real, parameter :: epsilon1=1.0E30, epsilon2=1.0E-5
   logical :: checkmarine=.false., tpw=.true., calcRG=.true.
+  ! second-order load placement (build switch RAMP=1); default: step placement (Kendall et al. 2005)
+  logical :: ramp=.false.
   logical :: input_times=.false., initial_topo=.true., iceVolume=.false.
   logical :: coupling=.false., patch_ice=.false.
   integer :: L_sim=2

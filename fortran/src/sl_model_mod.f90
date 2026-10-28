@@ -153,6 +153,14 @@ module sl_model_mod
    complex, dimension(:,:), allocatable :: hzlm
    real, dimension(:,:), allocatable :: hzxy
    logical :: pp_hz_needed
+   ! Optional analytic rates (SLEVOLVE_RATES=1): rate spectra (per year) of sea level and radial
+   ! displacement at the end of the step, their grids, and the rotational rates.  Output only.
+   complex(dp), allocatable :: rate_vsl(:), rate_vrr(:)
+   complex, dimension(:,:), allocatable :: rate_sllm, rate_rrlm, rate_tmplm
+   real, dimension(:,:), allocatable :: rate_slxy, rate_rrxy, rate_tmpxy
+   real :: rate_ildot(3,3), rate_mdot(3)
+   complex :: rate_lamdot(0:2,0:2)
+   logical :: rate_want = .false.
    character(len=1024) :: exact_statefile
    integer :: exact_idx
    integer, parameter :: exact_prev=1, exact_cur=2
@@ -1628,10 +1636,22 @@ module sl_model_mod
             sum_il(:,:) = exact_sum_il(:,:)
             sum_m(:) = exact_sum_m(:)
 
+            if (ramp) then
+               ! second-order placement: the current increments carry 1 - phi of their viscous
+               ! response, so the m equation is implicit in m (closed form)
+               sum_il(:,:) = exact_sum_il(:,:) + exact_state%c_il * (il(:,:) - oldil(:,:))
+               do i = 1,2
+                  mm(i) = (1 / (1 - kTE(2) / kf)) * &
+                        & ( (1 / (moiC - moiA)) * ((1 + kE(2)) * il(i,3) + sum_il(i,3)) &
+                        & + (1 / kf) * (sum_m(i) - exact_state%c_m * oldm(i)) ) &
+                        & / (1 - (1 / (1 - kTE(2) / kf)) * exact_state%c_m / kf)
+               enddo
+            else
             do i = 1,2
                mm(i) = (1 / (1 - kTE(2) / kf)) * &
                      & ( (1 / (moiC - moiA)) * ((1 + kE(2)) * il(i,3) + sum_il(i,3)) + (1 / kf) * sum_m(i) )
             enddo
+            endif
 
             mm(3) = (1.0 / moiC) * ( (1 + kE(2)) * il(3,3) + sum_il(3,3) )
 
@@ -1651,6 +1671,7 @@ module sl_model_mod
             ekhTE = 1 + kTE(2) - hTE(2)
             do m = 0,2
                viscoustt = exact_tsl(m)
+               if (ramp) viscoustt = exact_tsl(m) + exact_state%c_tsl * dlambda(2,m,exact_cur)
                dsl_rot(2,m) = (ekhTE * (deltalambda(2,m,exact_prev) + dlambda(2,m,exact_cur)) + viscoustt) / gacc ! (eq. B28/B25)
             enddo
 
@@ -1658,6 +1679,7 @@ module sl_model_mod
                rr_rot(:,:) = (0.0,0.0)
                do m = 0,2
                   viscousttrr = exact_trr(m)
+                  if (ramp) viscousttrr = exact_trr(m) + exact_state%c_trr * dlambda(2,m,exact_cur)
                   rr_rot(2,m) = (hTE(2) * (deltalambda(2,m,exact_prev) + dlambda(2,m,exact_cur)) + viscousttrr) / gacc
                enddo
             endif
@@ -1684,6 +1706,19 @@ module sl_model_mod
                              + ttl * viscous(l,m) ! (eq. B18)
             enddo
          enddo
+
+         ! second-order placement: same-step viscous response of the current increment
+         if (ramp) then
+            !$omp parallel do schedule(static) default(shared) private(l,m,ttl)
+            do l = 1,norder
+               ttl = (4.0 * pi * (radius**3)) / (mass * (2 * real(l) + 1.0)) ! (eq. B16)
+               do m = 0,l
+                  sl_inc_lm(l,m) = sl_inc_lm(l,m) + (ttl * exact_state%c_sl(l)) &
+                                 & * (rhoi * dicestar(l,m,exact_cur) + rhow * load_inc_lm(l,m))
+               enddo
+            enddo
+            !$omp end parallel do
+         endif
 
          ! Add rotational effects (calculated above)
          sl_inc_lm(0:2,0:2) = sl_inc_lm(0:2,0:2) + dsl_rot(0:2,0:2)
@@ -2102,6 +2137,17 @@ module sl_model_mod
                            & + ttl * viscousrr
                enddo
             enddo
+            if (ramp) then
+               !$omp parallel do schedule(static) default(shared) private(l,m,ttl)
+               do l = 1,norder
+                  ttl = (4.0 * pi * (radius**3)) / (mass * (2.0 * real(l) + 1.0)) ! (eq. B16)
+                  do m = 0,l
+                     rrlm(l,m) = rrlm(l,m) + (ttl * exact_state%c_rr(l)) &
+                               & * (rhoi * dicestar(l,m,exact_cur) + rhow * load_inc_lm(l,m))
+                  enddo
+               enddo
+               !$omp end parallel do
+            endif
          endif
          rrlm(0:2,0:2) = rrlm(0:2,0:2) + rr_rot(0:2,0:2)
          call opt_syn(rrxy, rrlm)
@@ -2136,6 +2182,30 @@ module sl_model_mod
                enddo
             enddo
             !$omp end parallel do
+            if (ramp) then
+               ! same-step viscous weight of the current increment, c_hl = sum_k a_hl,k (1 - phi_k)
+               !$omp parallel do schedule(static) default(shared) private(l,m,k,ttl,xn)
+               do l = 1,norder
+                  ttl = (4.0 * pi * (radius**3)) / (mass * (2.0 * real(l) + 1.0)) ! (eq. B16)
+                  xn = 0.0
+                  do k = 1,nmod(l)
+                     xn = xn + exact_spec%a_hl(k,l) * exact_state%omphi(k,l)
+                  enddo
+                  do m = 0,l
+                     hzlm(l,m) = hzlm(l,m) + (ttl * xn) * (rhoi * dicestar(l,m,exact_cur) + rhow * load_inc_lm(l,m))
+                  enddo
+               enddo
+               !$omp end parallel do
+               if (tpw .and. norder >= 2) then
+                  xn = 0.0
+                  do k = 1,nmod(2)
+                     xn = xn + exact_state%omphi(k,2) * exact_spec%a_thl(k,2)
+                  enddo
+                  do m = 0,2
+                     exact_thl(m) = exact_thl(m) + xn * dlambda(2,m,exact_cur)
+                  enddo
+               endif
+            endif
             if (tpw .and. norder >= 2) then
                do m = 0,2
                   hzlm(2,m) = hzlm(2,m) + ((telast(2,2)/2.0) * (deltalambda(2,m,exact_prev) &
@@ -2165,6 +2235,19 @@ module sl_model_mod
          enddo
       enddo
       !$omp end parallel do
+      ! optional analytic rates of this step (read before the commit; output only)
+      rate_want = .false.
+      if (pp_rates) rate_want = pp_snap_want('dSLdt', trim(opt_stepstr), opt_st) .or. &
+                                pp_snap_want('dRdt', trim(opt_stepstr), opt_st)
+      if (rate_want) call rate_spectra(dtr)
+      ! second-order placement: the increment already carries 1 - phi_k of its response
+      if (ramp) then
+         if (tpw) then
+            call exact_state%ramp_commit(exact_current_load,dil(:,:,exact_cur),dm(:,exact_cur),dlambda(2,0:2,exact_cur))
+         else
+            call exact_state%ramp_commit(exact_current_load)
+         endif
+      endif
       if (tpw) then
          call exact_state%commit(exact_current_load,dil(:,:,exact_cur),dm(:,exact_cur),dlambda(2,0:2,exact_cur))
       else
@@ -2262,6 +2345,9 @@ module sl_model_mod
       opt_c00 = real(clm(0,0))
       opt_cst00 = real(cstarlm(0,0))
       endif
+
+      ! analytic rates: degree 0 on the end-of-step ocean function, grids, TPWrate<N>
+      if (rate_want) call rate_grids(dtr)
 
       !=========================================================================================
       !                          OUTPUT
@@ -2401,6 +2487,101 @@ module sl_model_mod
 
 
 
+
+   !=======================================================================================================================!
+   ! Optional analytic rates (SLEVOLVE_RATES=1).  Left derivative at the end of the step, the
+   ! current increment taken to accrue linearly over the step (with or without RAMP=1):
+   !   dSL/dt_lm = T_l [ (1 + k^E_l - h^E_l) dL_lm / dt + sum_k a_k s_k (P + dL - R_k - (1 - phi_k) dL)_lm ]
+   ! (radial: h^E_l and the radial weights), plus the degree-2 rotational rates: the m equation
+   ! differentiated explicitly, Lambda-dot by the chain rule, each modal state with
+   ! dr_k/dt = s_k (driver - r_k).  Called before the commit.
+   !=======================================================================================================================!
+   subroutine rate_spectra(h)
+      real(8), intent(in) :: h
+      integer :: l_, m_, k_, idx_, i_
+      real :: ttl_, ekhl_, sk_, c_, al_, r2w2_, m1_, m2_, m3_, d1_, d2_, d3_
+      real :: ild_(3,3), sild_(3,3), smd_(3), dil_(3,3), dm_(3)
+      complex :: tot_(0:2), dlam_(0:2), tsld_(0:2), trrd_(0:2)
+      if (.not. allocated(rate_vsl)) then
+         allocate(rate_vsl(exact_state%ncoef), rate_vrr(exact_state%ncoef))
+         allocate(rate_sllm(0:norder,0:norder), rate_rrlm(0:norder,0:norder), rate_tmplm(0:norder,0:norder))
+         allocate(rate_slxy(nglv,2*nglv), rate_rrxy(nglv,2*nglv), rate_tmpxy(nglv,2*nglv))
+      endif
+      call exact_state%read_rate(exact_spec, exact_current_load, rate_vsl, rate_vrr)
+      rate_sllm(:,:) = (0.0,0.0)
+      rate_rrlm(:,:) = (0.0,0.0)
+      !$omp parallel do schedule(static) default(shared) private(l_,m_,ttl_,ekhl_,idx_)
+      do l_ = 1,norder
+         ttl_ = (4.0 * pi * (radius**3)) / (mass * (2 * real(l_) + 1.0)) ! (eq. B16)
+         ekhl_ = 1 + ke(l_) - he(l_)
+         do m_ = 0,l_
+            idx_ = lm_index(l_,m_)
+            rate_sllm(l_,m_) = ttl_ * ekhl_ * exact_current_load(idx_) / h + ttl_ * rate_vsl(idx_)
+            rate_rrlm(l_,m_) = ttl_ * he(l_) * exact_current_load(idx_) / h + ttl_ * rate_vrr(idx_)
+         enddo
+      enddo
+      !$omp end parallel do
+      rate_ildot = 0.0; rate_mdot = 0.0; rate_lamdot = (0.0,0.0)
+      if (tpw .and. norder >= 2) then
+         dil_(:,:) = il(:,:) - oldil(:,:)
+         dm_(:) = mm(:) - oldm(:)
+         tot_(:) = lambda(2,0:2)
+         dlam_(:) = tot_(:) - deltalambda(2,0:2,exact_prev)
+         ild_(:,:) = dil_(:,:) / h
+         sild_ = 0.0; smd_ = 0.0; tsld_ = (0.0,0.0); trrd_ = (0.0,0.0)
+         do k_ = 1,exact_state%nmod(2)
+            sk_ = exact_spec%s(k_,2) / 1000.0
+            c_ = exact_state%omphi(k_,2)
+            sild_(:,:) = sild_(:,:) + (exact_spec%a_il(k_,2) * sk_) * (il(:,:) - (exact_state%r_il(k_,:,:) + c_ * dil_(:,:)))
+            smd_(:) = smd_(:) + (exact_spec%a_m(k_,2) * sk_) * (mm(:) - (exact_state%r_m(k_,:) + c_ * dm_(:)))
+            tsld_(:) = tsld_(:) + (exact_spec%a_tsl(k_,2) * sk_) * (tot_(:) - (exact_state%r_lambda(k_,:) + c_ * dlam_(:)))
+            trrd_(:) = trrd_(:) + (exact_spec%a_trr(k_,2) * sk_) * (tot_(:) - (exact_state%r_lambda(k_,:) + c_ * dlam_(:)))
+         enddo
+         al_ = 1 / (1 - kTE(2) / kf)
+         do i_ = 1,2
+            rate_mdot(i_) = al_ * ((1 / (moiC - moiA)) * ((1 + kE(2)) * ild_(i_,3) + sild_(i_,3)) + smd_(i_) / kf)
+         enddo
+         rate_mdot(3) = (1.0 / moiC) * ((1 + kE(2)) * ild_(3,3) + sild_(3,3))
+         rate_ildot(:,:) = ild_(:,:)
+         m1_ = mm(1); m2_ = mm(2); m3_ = mm(3)
+         d1_ = rate_mdot(1); d2_ = rate_mdot(2); d3_ = rate_mdot(3)
+         r2w2_ = radius**2 * omega**2
+         rate_lamdot(0,0) = (r2w2_ / 3.0) * (2 * m1_ * d1_ + 2 * m2_ * d2_ + 2 * m3_ * d3_ + 2.0 * d3_)
+         rate_lamdot(2,0) = (r2w2_ / (6.0 * sqrt(5.0))) * (2 * m1_ * d1_ + 2 * m2_ * d2_ - 4 * m3_ * d3_ - 4 * d3_)
+         rate_lamdot(2,1) = (r2w2_ / sqrt(30.0)) * ((d1_ - ii * d2_) * (1.0 + m3_) + (m1_ - ii * m2_) * d3_)
+         rate_lamdot(2,2) = (r2w2_ / sqrt(5.0 * 24.0)) * (2 * m2_ * d2_ - 2 * m1_ * d1_ + 2.0 * ii * (d1_ * m2_ + m1_ * d2_))
+         do m_ = 0,2
+            rate_sllm(2,m_) = rate_sllm(2,m_) + ((1 + kTE(2) - hTE(2)) * rate_lamdot(2,m_) + tsld_(m_)) / gacc
+            rate_rrlm(2,m_) = rate_rrlm(2,m_) + (hTE(2) * rate_lamdot(2,m_) + trrd_(m_)) / gacc
+         enddo
+      endif
+   end subroutine rate_spectra
+
+   ! Degree 0 of dSL/dt: rate of the conservation constant on the ocean function C* = C beta of the
+   ! end of the step, (-(rho_i/rho_w) dI*_00 / dt - mean(C* dSL/dt|l>=1)) / mean(C*); then the grids
+   ! dSLdt<N>, dRdt<N> (m/yr) and, with rotation, TPWrate<N>.
+   subroutine rate_grids(h)
+      real(8), intent(in) :: h
+      integer :: j_
+      call opt_syn(rate_slxy, rate_sllm)
+      !$omp parallel do schedule(static) default(shared) private(j_)
+      do j_ = 1,2*nglv
+         rate_tmpxy(:,j_) = rate_slxy(:,j_) * (cxy(:,j_) * beta(:,j_))
+      enddo
+      !$omp end parallel do
+      call opt_ana(rate_tmpxy, rate_tmplm)
+      rate_sllm(0,0) = (-(rhoi / rhow) * real(dicestar(0,0,exact_cur)) / h - real(rate_tmplm(0,0))) / opt_cst00
+      call opt_syn(rate_slxy, rate_sllm)
+      call opt_syn(rate_rrxy, rate_rrlm)
+      call pp_write_grid(rate_slxy, 'dSLdt', outputfolder, suffix=trim(opt_stepstr))
+      call pp_write_grid(rate_rrxy, 'dRdt', outputfolder, suffix=trim(opt_stepstr))
+      if (tpw) then
+         open(unit = 201, file = trim(outputfolder)//'TPWrate'//trim(opt_stepstr), form = 'formatted', &
+         & access = 'sequential', status = 'replace')
+         write(201,'(9ES19.8E2/,3ES19.8E2/,18ES19.8E2)') rate_ildot(:,:), rate_mdot(:), rate_lamdot(:,:)
+         close(201)
+      endif
+   end subroutine rate_grids
 
    !=======================================================================================================================!
    ! transform-count reduction helpers

@@ -35,6 +35,8 @@
 #   PLANETMODEL, ICEMODEL, TOPOMODEL, TOPO_INITIAL (default = TOPOMODEL)   input file names
 #   LEGACY_CONSTANTS=1 rhoi 910, radius 6.371229e6 (older legacy code) instead of the
 #                      default rhoi 920, radius 6.371e6 (Han et al. 2022)
+#   RAMP=1             second-order load placement: each load increment accrues linearly over its
+#                      step (default RAMP=0: the step placement of Kendall et al. 2005; suffix _ramp)
 # Solver switches:
 #   DRIVER=run_from_zero_plus|run_outer_plus|run_outer_mem   (default run_from_zero_plus)
 #       run_from_zero_plus  ./exe LAST            forward run, dtime = DT
@@ -87,6 +89,7 @@ case "$TPWF" in T) TPW_VAL=".true." ;; F) TPW_VAL=".false." ;; *) echo "bad TPW 
 case "$CMF"  in T) CM_VAL=".true."  ;; F) CM_VAL=".false."  ;; *) echo "bad CHECKMARINE (T or F)"  >&2; exit 2 ;; esac
 case "$INITIAL_TOPO" in T) IT_VAL=".true." ;; F) IT_VAL=".false." ;; *) echo "bad INITIAL_TOPO" >&2; exit 2 ;; esac
 case "${LEGACY_CONSTANTS:-0}" in 0|1) ;; *) echo "bad LEGACY_CONSTANTS (0 or 1)" >&2; exit 2 ;; esac
+case "${RAMP:-0}" in 0) RAMP_VAL=".false." ;; 1) RAMP_VAL=".true." ;; *) echo "bad RAMP (0 or 1)" >&2; exit 2 ;; esac
 
 # build directory: CASE name (or custom) plus one suffix per switch that differs from its default
 SFX=""
@@ -103,6 +106,7 @@ SFX=""
 [[ "$DRIVER" == "$DEFDRIVER" ]] || SFX="${SFX}_$DRIVER"
 [[ -z "${EPS1:-}" ]] || SFX="${SFX}_eps$EPS1"
 [[ "${LEGACY_CONSTANTS:-0}" == 0 ]] || SFX="${SFX}_legacyconst"
+[[ "${RAMP:-0}" == 0 ]] || SFX="${SFX}_ramp"
 TAG="${TAG:-${CASE:-custom}${SFX}}"
 BUILD="$PP/build/$TAG"
 rm -rf "$BUILD"; mkdir -p "$BUILD"
@@ -124,6 +128,7 @@ sed \
   -e "s|integer :: L_sim=2|integer :: L_sim=${LSIM}|" \
   -e "s|dt1=1,dt2=1,dt3=1,dt4=1|dt1=${DT},dt2=${DT},dt3=${DT},dt4=${DT}|" \
   -e "s|Ldt1=2,Ldt2=0,Ldt3=0,Ldt4=0|Ldt1=${LSIM},Ldt2=0,Ldt3=0,Ldt4=0|" \
+  -e "s|logical :: ramp=\.false\.|logical :: ramp=${RAMP_VAL}|" \
   $( [[ "${LEGACY_CONSTANTS:-0}" == "1" ]] && echo "-e s|rhoi=920.0|rhoi=910.0| -e s|radius=6.371E6|radius=6.371229E6|" ) \
   "$SUPPORT_SRC" > "$SUPPORT_GEN"
 
@@ -132,7 +137,7 @@ for c in "gridfolder='INPUT_FILES/grid/'" "epsilon1=${EPS1:-1.0E-5}" "epsilon2=1
          "planetmodel='${PLANETMODEL}'" "icemodel='${ICEMODEL}'" "topomodel='${TOPOMODEL}'" "topo_initial='${TOPO_INITIAL}'" \
          "iceVolume=.true." "initial_topo=${IT_VAL}" "calcRG=.true." "input_times=.false." "coupling=.false." \
          "norder=${NORDER}, nglv=512" "L_sim=${LSIM}" "dt1=${DT},dt2=${DT},dt3=${DT},dt4=${DT}" \
-         "Ldt1=${LSIM},Ldt2=0,Ldt3=0,Ldt4=0" "tpw=${TPW_VAL}" "checkmarine=${CM_VAL}"; do chk "$c"; done
+         "Ldt1=${LSIM},Ldt2=0,Ldt3=0,Ldt4=0" "tpw=${TPW_VAL}" "checkmarine=${CM_VAL}" "ramp=${RAMP_VAL}"; do chk "$c"; done
 if [[ "${LEGACY_CONSTANTS:-0}" == "1" ]]; then chk "rhoi=910.0"; chk "radius=6.371229E6"; else chk "rhoi=920.0"; chk "radius=6.371E6"; fi
 
 # ---- toolchain -------------------------------------------------------------
@@ -197,6 +202,6 @@ $FC -O3 -ffree-line-length-none "$PP/tools/make_cache.f90" -o make_cache
 $FC -O2 -ffree-line-length-none "$PP/tools/text2npy.f90" npy_io_mod.o -o text2npy
 $FC -O2 -ffree-line-length-none "$PP/tools/npy2text.f90" npy_io_mod.o -o npy2text
 
-printf 'built: %s (case=%s driver=%s sht=%s fft=%s sym=%s omp=%s blas=%s norder=%s tpw=%s cm=%s N=%s dt=%s initial_topo=%s planet=%s ice=%s topo=%s)\n' \
-   "$BUILD/exe" "${CASE:-none}" "$DRIVER" "$SHT" "$FFT" "$SYM" "$OMPN" "$BLASLIB" "$NORDER" "$TPW_VAL" "$CM_VAL" \
+printf 'built: %s (case=%s driver=%s sht=%s fft=%s sym=%s omp=%s blas=%s norder=%s tpw=%s cm=%s ramp=%s N=%s dt=%s initial_topo=%s planet=%s ice=%s topo=%s)\n' \
+   "$BUILD/exe" "${CASE:-none}" "$DRIVER" "$SHT" "$FFT" "$SYM" "$OMPN" "$BLASLIB" "$NORDER" "$TPW_VAL" "$CM_VAL" "$RAMP_VAL" \
    "$NSTEPS" "$DT" "$IT_VAL" "$PLANETMODEL" "$ICEMODEL" "$TOPOMODEL"

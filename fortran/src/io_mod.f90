@@ -30,7 +30,7 @@
 !                     grid at all.  Unset = legacy behaviour (every field,
 !                     every step).  The final-step pred_pres_topo_/tgrid0_
 !                     copies are not written in snapshot mode.
-!   SLEVOLVE_SNAP_FIELDS = tgrid[,ocean,beta,dS,R,G,horiz,Psi] | all   (default tgrid)
+!   SLEVOLVE_SNAP_FIELDS = tgrid[,ocean,beta,dS,R,G,horiz,Psi,dSLdt,dRdt] | all   (default tgrid)
 ! Snapshot files use the normal names (tgrid<N>.bin, ...): flat
 ! little-endian stream in Fortran array order, identical to the .bin ice
 ! caches; OUTPUT_SLM/snap_index.txt lists step, field, file, dtype, shape.
@@ -122,6 +122,12 @@ module io_mod
    !   (python/tools/horiz_grad.py).  0 leaves every other output unchanged.
    integer, save :: pp_horiz = 0
 
+   ! SLEVOLVE_RATES = 0 (default) | 1   optional analytic rates at the end of each step,
+   !   read from the modal states (the current increment taken to accrue linearly over the step):
+   !   dSLdt<N>.npy and dRdt<N>.npy (grids, m/yr; snapshot fields dSLdt, dRdt) and, with rotation,
+   !   the text file TPWrate<N> (il-dot, m-dot, Lambda-dot in the layout of TPW<N>).  Output only.
+   logical, save :: pp_rates = .false.
+
    ! snapshot mode
    integer, parameter :: pp_snap_maxstep = 100000
    logical, save :: pp_snap_on   = .false.     ! SLEVOLVE_SNAP set
@@ -177,6 +183,14 @@ contains
          read(v,*,iostat=k) pp_horiz
          if (k /= 0 .or. pp_horiz < 0 .or. pp_horiz > 2) then
             print *,'SLEVOLVE_HORIZ must be 0, 1 or 2'; stop
+         endif
+      endif
+      call get_environment_variable('SLEVOLVE_RATES', v, status=st)
+      if (st == 0) then
+         if (trim(v) == '1' .or. trim(v) == 'T' .or. trim(v) == 'true') then
+            pp_rates = .true.
+         else if (.not. (trim(v) == '0' .or. trim(v) == 'F' .or. trim(v) == 'false')) then
+            print *,'SLEVOLVE_RATES must be 0 or 1'; stop
          endif
       endif
       call pp_read_snap_options()
@@ -319,7 +333,7 @@ contains
       if (st == 0) then
          v = adjustl(v)
          if (trim(v) == 'all') then
-            pp_snap_fields = 255
+            pp_snap_fields = 1023
          else
             pp_snap_fields = 0
             p = 1
@@ -355,6 +369,8 @@ contains
       case ('G');            pp_field_bit = 32
       case ('horiz');        pp_field_bit = 64
       case ('Psi');          pp_field_bit = 128
+      case ('dSLdt');        pp_field_bit = 256
+      case ('dRdt');         pp_field_bit = 512
       case default;          pp_field_bit = 0
       end select
    end function pp_field_bit
