@@ -241,9 +241,15 @@ step: \(\bigl(-(\rho_I/\rho_w)\,\delta I^*_{00}/\delta t_j-\overline{C^*_j\,\dot
 
 A two-point difference of the outputs, \((X_j-X_{j-1})/\delta t_j\), is the mean rate over the last step,
 centred at \(t_j-\delta t_j/2\): first order in \(\delta t\) whatever the placement. The analytic read-out
-is the rate at \(t_j\) and, with the ramp, second order. It is available with the step placement too:
-the history is then that of the step placement and only the last increment is read as a ramp. The rates
-are output only (Fortran `SLEVOLVE_RATES=1`, Python `--save-fields ...,dSLdt,dRdt` or `run_outer.py
+is the rate at \(t_j\). With the ramp the viscous memory is read without lag; what remains is that the
+current increment, in particular its ocean-load and grounded-ice parts, which the sea-level equation
+determines, is taken as linear over the last step. That term is first order, with a small constant: on
+a piecewise-linear ice history (synthetic Earth, \(L=256\), steps of 1 kyr to 125 yr) the analytic
+uplift rate, \(\dot J_2\) and polar-motion rate with the ramp were 8 to 100 times closer to the converged
+values than two-point differences at the same step. The read-out is also available with the step
+placement, where the history is that of the step placement and only the last increment is read as a
+ramp; it then inherits the lag of the step placement and was not more accurate than a two-point
+difference in that test, so use it with the ramp. The rates are output only (Fortran `SLEVOLVE_RATES=1`, Python `--save-fields ...,dSLdt,dRdt` or `run_outer.py
 --rates`; [Output fields](outputs.md#analytic-rates-optional)).
 
 ### Extrapolated inner start (Sect. 2.5 of the paper)

@@ -19,7 +19,8 @@ are unchanged:
 - *Analytic rates* (Fortran `SLEVOLVE_RATES=1`, Python `--save-fields ...,dSLdt,dRdt` or
   `run_outer.py --rates`): the rates of sea level and radial displacement at the end of a step
   (`dSLdt<N>`, `dRdt<N>`, m/yr) and of the rotational quantities (`TPWrate<N>`), read from the modal
-  states instead of a two-point difference; output only, with or without the ramp. See
+  states instead of a two-point difference; output only. Available in either build, but more
+  accurate than a two-point difference only together with the ramp. See
   [Output fields](outputs.md#analytic-rates-optional).
 
 The placement was derived and verified in a separate study. New tests: `tests/test_ramp.py` (in

@@ -85,9 +85,10 @@ of `dS_converged`, whose (l,0) functions are the 4-pi-normalised Legendre functi
 TPW speed is \(|\dot m_1+i\,\dot m_2|\) rad/yr (times \(180/\pi\cdot10^6\) for degrees per Myr).
 
 They are the rates at \(t_N\) read from the modal states, not the mean rate over the last step that a
-difference `(X<N> - X<N-1>) / dt` gives. With the second-order placement (`RAMP=1`, `--ramp`) they
-are second order in the step length; with the default placement only the last increment is read as
-accruing linearly over its step.
+difference `(X<N> - X<N-1>) / dt` gives. Use them with the second-order placement (`RAMP=1`,
+`--ramp`); with the default placement only the last increment is read as accruing linearly over its
+step and the history keeps the lag of the step placement, so the rates are then not more accurate than
+a two-point difference ([Method](method.md#analytic-present-day-rates-optional)).
 
 ## 3. Scalar outputs
 

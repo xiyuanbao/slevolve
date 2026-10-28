@@ -66,7 +66,7 @@ The last column says whether the switch changes the numerical result.
 | `SLEVOLVE_SNAP` | `all`/`none`/list (`1,2,5`, `1-20,50`) | unset = every step | writes the per-step grids only at the listed steps (step 0 is always added); `none` writes none | no |
 | `SLEVOLVE_SNAP_FIELDS` | `tgrid[,ocean,beta,dS,R,G,horiz,Psi,dSLdt,dRdt]`/`all` | `tgrid` | fields written at the steps of `SLEVOLVE_SNAP` | no |
 | `SLEVOLVE_HORIZ` | 0/1/2 | 0 | horizontal displacement ([Horizontal displacement output](horizontal.md)): 1 writes `horiz<N>.npy` (Psi_lm), 2 also `Psi<N>.npy` | no (output only) |
-| `SLEVOLVE_RATES` | 0/1 | 0 | analytic rates at the end of each step ([Output fields](outputs.md#analytic-rates-optional)): `dSLdt<N>.npy`, `dRdt<N>.npy` (m/yr; snapshot fields `dSLdt`, `dRdt`) and, with rotation, `TPWrate<N>`. Works with and without `RAMP=1` | no (output only) |
+| `SLEVOLVE_RATES` | 0/1 | 0 | analytic rates at the end of each step ([Output fields](outputs.md#analytic-rates-optional)): `dSLdt<N>.npy`, `dRdt<N>.npy` (m/yr; snapshot fields `dSLdt`, `dRdt`) and, with rotation, `TPWrate<N>`. Available in either build; more accurate than a two-point difference only with `RAMP=1` | no (output only) |
 | `SLEVOLVE_FMT` | `npy`/`bin` | `npy` | binary output container: `.npy` or headerless little-endian `.bin` | no |
 | `SLEVOLVE_TEXT` | 0/1 | 0 | also writes the grids as legacy text files (slow, large) | no |
 | `SLEVOLVE_BIN` | 0/1 | 1 | `0` suppresses the binary grid output | no |
