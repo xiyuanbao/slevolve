@@ -42,7 +42,13 @@ def _parse_argv():
     ap.add_argument("--epsilon1", type=float, default=1.0e-5, help="inner-iteration tolerance (default 1e-5)")
     ap.add_argument("--profile", action="store_true", help="print a per-stage timing profile (log only)")
     ap.add_argument("--cprofile", action="store_true", help="run under cProfile, write cprofile.txt to --out")
-    ap.add_argument("--save-fields", default="tgrid,ocean,beta", help="comma list of per-step outputs: tgrid,ocean,beta,dS,R,G (default tgrid,ocean,beta)")
+    ap.add_argument("--save-fields", default="tgrid,ocean,beta",
+                    help="comma list of per-step outputs: tgrid,ocean,beta,dS,R,G,dSLdt,dRdt (default "
+                         "tgrid,ocean,beta); dSLdt/dRdt are the analytic rates (m/yr) at the end of each "
+                         "step, with TPWrate<N>.txt when --tpw T")
+    ap.add_argument("--ramp", action="store_true",
+                    help="second-order load placement: each load increment accrues linearly over its "
+                         "step (default off: step placement of Kendall et al. 2005)")
     ap.add_argument("--horizontal", action="store_true",
                     help="also write the horizontal-displacement scalar Psi_lm (horiz<N>.npy, "
                          "u_h = grad_h Psi); output only, default off")
@@ -244,6 +250,7 @@ def main():
         "checkmarine": cm,
         "calcRG": rg,
         "epsilon1": a.epsilon1,
+        "ramp": bool(a.ramp),
         "numpy": np.__version__,
         "uptime_start": uptime(),
         "loadavg_start": loadavg(),
@@ -323,6 +330,7 @@ def main():
         calcRG=rg,
         epsilon1=a.epsilon1,
         mem_threads=a.mem_threads,
+        ramp=a.ramp,
         **extra,
     )
     t_init = time.perf_counter() - t0
@@ -370,10 +378,12 @@ def main():
                 return _f(*aa, **kk)
 
             setattr(sht, _nm, _wrap)
+    want_rates = bool(fields & {"dSLdt", "dRdt"})
     t_run = time.perf_counter()
     for k in range(1, a.steps + 1):
         icek = np.ascontiguousarray(ice[k])
-        r = slv.step(icek, profile=a.profile, dt=None if dts is None else float(dts[k - 1]))
+        r = slv.step(icek, profile=a.profile, dt=None if dts is None else float(dts[k - 1]),
+                     rates=want_rates)
         numiter.append(r["numiter"])
         walls.append(r["wall"])
         if a.profile:
@@ -394,6 +404,8 @@ def main():
                 npyio.save_spectral(os.path.join(out, f"dS_converged{k}.npy"), r["dS_converged"])
             else:
                 np.save(os.path.join(out, f"dS_converged{k}.npy"), r["dS_converged"])
+        if r.get("rates") is not None:
+            npyio.save_rates(out, f"{k}", r["rates"], fields)
         if r.get("horiz") is not None:
             npyio.save_spectral(os.path.join(out, f"horiz{k}.npy"), r["horiz"])
             if a.horizontal_grid:

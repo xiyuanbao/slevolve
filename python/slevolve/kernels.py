@@ -257,6 +257,45 @@ def dice_and_deltaice(icestarlm, oldicestarlm, p_ice, dicestarlm, deltaicestarlm
             deltaicestarlm[l, m] = p_ice[l, m] + d
 
 
+# ============================================ second-order load placement ===
+@njit(parallel=True, **_JIT)
+def ramp_commit(R, omphi, nmod, L):
+    """``R[l,k,m] += omphi[k,l] * L[l,m]`` (ramp commit, ``ExactMemory.commit`` with ramp on)."""
+    nl = R.shape[0]
+    for l in prange(nl):
+        for k in range(nmod[l]):
+            c = omphi[k, l]
+            for m in range(l + 1):
+                R[l, k, m] += L[l, m] * c
+
+
+@njit(parallel=True, **_JIT)
+def rate_sums(R, w_sl, w_rr, nmod, out_sl, out_rr):
+    """``out_sl = sum_k w_sl[k,l] R[l,k,m]``, ``out_rr`` likewise (rate read-out; state unchanged)."""
+    nl = R.shape[0]
+    for l in prange(nl):
+        for m in range(nl):
+            out_sl[l, m] = 0.0
+            out_rr[l, m] = 0.0
+        for k in range(nmod[l]):
+            a = w_sl[k, l]
+            b = w_rr[k, l]
+            for m in range(l + 1):
+                x = R[l, k, m]
+                out_sl[l, m] += x * a
+                out_rr[l, m] += x * b
+
+
+@njit(parallel=True, **_JIT)
+def ramp_add(dicestar, load_inc_lm, rhoi, rhow, w, out):
+    """``out += w[l] * (rhoi*dicestar + rhow*load_inc_lm)`` (same-step viscous term of the ramp)."""
+    nl = out.shape[0]
+    for l in prange(nl):
+        c = w[l]
+        for m in range(nl):
+            out[l, m] += (dicestar[l, m] * rhoi + load_inc_lm[l, m] * rhow) * c
+
+
 # NOTE: the "load_inc_lm first guess" statement ``(cstarlm / cstarlm[0,0]) * scale`` is
 # deliberately NOT compiled here.  NumPy and LLVM use different complex-division
 # algorithms (Smith's vs. the naive formula), so a compiled version differs from
@@ -288,3 +327,6 @@ def warmup(nl=8, ng=(8, 16)):
     commit_add(s.copy(), s)
     copy3(s, s.copy(), s, s.copy(), s, s.copy())
     dice_and_deltaice(s, s, s, s.copy(), s.copy())
+    ramp_commit(R, w, nm, s)
+    rate_sums(R, w, w, nm, s.copy(), s.copy())
+    ramp_add(s, s, 1.0, 1.0, r1, s.copy())

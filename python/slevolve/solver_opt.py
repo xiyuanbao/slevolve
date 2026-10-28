@@ -233,6 +233,20 @@ class ExactMemoryFast(ExactMemory):
                 sum_trr += self.a_trr[k] * self.r_lambda[k]
         return self._viscous, self._radial, sum_il, sum_m, sum_tsl, sum_trr
 
+    def _ramp_commit_load(self, current_load):
+        from . import kernels
+
+        kernels.ramp_commit(self.Rlk, self.omphi, self.nmod_l, current_load)
+
+    def _rate_sums(self):
+        from . import kernels
+
+        nl = self.lmax + 1
+        out_sl = np.zeros((nl, nl), dtype=np.complex128)
+        out_rr = np.zeros((nl, nl), dtype=np.complex128)
+        kernels.rate_sums(self.Rlk, self.w_sl, self.w_rr, self.nmod_l, out_sl, out_rr)
+        return out_sl, out_rr
+
     def read_horizontal(self):
         """sum_k a_hl R_k on the [l, k, m] layout (output only; state unchanged)."""
         nl = self.lmax + 1
@@ -295,6 +309,7 @@ class OptSeaLevelSolver(SeaLevelSolver):
             self.state = ExactMemoryFast(
                 self.love, self.norder, float(self.dt), self.tpw
             )
+            self.state.ramp = self.ramp
             self._k = kernels
 
         # 1-D copies of the l-weights for the compiled kernels
@@ -351,7 +366,7 @@ class OptSeaLevelSolver(SeaLevelSolver):
                              self._absblk))
 
     # ---------------------------------------------------------------- step
-    def step(self, icexy_cur, profile=False, dt=None):
+    def step(self, icexy_cur, profile=False, dt=None, rates=False):
         self.set_step_dt(dt)
         p = self.p
         sht = self.sht
@@ -475,6 +490,8 @@ class OptSeaLevelSolver(SeaLevelSolver):
         r2w2 = p.radius**2 * p.omega**2
         sg = self._msign
         cm = self.checkmarine  # noqa: F841  (kept for symmetry with solver.py)
+        if self.ramp:
+            ttl_csl = np.ascontiguousarray(self._ttl1 * self.state.c_sl)
 
         # ---- extrapolated initial guess (inner = extrap|anderson) --
         acc = self.inner != "off"
@@ -525,12 +542,24 @@ class OptSeaLevelSolver(SeaLevelSolver):
                 self.il[1, 2] = (-8 * PI * p.radius**4 / (math.sqrt(30.0))) * (-1.0 * II * z21).real
                 dil_cur = self.il - oldil
 
-                for i in (0, 1):
-                    self.mm[i] = (1 / (1 - kTE2 / p.kf)) * (
-                        (1 / (p.moiC - p.moiA)) * ((1 + kE2) * self.il[i, 2] + sum_il[i, 2])
-                        + (1 / p.kf) * sum_m[i]
-                    )
-                self.mm[2] = (1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sum_il[2, 2])
+                if self.ramp:
+                    # current increments carry (1 - phi) of their viscous response: implicit in m
+                    st_ = self.state
+                    sil_r = sum_il + st_.c_il * dil_cur
+                    al_ = 1 / (1 - kTE2 / p.kf)
+                    for i in (0, 1):
+                        self.mm[i] = al_ * (
+                            (1 / (p.moiC - p.moiA)) * ((1 + kE2) * self.il[i, 2] + sil_r[i, 2])
+                            + (1 / p.kf) * (sum_m[i] - st_.c_m * oldm[i])
+                        ) / (1 - al_ * st_.c_m / p.kf)
+                    self.mm[2] = (1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sil_r[2, 2])
+                else:
+                    for i in (0, 1):
+                        self.mm[i] = (1 / (1 - kTE2 / p.kf)) * (
+                            (1 / (p.moiC - p.moiA)) * ((1 + kE2) * self.il[i, 2] + sum_il[i, 2])
+                            + (1 / p.kf) * sum_m[i]
+                        )
+                    self.mm[2] = (1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sum_il[2, 2])
                 dm_cur = self.mm - oldm
 
                 m1, m2, m3 = self.mm[0], self.mm[1], self.mm[2]
@@ -542,12 +571,16 @@ class OptSeaLevelSolver(SeaLevelSolver):
 
                 ekhTE = 1 + kTE2 - hTE2
                 tot = dlambda_prev2 + dlam_cur2
+                tsl_v, trr_v = exact_tsl, exact_trr
+                if self.ramp:
+                    tsl_v = exact_tsl + self.state.c_tsl * dlam_cur2
+                    trr_v = exact_trr + self.state.c_trr * dlam_cur2
                 dsl_rot[:] = 0.0
-                dsl_rot[2, 0:3] = (ekhTE * tot + exact_tsl) / p.gacc
+                dsl_rot[2, 0:3] = (ekhTE * tot + tsl_v) / p.gacc
                 dsl_rot[2, 1] *= sg
                 if self.calcRG:
                     rr_rot[:] = 0.0
-                    rr_rot[2, 0:3] = (hTE2 * tot + exact_trr) / p.gacc
+                    rr_rot[2, 0:3] = (hTE2 * tot + trr_v) / p.gacc
                     rr_rot[2, 1] *= sg
                 mark("rot", t0)
             else:
@@ -569,6 +602,11 @@ class OptSeaLevelSolver(SeaLevelSolver):
                 np.multiply(A, self._ttlekhl, out=self.sl_inc_lm)
                 np.multiply(viscous, self._ttl, out=self._sp2)
                 self.sl_inc_lm += self._sp2
+            if self.ramp:
+                if use_nb:
+                    K.ramp_add(self.dicestarlm, self.load_inc_lm, p.rhoi, p.rhow, ttl_csl, self.sl_inc_lm)
+                else:
+                    self.sl_inc_lm += ttl_csl[:, None] * (p.rhoi * self.dicestarlm + p.rhow * self.load_inc_lm)
             self.sl_inc_lm[0:3, 0:3] += dsl_rot
             mark("spec", t0)
 
@@ -779,6 +817,12 @@ class OptSeaLevelSolver(SeaLevelSolver):
                 np.multiply(A, self._ttlhe, out=self.rrlm)
                 np.multiply(radial, self._ttl, out=self._sp2)
                 self.rrlm += self._sp2
+            if self.ramp:
+                ttl_crr = np.ascontiguousarray(self._ttl1 * self.state.c_rr)
+                if use_nb:
+                    K.ramp_add(self.dicestarlm, self.load_inc_lm, p.rhoi, p.rhow, ttl_crr, self.rrlm)
+                else:
+                    self.rrlm += ttl_crr[:, None] * (p.rhoi * self.dicestarlm + p.rhow * self.load_inc_lm)
             self.rrlm[0:3, 0:3] += rr_rot
             mark("spec", t0)
             t0 = pc()
@@ -799,6 +843,10 @@ class OptSeaLevelSolver(SeaLevelSolver):
             np.multiply(self.load_inc_lm, p.rhow, out=self._sp2)
             self.current_load += self._sp2
             self.current_load[0, :] = 0.0
+        rate_sp = None
+        if rates:
+            rate_sp = self._rate_spectra(self.current_load, oldil, oldm, dlambda_prev2)
+            dice00 = complex(dicestar[0, 0])
         if self.tpw:
             self.state.commit(self.current_load, dil_cur, dm_cur, dlam_cur2)
         else:
@@ -880,6 +928,7 @@ class OptSeaLevelSolver(SeaLevelSolver):
 
         ice_volume = self.icestarlm[0, 0].real * self._4piR2
         self.icexy_prev = icexy_cur
+        rate_out = self._rate_grids(rate_sp[0], rate_sp[1], dice00, rate_sp[2]) if rates else None
 
         wall = pc() - t_all
         if profile:
@@ -903,6 +952,7 @@ class OptSeaLevelSolver(SeaLevelSolver):
             "il": self.il.copy(),
             "mm": self.mm.copy(),
             "lambda": self.lam.copy(),
+            "rates": rate_out,
             "wall": wall,
             "prof": tm if profile else None,
             "inner_stats": dict(self.inner_stats),

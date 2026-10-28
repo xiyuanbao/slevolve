@@ -191,3 +191,19 @@ def read_times(path, nsteps=None):
     if not np.all(np.isfinite(t)) or not np.all(np.diff(t) > 0):
         raise ValueError(f"{path}: times must be finite and strictly increasing")
     return t
+
+
+def save_rates(out, tag, rates, fields=("dSLdt", "dRdt")):
+    """Analytic rate outputs of one step: dSLdt<tag>.npy, dRdt<tag>.npy (grids, m/yr) and, with
+    rotation, TPWrate<tag>.txt: il-dot (9, kg m^2/yr), m-dot (3, 1/yr) and Lambda-dot (3 x 3 complex
+    as 18 reals, m^2 s^-2 / yr), in the layout of the Fortran TPW<N> files."""
+    for f in ("dSLdt", "dRdt"):
+        if f in fields:
+            np.save(os.path.join(out, f"{f}{tag}.npy"), rates[f])
+    if "mdot" in rates:
+        lam = rates["lambdadot"]
+        il = np.asarray(rates["ildot"]).ravel(order="F")
+        lv = np.stack([lam.real.ravel(order="F"), lam.imag.ravel(order="F")], 1).ravel()
+        fmt = lambda v: "".join(f"{x:19.8E}" for x in v)  # noqa: E731
+        with open(os.path.join(out, f"TPWrate{tag}.txt"), "w") as fh:
+            fh.write(fmt(il) + "\n" + fmt(rates["mdot"]) + "\n" + fmt(lv) + "\n")

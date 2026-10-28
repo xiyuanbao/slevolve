@@ -169,6 +169,21 @@ class LoveNumbers:
         self.kT_fluid[1:] = tasymv[2, 1:] / ell
 
 
+# ------------------------------------------------------------- second-order placement
+def ramp_factor(x):
+    """phi(x) = (1 - e^{-x}) / x and 1 - phi(x), stable as x -> 0 (phi(0) = 1, 1 - phi(0) = 0).
+
+    With the optional second-order load placement (``ramp``) a load increment accrues linearly over
+    its step of length dt; mode k then carries phi(s_k dt) of the step response as decaying memory
+    and 1 - phi(s_k dt) as the response already reached at the end of the step."""
+    x = np.asarray(x, dtype=np.float64)
+    small = np.abs(x) < 1.0e-4
+    xs = np.where(small, 1.0, x)
+    phi = np.where(small, 1.0 - x / 2.0 + x * x / 6.0 - x**3 / 24.0, -np.expm1(-xs) / xs)
+    omp = np.where(small, x / 2.0 - x * x / 6.0 + x**3 / 24.0, (xs + np.expm1(-xs)) / xs)
+    return phi, omp
+
+
 # ------------------------------------------------------------- exact hereditary memory
 class ExactMemory:
     """History-free hereditary state, port of ``modal_state_mod``.
@@ -213,6 +228,14 @@ class ExactMemory:
         self.dt_years = None
         self.decay = np.zeros((kmax, nl))
         self.omd = np.ones((kmax, nl))
+        # second-order placement (ramp) and the analytic rate read-out: 1 - phi(s dt) per mode, its
+        # per-degree sums, and the rate weights a_k s_k (per year).  Used only when ramp is set
+        # (commit) or when a rate is read (read_rate); the default path does not touch them.
+        self.ramp = False
+        self.phi = np.ones((kmax, nl))
+        self.omphi = np.zeros((kmax, nl))
+        self.w_sl = a_sl * s / 1000.0
+        self.w_rr = a_rr * s / 1000.0
         self.set_dt(dt_years)
 
         self.R = np.zeros((kmax, nl, nl), dtype=np.complex128)
@@ -264,6 +287,29 @@ class ExactMemory:
         self.decay[...] = decay
         self.omd[...] = 1.0 - decay
         self.dt_years = dt_years
+        self._set_ramp_coeffs(dt_years)
+
+    def _set_ramp_coeffs(self, dt_years):
+        """phi, 1 - phi of every mode for the step length dt_years and the derived per-degree sums:
+        c_sl, c_rr = sum_k a_k (1 - phi_k)  (same-step viscous weight of the current increment),
+        ws_sl, ws_rr = sum_k a_k s_k, wsphi_sl, wsphi_rr = sum_k a_k s_k phi_k (rate read-out),
+        and at degree 2 the rotational c_il, c_m, c_tsl, c_trr."""
+        phi, omp = ramp_factor(self._s * (dt_years / 1000.0))
+        exists = self._s > 0
+        self.phi[...] = np.where(exists, phi, 1.0)
+        self.omphi[...] = np.where(exists, omp, 0.0)
+        self.c_sl = (self.a_sl * self.omphi).sum(0)
+        self.c_rr = (self.a_rr * self.omphi).sum(0)
+        self.ws_sl = self.w_sl.sum(0)
+        self.ws_rr = self.w_rr.sum(0)
+        self.wsphi_sl = (self.w_sl * self.phi).sum(0)
+        self.wsphi_rr = (self.w_rr * self.phi).sum(0)
+        n2 = self.nmod2
+        c2 = self.omphi[:n2, 2] if self.lmax >= 2 else np.zeros(0)
+        self.c_il = float(c2 @ self.a_il[:n2])
+        self.c_m = float(c2 @ self.a_m[:n2])
+        self.c_tsl = float(c2 @ self.a_tsl[:n2])
+        self.c_trr = float(c2 @ self.a_trr[:n2])
 
     def _advance_block(self, b):
         l0, l1 = self._blk[b]
@@ -345,7 +391,56 @@ class ExactMemory:
                 thl += self.a_thl[k] * self.r_lambda[k]
         return hz, thl
 
+    def _ramp_commit_load(self, current_load):
+        for k in range(self.kmax):
+            self.R[k] += self.omphi[k][:, None] * current_load
+
+    def _rate_sums(self):
+        """sum_k a_k s_k R_k for sea level and radial displacement (per year; state unchanged)."""
+        nl = self.lmax + 1
+        out_sl = np.zeros((nl, nl), dtype=np.complex128)
+        out_rr = np.zeros((nl, nl), dtype=np.complex128)
+        for k in range(self.kmax):
+            out_sl += self.w_sl[k][:, None] * self.R[k]
+            out_rr += self.w_rr[k][:, None] * self.R[k]
+        return out_sl, out_rr
+
+    def read_rate(self, current_load):
+        """Analytic left time derivative (per year) of the viscous sea-level and radial terms at the
+        end of the current step, the current increment ``current_load`` taken to accrue linearly over
+        the step: sum_k a_k s_k (P + dL - R_k - (1 - phi_k) dL) = ws P - sum_k a_k s_k R_k + wsphi dL,
+        with P = p_load the load committed before this step.  Call between advance_and_read and
+        commit of the step (state unchanged).  Each state obeys dR_k/dt = s_k (P(t) - R_k) inside
+        the step, read with the ramp-consistent state R_k + (1 - phi_k) dL."""
+        q_sl, q_rr = self._rate_sums()
+        rs = self.ws_sl[:, None] * self.p_load - q_sl + self.wsphi_sl[:, None] * current_load
+        rr = self.ws_rr[:, None] * self.p_load - q_rr + self.wsphi_rr[:, None] * current_load
+        return rs, rr
+
+    def read_rate_rotation(self, dil, dm, dlam):
+        """Degree-2 rotational states, ramp-consistent at the end of the step, for the rate
+        read-out: r_k + (1 - phi_k) d(.), mode by mode (k < nmod2).  State unchanged."""
+        n2 = self.nmod2
+        c = self.omphi[:n2, 2]
+        r_il = self.r_il[:n2] + c[:, None, None] * dil[None]
+        r_m = self.r_m[:n2] + c[:, None] * dm[None]
+        r_la = self.r_lambda[:n2] + c[:, None] * dlam[None]
+        return r_il, r_m, r_la, self._s[:n2, 2] / 1000.0
+
     def commit(self, current_load, dil=None, dm=None, dlambda=None):
+        if self.ramp:
+            # second-order placement: the increment of this step already carries (1 - phi_k) of
+            # its response in every mode; one step later it contributes d c + (1 - d) = 1 - d phi
+            self._ramp_commit_load(current_load)
+            if self.lmax >= 2:
+                n2 = self.nmod2
+                c = self.omphi[:n2, 2]
+                if dil is not None:
+                    self.r_il[:n2] += c[:, None, None] * dil[None]
+                if dm is not None:
+                    self.r_m[:n2] += c[:, None] * dm[None]
+                if dlambda is not None:
+                    self.r_lambda[:n2] += c[:, None] * dlambda[None]
         self.p_load += current_load
         if dil is not None:
             self.p_il += dil
@@ -382,6 +477,7 @@ class SeaLevelSolver:
         epsilon1=1.0e-5,
         planet=None,
         mem_threads=1,
+        ramp=False,
     ):
         self.sht = sht
         self.love = love
@@ -427,6 +523,9 @@ class SeaLevelSolver:
         )
 
         self.state = ExactMemory(love, norder, float(dt), tpw, nthreads=mem_threads)
+        # optional second-order load placement (default off: step placement of Kendall et al. 2005)
+        self.ramp = bool(ramp)
+        self.state.ramp = self.ramp
 
         # rotational module variables (persist across timesteps, as in Fortran)
         self.il = np.zeros((3, 3))
@@ -541,9 +640,16 @@ class SeaLevelSolver:
         A = p.rhoi * deltaicestar + p.rhow * deltaS_prev
         A += p.rhow * load_inc_lm
         hz = self._ttlle * A + self._ttl * visc_h
+        if self.ramp:
+            # same-step viscous weight of the current increment (second-order placement)
+            c_hl = (st.a_hl * st.omphi).sum(0)
+            hz += (self._ttl[:, 0] * c_hl)[:, None] * (p.rhoi * self.dicestarlm + p.rhow * load_inc_lm)
         hz[0, :] = 0.0
         sg = getattr(self, "_msign", 1.0)
         if self.tpw and rot_tot is not None and self.norder >= 2:
+            if self.ramp:
+                c_thl = float(st.omphi[:st.nmod2, 2] @ st.a_thl[:st.nmod2])
+                thl = thl + c_thl * (rot_tot - st.p_lambda)
             rot = (self.love.lTE[2] * rot_tot + thl) / p.gacc
             rot[1] *= sg
             hz[2, 0:3] += rot
@@ -551,16 +657,100 @@ class SeaLevelSolver:
             hz[:, 1::2] *= -1.0
         return hz
 
+    # ------------------------------------------------------- analytic rates
+    def _rotation_rate(self, oldil, oldm, dlambda_prev2):
+        """Analytic left derivative (per year) at the end of the step of the rotational sea-level and
+        radial terms, with the converged il, m, Lambda of the step.  The m equation is
+        differentiated explicitly: the current-increment term of the ramp becomes s_k (m - r_m,k);
+        Lambda-dot by the chain rule.  Returns (rate_sl, rate_rr) (3, 3) in the U convention and
+        the rotational rates (il-dot, m-dot, Lambda-dot)."""
+        p = self.p
+        st = self.state
+        h = float(self.dt)
+        dil = self.il - oldil
+        dm = self.mm - oldm
+        tot = self.lam[2, 0:3].copy()
+        r_il, r_m, r_la, sk = st.read_rate_rotation(dil, dm, tot - dlambda_prev2)
+        n2 = st.nmod2
+        kTE2, hTE2, kE2 = self.love.kTE[2], self.love.hTE[2], self.love.ke[2]
+        ild = dil / h
+        sild = np.einsum("k,kij->ij", st.a_il[:n2] * sk, self.il[None] - r_il)
+        smd = np.einsum("k,ki->i", st.a_m[:n2] * sk, self.mm[None] - r_m)
+        alpha = 1 / (1 - kTE2 / p.kf)
+        md = np.zeros(3)
+        for i in (0, 1):
+            md[i] = alpha * ((1 / (p.moiC - p.moiA)) * ((1 + kE2) * ild[i, 2] + sild[i, 2]) + smd[i] / p.kf)
+        md[2] = (1.0 / p.moiC) * ((1 + kE2) * ild[2, 2] + sild[2, 2])
+        m1, m2, m3 = self.mm
+        d1, d2, d3 = md
+        r2w2 = p.radius**2 * p.omega**2
+        lad = np.zeros((3, 3), dtype=np.complex128)
+        lad[0, 0] = (r2w2 / 3.0) * (2 * m1 * d1 + 2 * m2 * d2 + 2 * m3 * d3 + 2.0 * d3)
+        lad[2, 0] = (r2w2 / (6.0 * math.sqrt(5.0))) * (2 * m1 * d1 + 2 * m2 * d2 - 4 * m3 * d3 - 4 * d3)
+        lad[2, 1] = (r2w2 / math.sqrt(30.0)) * ((d1 - II * d2) * (1.0 + m3) + (m1 - II * m2) * d3)
+        lad[2, 2] = (r2w2 / math.sqrt(5.0 * 24.0)) * (2 * m2 * d2 - 2 * m1 * d1 + 2.0 * II * (d1 * m2 + m1 * d2))
+        tsld = np.einsum("k,ki->i", st.a_tsl[:n2] * sk, tot[None] - r_la)
+        trrd = np.einsum("k,ki->i", st.a_trr[:n2] * sk, tot[None] - r_la)
+        rate_sl = np.zeros((3, 3), dtype=np.complex128)
+        rate_rr = np.zeros((3, 3), dtype=np.complex128)
+        rate_sl[2, 0:3] = ((1 + kTE2 - hTE2) * lad[2, 0:3] + tsld) / p.gacc
+        rate_rr[2, 0:3] = (hTE2 * lad[2, 0:3] + trrd) / p.gacc
+        return rate_sl, rate_rr, {"ildot": ild, "mdot": md, "lambdadot": lad}
+
+    def _rate_spectra(self, current_load, oldil, oldm, dlambda_prev2):
+        """Rate spectra (per year) of sea level (degrees >= 1) and radial displacement at the end of
+        the step; call before the commit.  The current increment is taken to accrue linearly over
+        the step (elastic part dL / dt), with or without the ramp placement."""
+        st = self.state
+        h = float(self.dt)
+        rv_sl, rv_rr = st.read_rate(current_load)
+        dsl = self._ttlekhl * current_load / h + self._ttl * rv_sl
+        drr = self._ttlhe * current_load / h + self._ttl * rv_rr
+        dsl[0, :] = 0.0
+        drr[0, :] = 0.0
+        rot = None
+        if self.tpw and self.norder >= 2:
+            rs, rr, rot = self._rotation_rate(oldil, oldm, dlambda_prev2)
+            sg = getattr(self, "_msign", 1.0)
+            rs[2, 1] *= sg
+            rr[2, 1] *= sg
+            dsl[0:3, 0:3] += rs
+            drr[0:3, 0:3] += rr
+        return dsl, drr, rot
+
+    def _rate_grids(self, dsl, drr, dice00, rot):
+        """Synthesise the rate spectra (after the end-of-step ocean function is set).  Degree 0 of
+        dSL/dt is the rate of the conservation constant on the ocean function C* = C beta of the
+        end of the step: (-(rho_i / rho_w) dI*_00 / dt - mean(C* dSL/dt|l>=1)) / mean(C*)."""
+        p = self.p
+        sht = self.sht
+        nl = self.nl
+        g = np.zeros_like(self.topoxy)
+        sht.synthesis(dsl, out=g)
+        cst = self.cxy * self.beta
+        a = sht.analysis(g * cst, out=np.zeros((nl, nl), complex))[0, 0].real
+        c00 = sht.analysis(cst, out=np.zeros((nl, nl), complex))[0, 0].real
+        dsl[0, 0] = (-(p.rhoi / p.rhow) * dice00.real / float(self.dt) - a) / c00
+        sht.synthesis(dsl, out=g)
+        gr = np.zeros_like(self.topoxy)
+        sht.synthesis(drr, out=gr)
+        out = {"dSLdt": g, "dRdt": gr, "dSLdt_lm": dsl, "dRdt_lm": drr}
+        if rot is not None:
+            out.update(rot)
+        return out
+
     def set_step_dt(self, dt):
         """Length (years) of the step(s) that follow; dt=None keeps the current one."""
         if dt is not None:
             self.dt = float(dt)
             self.state.set_dt(self.dt)
 
-    def step(self, icexy_cur, profile=False, dt=None):
+    def step(self, icexy_cur, profile=False, dt=None, rates=False):
         """Advance one physical timestep.  Returns a dict of the step's outputs.
 
-        dt: length of this step in years (variable steps); None = the constructor's dt."""
+        dt: length of this step in years (variable steps); None = the constructor's dt.
+        rates: also return the analytic rates dSL/dt, dR/dt (grids, m/yr) at the end of the step and
+        the rotational rates (output only; result key "rates")."""
         self.set_step_dt(dt)
         p = self.p
         sht = self.sht
@@ -640,6 +830,8 @@ class SeaLevelSolver:
         hTE2 = self.love.hTE[2]
         kE2 = self.love.ke[2]
         r2w2 = p.radius**2 * p.omega**2
+        if self.ramp:
+            ttl_csl = (self._ttl[:, 0] * self.state.c_sl)[:, None]
 
         ninner = 1
         while True:
@@ -653,12 +845,24 @@ class SeaLevelSolver:
                 self.il[1, 2] = (-8 * PI * p.radius**4 / (math.sqrt(30.0))) * (-1.0 * II * z21).real
                 dil_cur = self.il - oldil
 
-                for i in (0, 1):
-                    self.mm[i] = (1 / (1 - kTE2 / p.kf)) * (
-                        (1 / (p.moiC - p.moiA)) * ((1 + kE2) * self.il[i, 2] + sum_il[i, 2])
-                        + (1 / p.kf) * sum_m[i]
-                    )
-                self.mm[2] = (1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sum_il[2, 2])
+                if self.ramp:
+                    # current increments carry (1 - phi) of their viscous response: implicit in m
+                    st_ = self.state
+                    sil_r = sum_il + st_.c_il * dil_cur
+                    al_ = 1 / (1 - kTE2 / p.kf)
+                    for i in (0, 1):
+                        self.mm[i] = al_ * (
+                            (1 / (p.moiC - p.moiA)) * ((1 + kE2) * self.il[i, 2] + sil_r[i, 2])
+                            + (1 / p.kf) * (sum_m[i] - st_.c_m * oldm[i])
+                        ) / (1 - al_ * st_.c_m / p.kf)
+                    self.mm[2] = (1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sil_r[2, 2])
+                else:
+                    for i in (0, 1):
+                        self.mm[i] = (1 / (1 - kTE2 / p.kf)) * (
+                            (1 / (p.moiC - p.moiA)) * ((1 + kE2) * self.il[i, 2] + sum_il[i, 2])
+                            + (1 / p.kf) * sum_m[i]
+                        )
+                    self.mm[2] = (1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sum_il[2, 2])
                 dm_cur = self.mm - oldm
 
                 m1, m2, m3 = self.mm[0], self.mm[1], self.mm[2]
@@ -670,11 +874,15 @@ class SeaLevelSolver:
 
                 ekhTE = 1 + kTE2 - hTE2
                 tot = dlambda_prev2 + dlam_cur2
+                tsl_v, trr_v = exact_tsl, exact_trr
+                if self.ramp:
+                    tsl_v = exact_tsl + self.state.c_tsl * dlam_cur2
+                    trr_v = exact_trr + self.state.c_trr * dlam_cur2
                 dsl_rot[:] = 0.0
-                dsl_rot[2, 0:3] = (ekhTE * tot + exact_tsl) / p.gacc
+                dsl_rot[2, 0:3] = (ekhTE * tot + tsl_v) / p.gacc
                 if self.calcRG:
                     rr_rot[:] = 0.0
-                    rr_rot[2, 0:3] = (hTE2 * tot + exact_trr) / p.gacc
+                    rr_rot[2, 0:3] = (hTE2 * tot + trr_v) / p.gacc
                 mark("rot", t0)
             else:
                 dsl_rot[:] = 0.0
@@ -691,6 +899,8 @@ class SeaLevelSolver:
             np.multiply(A, self._ttlekhl, out=self.sl_inc_lm)
             np.multiply(viscous, self._ttl, out=self._sp2)
             self.sl_inc_lm += self._sp2
+            if self.ramp:
+                self.sl_inc_lm += ttl_csl * (p.rhoi * self.dicestarlm + p.rhow * self.load_inc_lm)
             self.sl_inc_lm[0:3, 0:3] += dsl_rot
             mark("spec", t0)
 
@@ -766,6 +976,9 @@ class SeaLevelSolver:
             np.multiply(A, self._ttlhe, out=self.rrlm)
             np.multiply(radial, self._ttl, out=self._sp2)
             self.rrlm += self._sp2
+            if self.ramp:
+                self.rrlm += (self._ttl[:, 0] * self.state.c_rr)[:, None] * (
+                    p.rhoi * self.dicestarlm + p.rhow * self.load_inc_lm)
             self.rrlm[0:3, 0:3] += rr_rot
             mark("spec", t0)
             t0 = time.perf_counter()
@@ -783,6 +996,10 @@ class SeaLevelSolver:
         np.multiply(self.load_inc_lm, p.rhow, out=self._sp2)
         self.current_load += self._sp2
         self.current_load[0, :] = 0.0  # Fortran loop runs l = 1..norder
+        rate_sp = None
+        if rates:
+            rate_sp = self._rate_spectra(self.current_load, oldil, oldm, dlambda_prev2)
+            dice00 = complex(dicestar[0, 0])
         if self.tpw:
             self.state.commit(self.current_load, dil_cur, dm_cur, dlam_cur2)
         else:
@@ -811,6 +1028,7 @@ class SeaLevelSolver:
 
         ice_volume = self.icestarlm[0, 0].real * 4 * PI * p.radius**2
         self.icexy_prev = icexy_cur
+        rate_out = self._rate_grids(rate_sp[0], rate_sp[1], dice00, rate_sp[2]) if rates else None
 
         wall = time.perf_counter() - t_all
         if profile:
@@ -834,6 +1052,7 @@ class SeaLevelSolver:
             "il": self.il.copy(),
             "mm": self.mm.copy(),
             "lambda": self.lam.copy(),
+            "rates": rate_out,
             "wall": wall,
             "prof": tm if profile else None,
         }

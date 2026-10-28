@@ -58,6 +58,12 @@ def _args():
     ap.add_argument("--smin", type=float, default=0.5, help="with --outer secant: lower bound of the secant factor (default 0.5)")
     ap.add_argument("--smax", type=float, default=1.5, help="with --outer secant: upper bound of the secant factor (default 1.5)")
     ap.add_argument("--save-steps", default="", help="comma list of steps whose tgrid to save")
+    ap.add_argument("--ramp", action="store_true",
+                    help="second-order load placement: each load increment accrues linearly over its "
+                         "step (default off: step placement of Kendall et al. 2005)")
+    ap.add_argument("--rates", action="store_true",
+                    help="write the analytic rates dSLdt<N>_it<k>.npy, dRdt<N>_it<k>.npy (m/yr) and "
+                         "TPWrate<N>_it<k>.txt at --save-steps and the last step; output only")
     ap.add_argument("--horizontal", action="store_true",
                     help="also write the horizontal-displacement scalar Psi_lm (horiz<N>_it<k>.npy at --save-steps and the last step, "
                          "u_h = grad_h Psi); output only, default off")
@@ -196,20 +202,24 @@ def main():
             setattr(sht, _nm, _wrap)
     store = {}  # --reuse: per-step converged state, survives across outer iterations
     hist = []  # (T0_k, r_k)
-    log = {"argv": sys.argv, "outer": a.outer, "iters": [],
+    log = {"argv": sys.argv, "outer": a.outer, "iters": [], "ramp": bool(a.ramp),
            "times_years": [float(x) for x in times] if dts is not None else None}
     for it in range(1, a.iters + 1):
         t0 = time.perf_counter()
         slv = OptSeaLevelSolver(
             sht, love, T0, np.ascontiguousarray(ice[0]), norder=a.lmax, dt=a.dt if dts is None else float(dts[0]), tpw=tpw,
             checkmarine=cm, calcRG=True, epsilon1=a.epsilon1, planet=planet(a.rhoi, a.radius),
-            opt=opts, inner=a.inner, reuse=a.reuse, reuse_store=store)
+            opt=opts, inner=a.inner, reuse=a.reuse, reuse_store=store, ramp=a.ramp)
         slv.horizontal = bool(a.horizontal or a.horizontal_grid)
         nit = 0
         nits = []
         n0 = dict(nsht)
         for k in range(1, nsteps + 1):
-            r = slv.step(np.ascontiguousarray(ice[k]), dt=None if dts is None else float(dts[k - 1]))
+            want = a.rates and (k in save_steps or k == nsteps)
+            r = slv.step(np.ascontiguousarray(ice[k]), dt=None if dts is None else float(dts[k - 1]),
+                         rates=want)
+            if want:
+                npyio.save_rates(a.out, f"{k}_it{it}", r["rates"])
             nit += r["numiter"]
             nits.append(r["numiter"])
             if k in save_steps:
