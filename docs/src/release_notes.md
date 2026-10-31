@@ -7,7 +7,7 @@ This page lists the contents of v1.0, its differences from the legacy code and i
 **Note of 2026-10-30: sign of the axial rotation component m3 (correction).** The axial component
 of the linearised Liouville equation used +1/C; the correct factor is -1/C,
 \(m_3=-[(1+k^E_2)\,I_{33}+\text{viscous terms}]/C\) (Mitrovica & Wahr 2011, Annu. Rev. Earth Planet.
-Sci. 39, 577-616, eq. 15; the same sign is in J. X. Mitrovica's sea-level code). A load that moves mass
+Sci. 39, 577-616, eq. 15). A load that moves mass
 towards the rotation axis now speeds up the spin (\(m_3>0\)). The error was inherited from the rotation
 block of the legacy code. Both solvers are corrected, including the analytic rate of m3 in
 `TPWrate<N>`; the equatorial (polar-motion) equations and the rotational potential were already

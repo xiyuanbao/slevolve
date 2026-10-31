@@ -99,7 +99,7 @@ reason. "Not verified" marks statements that could not be confirmed from the arc
   of m3 (next item), and `reference/` is computed with both.
 * *Sign of the axial rotation component m3.* The legacy code, like the earlier codes it was derived
   from, uses +1/C in the axial Liouville equation, whereas SLEvolve uses the -1/C of Mitrovica & Wahr
-  (2011, eq. 15) and of J. X. Mitrovica's sea-level code (correction of 2026-10-30). This changes
+  (2011, Annu. Rev. Earth Planet. Sci. 39, 577-616, eq. 15; correction of 2026-10-30). This changes
   \(\dot J_2\) by about 1 %, reverses the sign of the length-of-day rate and changes relative sea level
   at the millimetre level; the round-off reproduction of the legacy code in the paper is a statement
   about that code and is unaffected.
