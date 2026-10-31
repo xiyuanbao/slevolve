@@ -1,0 +1,2303 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Recursive-state 1-D normal-mode GIA sea-level solver (Fortran and Python)">
+      
+      
+      
+      
+        <link rel="prev" href="reproduce.html">
+      
+      
+        <link rel="next" href="inputs.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="img/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Command-line options - SLEvolve v1.0</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="css/header.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#command-line-options" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="SLEvolve v1.0" class="md-header__button md-logo" aria-label="SLEvolve v1.0" data-md-component="logo">
+      
+  <img src="img/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SLEvolve v1.0
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Command-line options
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="teal"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="teal"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="install.html" class="md-tabs__link">
+          
+  
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="benchmarks.html" class="md-tabs__link">
+          
+  
+  
+  User guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="options.html" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="method.html" class="md-tabs__link">
+          
+  
+  
+  Background
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="SLEvolve v1.0" class="md-nav__button md-logo" aria-label="SLEvolve v1.0" data-md-component="logo">
+      
+  <img src="img/logo.svg" alt="logo">
+
+    </a>
+    SLEvolve v1.0
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="install.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="quickstart.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="verify.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Verifying the installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="benchmarks.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the benchmark cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="own_case.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting up a new case
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lovenum.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Love numbers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="horizontal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Horizontal displacement output
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="conversion.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File conversion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reproduce.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducing the published results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command-line options
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="options.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command-line options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#fortran-buildsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fortran: build.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fortran: build.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#case-presets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case presets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-switches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build switches
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fortran-run-time-environment-variables-read-at-run-time-by-the-executable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fortran: run-time environment variables (read at run time by the executable)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fortran-compiled-in-parameters-inherited-from-the-legacy-code-user_specs_mod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fortran: compiled-in parameters inherited from the legacy code (user_specs_mod)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-command-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python command lines
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="inputs.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="outputs.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="formats.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="structure.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/glossary.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Background
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Background
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="method.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="provenance.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark provenance and differences from Han et al. (2022)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="degree1.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Degree-1 Love numbers and reference frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="release_notes.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release notes and known limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lineage.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage and references
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#fortran-buildsh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fortran: build.sh
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fortran: build.sh">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#case-presets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case presets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-switches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build switches
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fortran-run-time-environment-variables-read-at-run-time-by-the-executable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fortran: run-time environment variables (read at run time by the executable)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fortran-compiled-in-parameters-inherited-from-the-legacy-code-user_specs_mod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fortran: compiled-in parameters inherited from the legacy code (user_specs_mod)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-command-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python command lines
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="command-line-options">Command-line options<a class="headerlink" href="#command-line-options" title="Permanent link">&para;</a></h1>
+<p>This page lists in one place every build switch, environment variable and command-line option of the two solvers, with its default as set in the code.</p>
+<h2 id="fortran-buildsh">Fortran: <code>build.sh</code><a class="headerlink" href="#fortran-buildsh" title="Permanent link">&para;</a></h2>
+<p>Usage: <code>fortran/build.sh [TPW] [CHECKMARINE] [NSTEPS]</code> (how to choose the switches:
+<a href="install.html#fortran">Installation</a>). The executable is <code>fortran/build/&lt;CASE or custom&gt;&lt;suffixes&gt;/exe</code>;
+a suffix is added only for a switch that differs from its default.</p>
+<ul>
+<li>Positional arguments (normally none is given):</li>
+<li><code>TPW</code> = <code>T|F</code>: rotational feedback on or off (default <code>T</code>).</li>
+<li><code>CHECKMARINE</code> = <code>T|F</code>: marine check on or off; with <code>T</code> ice that would float on the current
+    topography iterate is removed from the load (default <code>T</code>).</li>
+<li><code>NSTEPS</code>: number of steps compiled in (default from <code>CASE</code>, 550 without <code>CASE</code>); <code>L_sim = Ldt1 = DT * NSTEPS</code>.</li>
+</ul>
+<h3 id="case-presets">Case presets<a class="headerlink" href="#case-presets" title="Permanent link">&para;</a></h3>
+<p><code>CASE=</code>; any variable set explicitly wins.</p>
+<table>
+<thead>
+<tr>
+<th><code>CASE</code></th>
+<th>sets</th>
+<th>driver</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>case1</code></td>
+<td><code>TOPOMODEL=topo0_archive</code>, <code>NSTEPS=550</code>, <code>DT=1</code></td>
+<td><code>run_from_zero_plus</code></td>
+</tr>
+<tr>
+<td><code>case2</code></td>
+<td><code>DT=200 NSTEPS=1200 INITIAL_TOPO=F PLANETMODEL=prem_512.l120C.ump5.lm5 ICEMODEL=iceload TOPOMODEL=etopo2_512_ice6gC</code></td>
+<td><code>run_outer_plus</code></td>
+</tr>
+<tr>
+<td><code>case3</code></td>
+<td><code>DT=500 NSTEPS=50 INITIAL_TOPO=F PLANETMODEL=prem_512.l96C.ump3.lm1 ICEMODEL=nadi_ TOPOMODEL=topo_pres</code></td>
+<td><code>run_outer_mem</code></td>
+</tr>
+<tr>
+<td>unset</td>
+<td>the defaults of the table below (Case 1 file names, <code>NSTEPS=550</code>, <code>DT=1</code>); build directory <code>custom</code></td>
+<td><code>run_from_zero_plus</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="build-switches">Build switches<a class="headerlink" href="#build-switches" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>var</th>
+<th>values</th>
+<th>default</th>
+<th>effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DRIVER</code></td>
+<td><code>run_from_zero_plus</code>, <code>run_outer_plus</code>, <code>run_outer_mem</code></td>
+<td>from <code>CASE</code>, else <code>run_from_zero_plus</code></td>
+<td>the main program: forward run <code>./exe LAST</code> (uniform step = build-time <code>DT</code>, any length; non-uniform steps from a times file); one outer pass per process <code>./exe LAST [ITERSL]</code>; outer passes K0..K1 in one process <code>./exe LAST K0 K1</code>. <code>./exe</code> with wrong arguments prints this usage line</td>
+</tr>
+<tr>
+<td><code>NSTEPS</code></td>
+<td>integer</td>
+<td>from <code>CASE</code>, else 550</td>
+<td>number of time steps of the run</td>
+</tr>
+<tr>
+<td><code>DT</code></td>
+<td>integer years</td>
+<td>from <code>CASE</code>, else 1</td>
+<td>uniform step length <code>dt1..dt4</code>; must equal the time spacing of the ice files. With a times file (<code>INPUT_FILES/others/times</code> or <code>SLEVOLVE_TIMES</code>) the steps come from the file and <code>DT</code> only counts steps: build with <code>DT</code> unset</td>
+</tr>
+<tr>
+<td><code>INITIAL_TOPO</code></td>
+<td><code>T</code>, <code>F</code></td>
+<td>from <code>CASE</code>, else <code>T</code></td>
+<td><code>T</code>: forward run from the known topography <code>TOPO_INITIAL</code>; <code>F</code>: outer iteration on the initial topography, starting from <code>TOPOMODEL</code></td>
+</tr>
+<tr>
+<td><code>PLANETMODEL</code>, <code>ICEMODEL</code>, <code>TOPOMODEL</code>, <code>TOPO_INITIAL</code></td>
+<td>file names</td>
+<td>from <code>CASE</code>, else the Case 1 names; <code>TOPO_INITIAL = TOPOMODEL</code></td>
+<td>the input file names compiled in (<a href="inputs.html">Input files</a>)</td>
+</tr>
+<tr>
+<td><code>NORDER</code></td>
+<td>integer</td>
+<td>511</td>
+<td>maximum spherical-harmonic degree; 512 (the legacy default) remains selectable</td>
+</tr>
+<tr>
+<td><code>EPS1</code></td>
+<td>float</td>
+<td><code>1.0E-5</code></td>
+<td>inner-iteration tolerance <code>epsilon1</code></td>
+</tr>
+<tr>
+<td><code>LEGACY_CONSTANTS</code></td>
+<td><code>1</code>, unset</td>
+<td>unset</td>
+<td><code>1</code>: ice density 910 kg m^-3 and radius 6.371229e6 m of the older legacy code; unset: 920 and 6.371e6 (Han et al. 2022), used by all benchmark cases</td>
+</tr>
+<tr>
+<td><code>RAMP</code></td>
+<td><code>0</code>, <code>1</code></td>
+<td><code>0</code></td>
+<td><code>1</code>: second-order load placement, each load increment accrues linearly over its step (<a href="method.html#second-order-load-placement-optional">Method</a>); build directory suffix <code>_ramp</code>. <code>0</code>: the step placement of Kendall et al. (2005), used by the paper and <code>reference/</code>. Changes the result</td>
+</tr>
+<tr>
+<td><code>AXIAL_ROTATION</code></td>
+<td><code>off</code>, <code>deg2</code>, <code>full</code></td>
+<td><code>off</code></td>
+<td>axial Liouville equation (<a href="method.html#self-consistent-axial-rotation-optional">Method</a>). <code>off</code>: Mitrovica &amp; Wahr (2011, eq. 15), used by the paper and <code>reference/</code>. <code>deg2</code>: adds the rotational part of I33 (the tidal k2 of the Love-number file acting on the rotational potential); <code>full</code>: also the degree-0 trace term, with the elastic axial number <code>AXIAL_TAU_C</code> (default <code>5.360266227471394E-4</code>, PREM). Build directory suffix <code>_axdeg2</code> / <code>_axfull</code>. Changes m3, its rate and the length of day by about 0.4-0.5 %, every field by far less</td>
+</tr>
+<tr>
+<td><code>SHT</code></td>
+<td><code>otf</code>, <code>blas</code>, <code>exact</code>, <code>ref</code></td>
+<td><code>otf</code></td>
+<td>Legendre transform: <code>otf</code> computes the associated Legendre functions on the fly (fastest from about 4 threads, half the memory); <code>blas</code> uses a precomputed table and DGEMM; <code>exact</code> and <code>ref</code>: verification only (they reproduce the legacy transform)</td>
+</tr>
+<tr>
+<td><code>FFT</code></td>
+<td><code>fftw</code>, <code>fft991</code></td>
+<td><code>fftw</code></td>
+<td>longitude FFT: FFTW, or the routine of the legacy code (no FFTW needed)</td>
+</tr>
+<tr>
+<td><code>SYM</code></td>
+<td><code>1</code>, <code>0</code></td>
+<td><code>1</code></td>
+<td><code>1</code> uses the north-south symmetry of the Legendre functions (fewer operations); <code>0</code> for checks only</td>
+</tr>
+<tr>
+<td><code>OMP</code></td>
+<td><code>0</code>, <code>N</code></td>
+<td><code>8</code></td>
+<td>any value other than 0 compiles with OpenMP (threads set at run time by <code>OMP_NUM_THREADS</code>; <code>N</code> itself is not used); <code>0</code> builds a serial executable</td>
+</tr>
+<tr>
+<td><code>BLASLIB</code></td>
+<td><code>accelerate</code>, <code>openblas</code></td>
+<td><code>accelerate</code> on macOS, else <code>openblas</code></td>
+<td>BLAS library linked</td>
+</tr>
+<tr>
+<td><code>TAG</code></td>
+<td>name</td>
+<td>derived from <code>CASE</code> and the switches</td>
+<td>build directory <code>fortran/build/&lt;TAG&gt;/</code></td>
+</tr>
+<tr>
+<td><code>FC</code></td>
+<td>compiler</td>
+<td><code>gfortran</code></td>
+<td>Fortran compiler</td>
+</tr>
+<tr>
+<td><code>CONDA_ENV</code></td>
+<td>env name</td>
+<td>unset</td>
+<td>activate this conda env before building (<code>CONDA_BASE</code> defaults to <code>conda info --base</code>)</td>
+</tr>
+<tr>
+<td><code>FFTW_PREFIX</code></td>
+<td>dir</td>
+<td><code>$CONDA_PREFIX</code>, else <code>/usr/local</code></td>
+<td>FFTW 3 prefix (<code>lib/libfftw3</code>)</td>
+</tr>
+<tr>
+<td><code>OPENBLAS_PREFIX</code></td>
+<td>dir</td>
+<td><code>$CONDA_PREFIX</code>, else <code>/usr/local</code></td>
+<td>OpenBLAS prefix with <code>BLASLIB=openblas</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="fortran-run-time-environment-variables-read-at-run-time-by-the-executable">Fortran: run-time environment variables (read at run time by the executable)<a class="headerlink" href="#fortran-run-time-environment-variables-read-at-run-time-by-the-executable" title="Permanent link">&para;</a></h2>
+<p>The last column says whether the switch changes the numerical result.</p>
+<table>
+<thead>
+<tr>
+<th>variable</th>
+<th>values</th>
+<th>default</th>
+<th>effect</th>
+<th>changes result?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SLEVOLVE_TIMES</code></td>
+<td>path, or <code>off</code></td>
+<td>unset: <code>INPUT_FILES/others/times</code> if it exists</td>
+<td>times file for non-uniform steps (<a href="inputs.html#times-file-optional-non-uniform-time-steps">format</a>): one time in years per ice file <code>0..N</code>, strictly increasing; step <code>j</code> has length <code>t_j - t_(j-1)</code>, used for the modal-state decay factors, the extrapolated inner start and the time stamps in <code>OUTPUT_SLM/times</code>. <code>off</code> (or <code>none</code>, <code>0</code>) ignores the file, giving the uniform build-time <code>DT</code>. Read once at start-up</td>
+<td>yes (different steps); a uniform times file <code>t_k = k * DT</code> gives the identical result</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_INNER</code></td>
+<td><code>off</code>/<code>extrap</code>/<code>anderson</code></td>
+<td><code>off</code></td>
+<td>start of the inner iteration at each step: <code>extrap</code> extrapolates the ocean-load increment linearly from the two previous steps (recommended; fewer iterations); <code>anderson</code> adds Anderson mixing (experimental)</td>
+<td>within <code>epsilon1</code></td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_AA_M</code></td>
+<td>1..5</td>
+<td>3</td>
+<td>with <code>anderson</code>: number of previous iterates mixed</td>
+<td>within <code>epsilon1</code></td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_AA_MASK</code></td>
+<td><code>frozen</code>/<code>refresh</code></td>
+<td><code>frozen</code></td>
+<td>with <code>anderson</code>: <code>refresh</code> continues iterating when the frozen ocean mask has become stale instead of stopping</td>
+<td>within <code>epsilon1</code></td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_INNER_LOG</code></td>
+<td>0/1</td>
+<td>0</td>
+<td>writes the residual and the number of ocean-mask changes of every inner iteration to the log</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_REUSE</code></td>
+<td><code>off</code>/<code>warm</code></td>
+<td><code>off</code></td>
+<td>outer iteration: each pass starts every step from the converged load increment and ocean mask of the same step of the previous pass (recommended for ice age runs)</td>
+<td>within <code>epsilon1</code></td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_OUTER</code></td>
+<td><code>picard</code>/<code>secant</code></td>
+<td>unset</td>
+<td>outer iteration: <code>picard</code> is the legacy update of the initial topography; <code>secant</code> uses a per-cell secant update from pass 3 (experimental). Setting either also writes the outer-iteration files <code>pred_pres_topo_&lt;k&gt;</code>, <code>tgrid0_&lt;k&gt;</code> in snapshot mode</td>
+<td><code>secant</code> changes the iterates</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_ICECACHE</code></td>
+<td>0/1</td>
+<td>1</td>
+<td><code>run_outer_mem</code> only: keeps the ice grids in memory across passes instead of re-reading them</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_SNAP</code></td>
+<td><code>all</code>/<code>none</code>/list (<code>1,2,5</code>, <code>1-20,50</code>)</td>
+<td>unset = every step</td>
+<td>writes the per-step grids only at the listed steps (step 0 is always added); <code>none</code> writes none</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_SNAP_FIELDS</code></td>
+<td><code>tgrid[,ocean,beta,dS,R,G,horiz,Psi,dSLdt,dRdt]</code>/<code>all</code></td>
+<td><code>tgrid</code></td>
+<td>fields written at the steps of <code>SLEVOLVE_SNAP</code></td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_HORIZ</code></td>
+<td>0/1/2</td>
+<td>0</td>
+<td>horizontal displacement (<a href="horizontal.html">Horizontal displacement output</a>): 1 writes <code>horiz&lt;N&gt;.npy</code> (Psi_lm), 2 also <code>Psi&lt;N&gt;.npy</code></td>
+<td>no (output only)</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_RATES</code></td>
+<td>0/1</td>
+<td>0</td>
+<td>analytic rates at the end of each step (<a href="outputs.html#analytic-rates-optional">Output fields</a>): <code>dSLdt&lt;N&gt;.npy</code>, <code>dRdt&lt;N&gt;.npy</code> (m/yr; snapshot fields <code>dSLdt</code>, <code>dRdt</code>) and, with rotation, <code>TPWrate&lt;N&gt;</code>. Available in either build; more accurate than a two-point difference only with <code>RAMP=1</code></td>
+<td>no (output only)</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_FMT</code></td>
+<td><code>npy</code>/<code>bin</code></td>
+<td><code>npy</code></td>
+<td>binary output container: <code>.npy</code> or headerless little-endian <code>.bin</code></td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_TEXT</code></td>
+<td>0/1</td>
+<td>0</td>
+<td>also writes the grids as legacy text files (slow, large)</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_BIN</code></td>
+<td>0/1</td>
+<td>1</td>
+<td><code>0</code> suppresses the binary grid output</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_BININ</code></td>
+<td>0/1</td>
+<td>1</td>
+<td><code>1</code> reads <code>&lt;name&gt;.npy</code> or <code>&lt;name&gt;.bin</code> before the text file <code>&lt;name&gt;</code>; <code>0</code> reads text only</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_CKPT</code></td>
+<td>K</td>
+<td>0</td>
+<td>writes the modal state to <code>exact_memory_state_&lt;i&gt;.bin</code> every K steps (0 = never)</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_OPT</code></td>
+<td><code>all</code>/<code>none</code>/list</td>
+<td><code>all</code></td>
+<td>transform reductions, each replacing a spherical-harmonic transform by an equivalent cheaper operation: <code>diag</code> (degree-0 diagnostics by quadrature), <code>dsl</code> (total sea-level grid without a synthesis), <code>lazyrg</code> (skip the R synthesis when R and G are not written), <code>icebatch</code> (ice analysis in the first-guess sweep), <code>rt</code> (one analysis of rO - tO), <code>merge</code> (rO analysis and the next ocean-function guess in one sweep)</td>
+<td>round-off only</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_BATCH</code></td>
+<td>0/1</td>
+<td>1</td>
+<td>batches independent transforms into one sweep; <code>0</code> runs them separately</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_FFT</code></td>
+<td><code>fftw</code>/<code>fft991</code></td>
+<td><code>fftw</code> in FFTW builds, else <code>fft991</code></td>
+<td>FFT used at run time (<code>fftw</code> in a build without FFTW stops with an error)</td>
+<td>round-off only</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_ZERO</code></td>
+<td><code>full</code>/<code>min</code></td>
+<td><code>min</code></td>
+<td><code>full</code> clears all working arrays at every step, as the legacy code; <code>min</code> clears only those that are read before being set</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_COMPAT</code></td>
+<td>bit flags</td>
+<td>0</td>
+<td>verification only: re-enables legacy per-step work (1 re-read step-0 fields, 2 re-read the Earth model, 4 save and reload the modal state, 8 recompute <code>t0lm</code>)</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>SLEVOLVE_SHTPROF</code></td>
+<td>0/1</td>
+<td>0</td>
+<td>prints the time spent in each part of the transforms at the end</td>
+<td>no</td>
+</tr>
+</tbody>
+</table>
+<p>Note: <code>SLEVOLVE_INNER=anderson</code> requires <code>SLEVOLVE_OPT</code> to include <code>merge</code> and <code>rt</code>.</p>
+<p><strong>Threading and stack</strong></p>
+<ul>
+<li><code>OMP_NUM_THREADS</code>: OpenMP threads.</li>
+<li><code>VECLIB_MAXIMUM_THREADS</code>: Accelerate BLAS threads.</li>
+<li><code>OMP_STACKSIZE=32M</code>: per-thread stack, set by the scripts in <code>examples/</code>; set it for your own runs too.</li>
+</ul>
+<h2 id="fortran-compiled-in-parameters-inherited-from-the-legacy-code-user_specs_mod">Fortran: compiled-in parameters inherited from the legacy code (<code>user_specs_mod</code>)<a class="headerlink" href="#fortran-compiled-in-parameters-inherited-from-the-legacy-code-user_specs_mod" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>parameter</th>
+<th>meaning</th>
+<th>how to set</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tpw</code></td>
+<td>rotational feedback (true polar wander)</td>
+<td>build arg 1</td>
+</tr>
+<tr>
+<td><code>checkmarine</code></td>
+<td>flotation check of grounded ice</td>
+<td>build arg 2</td>
+</tr>
+<tr>
+<td><code>epsilon1</code> / <code>epsilon2</code></td>
+<td>inner convergence tolerance / outer tolerance (<code>epsilon2</code> is not used by the code)</td>
+<td><code>EPS1</code> (epsilon2 fixed at 1e-5)</td>
+</tr>
+<tr>
+<td><code>norder</code>, <code>nglv</code></td>
+<td>max degree, grid size (nglv=512 → 512×1024)</td>
+<td><code>NORDER</code></td>
+</tr>
+<tr>
+<td><code>L_sim</code>, <code>dt1..dt4</code>, <code>Ldt1..Ldt4</code></td>
+<td>run length and step sizes</td>
+<td><code>DT</code> sets <code>dt1..dt4</code>; <code>NSTEPS</code> sets <code>L_sim = Ldt1 = DT*NSTEPS</code>. One build-time step size (<code>Ldt2..4 = 0</code>); these values index the steps (<code>L_sim/dt1</code> = number of steps). Non-uniform steps come from a times file at run time (<code>SLEVOLVE_TIMES</code>), not from <code>dt2..dt4</code></td>
+</tr>
+<tr>
+<td><code>initial_topo</code></td>
+<td>forward run (<code>T</code>) or outer topography iteration (<code>F</code>)</td>
+<td><code>INITIAL_TOPO</code></td>
+</tr>
+<tr>
+<td><code>planetmodel</code>, <code>icemodel</code>, <code>topomodel</code>, <code>topo_initial</code></td>
+<td>input file names</td>
+<td><code>PLANETMODEL</code>, <code>ICEMODEL</code>, <code>TOPOMODEL</code>, <code>TOPO_INITIAL</code></td>
+</tr>
+<tr>
+<td><code>rhoi</code>, <code>radius</code></td>
+<td>ice density, Earth radius</td>
+<td>default 920, 6.371E6; <code>LEGACY_CONSTANTS=1</code>: 910, 6.371229E6</td>
+</tr>
+<tr>
+<td><code>iceVolume</code>, <code>calcRG</code></td>
+<td>legacy switches</td>
+<td>fixed by the sed (<code>.true.</code>)</td>
+</tr>
+<tr>
+<td><code>ramp</code></td>
+<td>second-order load placement (not in the legacy code)</td>
+<td><code>RAMP=1</code> (default <code>.false.</code>)</td>
+</tr>
+<tr>
+<td><code>axial_rotation</code>, <code>axial_tau_c</code></td>
+<td>axial Liouville equation: 0 = Mitrovica &amp; Wahr (2011, eq. 15), 1 = + rotational I33, 2 = + trace term; elastic axial number (not in the legacy code)</td>
+<td><code>AXIAL_ROTATION=off/deg2/full</code> (default 0), <code>AXIAL_TAU_C</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>nglv</code> is fixed at 512 in the support module (<code>support_mod.f90</code>); <code>build.sh</code> has no switch for it.</p>
+<h2 id="python-command-lines">Python command lines<a class="headerlink" href="#python-command-lines" title="Permanent link">&para;</a></h2>
+<p>Each script has a console script with the same options after <code>pip install .</code>
+(<a href="install.html#python-pip-install">Installation</a>): <code>python/run_ais.py</code> = <code>slevolve-forward</code>,
+<code>python/run_outer.py</code> = <code>slevolve-outer</code>, <code>python/init_topo_segmented.py</code> = <code>slevolve-init-topo</code>,
+<code>python/tools/text2npy.py</code> = <code>slevolve-text2npy</code>, <code>python/tools/npy2text.py</code> = <code>slevolve-npy2text</code>,
+<code>python/tools/npy2nc.py</code> = <code>slevolve-npy2nc</code>.</p>
+<p>Threads: <code>run_ais.py</code> and <code>run_outer.py</code> set <code>OMP_NUM_THREADS</code>, <code>OPENBLAS_NUM_THREADS</code>,
+<code>VECLIB_MAXIMUM_THREADS</code>, <code>MKL_NUM_THREADS</code>, <code>NUMEXPR_NUM_THREADS</code> and <code>NUMBA_NUM_THREADS</code> to <code>--threads</code>
+before NumPy is imported. With <code>--opt numba</code> the modal-state advance runs in the numba thread pool;
+<code>run_ais.py --mem-threads</code> is then ignored (<code>solver_opt.py</code> sets <code>mem_threads = 1</code>), and <code>run_outer.py</code>
+has no such option.</p>
+<p><strong><code>python/run_ais.py</code></strong> / <code>slevolve-forward</code> (forward run; any ice history <code>&lt;icepfx&gt;0..N</code> with uniform step <code>--dt</code> or the steps of a times file <code>--times</code>; the
+defaults of <code>--icepfx</code>, <code>--earth</code>, <code>--topo</code> are the Case 1 names):</p>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>default</th>
+<th>meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--steps</code></td>
+<td>50</td>
+<td>number of steps N; ice files 0..N are read</td>
+</tr>
+<tr>
+<td><code>--dt</code></td>
+<td>1</td>
+<td>step length in <strong>years</strong>; must equal the time spacing of the ice files. Printed at start-up and stored in <code>run_log.json</code> (<code>dt_years</code>)</td>
+</tr>
+<tr>
+<td><code>--times</code></td>
+<td>none</td>
+<td>times file (<a href="inputs.html#times-file-optional-non-uniform-time-steps">format</a>): time in years of ice files <code>0..N</code>, one per line, strictly increasing (the first <code>--steps + 1</code> values are used). Step <code>k</code> has length <code>t_k - t_(k-1)</code>; <code>--dt</code> is ignored. Stored in <code>run_log.json</code> (<code>times_file</code>, <code>times_years</code>; <code>dt_years</code> = <code>"variable"</code>)</td>
+</tr>
+<tr>
+<td><code>--threads</code></td>
+<td>1</td>
+<td>threads of the transforms, BLAS and numba kernels (set before NumPy is imported)</td>
+</tr>
+<tr>
+<td><code>--mem-threads</code></td>
+<td>1</td>
+<td>threads for the modal-state advance in the plain NumPy path (result unchanged; ignored with <code>--opt numba</code>)</td>
+</tr>
+<tr>
+<td><code>--sht</code></td>
+<td><code>numpy</code></td>
+<td>transform backend: <code>numpy</code> (Legendre table, <code>sht.py</code>) or <code>ducc</code> (ducc0, much faster; recommended)</td>
+</tr>
+<tr>
+<td><code>--lmax</code> / <code>--norder</code></td>
+<td>512</td>
+<td>maximum degree (ducc needs ≤ nglv−1; the benchmark cases use 511)</td>
+</tr>
+<tr>
+<td><code>--nglv</code></td>
+<td>512</td>
+<td>number of Gauss-Legendre latitudes; the grid is nglv x 2 nglv</td>
+</tr>
+<tr>
+<td><code>--tpw</code>, <code>--checkmarine</code></td>
+<td><code>T</code></td>
+<td>rotational feedback; marine check (as in Fortran)</td>
+</tr>
+<tr>
+<td><code>--calcRG</code></td>
+<td><code>T</code></td>
+<td>computes the radial displacement R and geoid G grids (output only; <code>F</code> skips them)</td>
+</tr>
+<tr>
+<td><code>--epsilon1</code></td>
+<td>1e-5</td>
+<td>inner-iteration tolerance</td>
+</tr>
+<tr>
+<td><code>--opt</code></td>
+<td><code>''</code></td>
+<td>optimisations (round-off only), comma list or <code>all</code>: <code>raw</code> (ducc0 transforms without a separate rescaling pass), <code>diag</code> (degree-0 diagnostics by quadrature instead of four analyses), <code>dsl</code> (total sea-level grid without a synthesis), <code>numba</code> (compiled fused kernels; needs numba), <code>sums</code> (convergence sums carried between iterations and computed in parallel). Recommended: <code>all</code></td>
+</tr>
+<tr>
+<td><code>--inner</code></td>
+<td><code>off</code></td>
+<td>start of the inner iteration: <code>extrap</code> extrapolates the ocean-load increment from the two previous steps (recommended; result within <code>epsilon1</code>); <code>anderson</code> adds Anderson mixing (experimental)</td>
+</tr>
+<tr>
+<td><code>--anderson-depth</code>, <code>--anderson-freeze</code>, <code>--anderson-keep</code></td>
+<td>3, 2, off</td>
+<td>with <code>--inner anderson</code>: number of iterates mixed; plain iteration after which the ocean mask is frozen; keep the mixing history when the mask is refreshed</td>
+</tr>
+<tr>
+<td><code>--rhoi</code>, <code>--radius</code></td>
+<td>920, 6.371e6</td>
+<td>ice density and Earth radius (Han et al. 2022)</td>
+</tr>
+<tr>
+<td><code>--icedir</code>, <code>--icepfx</code></td>
+<td>development cache / <code>AISload_gd_Run85_0_0_</code></td>
+<td>ice files <code>&lt;icedir&gt;/&lt;icepfx&gt;&lt;k&gt;</code> (<code>.npy</code>, <code>.bin</code> or text), read directly. Pass explicitly</td>
+</tr>
+<tr>
+<td><code>--topo</code></td>
+<td>development tree</td>
+<td>initial topography (<code>.npy</code>, <code>.bin</code> or text). Pass explicitly</td>
+</tr>
+<tr>
+<td><code>--earth</code></td>
+<td>development tree</td>
+<td>Love-number file. Pass explicitly</td>
+</tr>
+<tr>
+<td><code>--save-fields</code></td>
+<td><code>tgrid,ocean,beta</code></td>
+<td>fields written at every step: any of <code>tgrid,ocean,beta,dS,R,G,dSLdt,dRdt</code>; <code>dSLdt</code>, <code>dRdt</code> are the analytic rates (m/yr; with <code>--tpw T</code> also <code>TPWrate&lt;N&gt;.txt</code>), output only</td>
+</tr>
+<tr>
+<td><code>--ramp</code></td>
+<td>off</td>
+<td>second-order load placement: each load increment accrues linearly over its step (<a href="method.html#second-order-load-placement-optional">Method</a>); off: the step placement of Kendall et al. (2005), used by the paper and <code>reference/</code>. Changes the result</td>
+</tr>
+<tr>
+<td><code>--axial-rotation</code></td>
+<td><code>off</code></td>
+<td>axial Liouville equation (<a href="method.html#self-consistent-axial-rotation-optional">Method</a>): <code>off</code> = Mitrovica &amp; Wahr (2011, eq. 15), used by the paper and <code>reference/</code>; <code>deg2</code> adds the rotational part of I33; <code>full</code> also the degree-0 trace term. As the Fortran switch <code>AXIAL_ROTATION</code>; recorded in <code>run_log.json</code></td>
+</tr>
+<tr>
+<td><code>--axial-tau-c</code></td>
+<td><code>5.360266227471394e-4</code></td>
+<td>with <code>--axial-rotation full</code>: the elastic axial number of the trace term (PREM)</td>
+</tr>
+<tr>
+<td><code>--rebuild-cache</code></td>
+<td>off</td>
+<td>rebuild the binary ice cache (<code>python/cache/</code>). The cache is keyed by a JSON manifest next to it (ice directory, prefix, file count, size and mtime of every ice file) and is rebuilt automatically, with a message, when any of these change</td>
+</tr>
+<tr>
+<td><code>--horizontal</code></td>
+<td>off</td>
+<td>write <code>horiz&lt;N&gt;.npy</code> (Psi_lm, <a href="horizontal.html">Horizontal displacement output</a>) every step; output only</td>
+</tr>
+<tr>
+<td><code>--horizontal-grid</code></td>
+<td>off</td>
+<td>also <code>utheta&lt;N&gt;.npy</code>, <code>uphi&lt;N&gt;.npy</code> (ducc0)</td>
+</tr>
+<tr>
+<td><code>--io-compat</code></td>
+<td><code>fortran</code></td>
+<td><code>fortran</code>: ocean/beta <code>&lt;f8</code>, dS Fortran-order <code>&lt;c16</code>; <code>legacy</code>: uint8 masks</td>
+</tr>
+<tr>
+<td><code>--out</code></td>
+<td>development path</td>
+<td>output directory. Pass explicitly</td>
+</tr>
+<tr>
+<td><code>--root</code></td>
+<td>parent of <code>python/</code></td>
+<td>base directory of the development defaults; not needed when <code>--earth</code>, <code>--icedir</code>, <code>--topo</code> and <code>--out</code> are given</td>
+</tr>
+<tr>
+<td><code>--chunk</code></td>
+<td>16</td>
+<td>block size of the batched transforms (performance only)</td>
+</tr>
+<tr>
+<td><code>--cache-only</code></td>
+<td>off</td>
+<td>only build the ice cache in <code>python/cache/</code> (without <code>--icedir</code>), then stop</td>
+</tr>
+<tr>
+<td><code>--profile</code>, <code>--cprofile</code>, <code>--count-sht</code></td>
+<td>off</td>
+<td>timing per stage; a cProfile report <code>cprofile.txt</code>; transform counts in the log. Log only</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>python/run_outer.py</code></strong> / <code>slevolve-outer</code> (ice age run with outer iteration):</p>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>default</th>
+<th>meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--iters</code></td>
+<td>5</td>
+<td>number of outer passes</td>
+</tr>
+<tr>
+<td><code>--outer</code></td>
+<td><code>picard</code></td>
+<td>update of the initial topography between passes: <code>picard</code> (legacy) or <code>secant</code>, a per-cell secant step from pass 3 (experimental; <code>--secant-tol</code> below which a cell uses Picard, <code>--smin</code>, <code>--smax</code> bounds of the step factor; defaults 1e-3 m, 0.5, 1.5)</td>
+</tr>
+<tr>
+<td><code>--reuse</code></td>
+<td><code>off</code></td>
+<td><code>warm</code>: each pass starts every step from the converged load increment and ocean mask of the previous pass (recommended; result within <code>epsilon1</code>). Experimental, not used in the paper: <code>warm+ice</code> also reuses the stored ice analysis; <code>warm+corr</code> adds the pass-to-pass change of the previous step; <code>warm+corr2</code> extrapolates that change linearly</td>
+</tr>
+<tr>
+<td><code>--inner</code></td>
+<td><code>off</code></td>
+<td>as for <code>run_ais.py</code></td>
+</tr>
+<tr>
+<td><code>--topo0</code></td>
+<td><code>topo_pres</code></td>
+<td>T0 of pass 1 (text or <code>.npy</code>, e.g. a partially relaxed guess)</td>
+</tr>
+<tr>
+<td><code>--topo-pres</code></td>
+<td><code>&lt;inputs&gt;/others/topo_pres</code></td>
+<td>observed present topography</td>
+</tr>
+<tr>
+<td><code>--inputs</code></td>
+<td><strong>required</strong></td>
+<td><code>INPUT_FILES</code> directory (<code>icemodel/</code>, <code>others/</code>)</td>
+</tr>
+<tr>
+<td><code>--icepfx</code>, <code>--nfiles</code></td>
+<td><code>nadi_</code>, 51</td>
+<td>ice files <code>&lt;icepfx&gt;0 .. &lt;icepfx&gt;&lt;nfiles-1&gt;</code> in <code>&lt;inputs&gt;/icemodel/</code>; <code>nfiles</code> = steps + 1</td>
+</tr>
+<tr>
+<td><code>--ice-seq</code></td>
+<td>files <code>0..nfiles-1</code></td>
+<td>a custom ice history built from the cached files: comma list of <code>i</code> or <code>i:j:w</code> (the blend (1-w) I_i + w I_j), or <code>@FILE</code></td>
+</tr>
+<tr>
+<td><code>--earth</code></td>
+<td><strong>required</strong></td>
+<td>Love numbers</td>
+</tr>
+<tr>
+<td><code>--rebuild-cache</code></td>
+<td>off</td>
+<td>rebuild the binary ice cache (<code>python/cache/</code>). The cache is keyed by a JSON manifest next to it (ice directory, prefix, file count, size and mtime of every ice file) and is rebuilt automatically, with a message, when any of these change</td>
+</tr>
+<tr>
+<td><code>--lmax</code></td>
+<td><strong>required</strong></td>
+<td>truncation (511 for the benchmark cases)</td>
+</tr>
+<tr>
+<td><code>--dt</code></td>
+<td>500</td>
+<td>step length in <strong>years</strong> (one fixed value; the spacing of the ice files). Printed at start-up</td>
+</tr>
+<tr>
+<td><code>--times</code></td>
+<td>none</td>
+<td>times file: one time in years per ice state <code>0..N</code> (the ice files, or the <code>--ice-seq</code> entries), exactly N + 1 values, strictly increasing; step <code>k</code> has length <code>t_k - t_(k-1)</code>, <code>--dt</code> is ignored. Stored in <code>outer_log.json</code> (<code>times_years</code>)</td>
+</tr>
+<tr>
+<td><code>--rhoi</code>, <code>--radius</code></td>
+<td>920, 6.371e6</td>
+<td>ice density and Earth radius</td>
+</tr>
+<tr>
+<td><code>--tpw</code>, <code>--checkmarine</code>, <code>--epsilon1</code></td>
+<td>T, T, 1e-5</td>
+<td>as for <code>run_ais.py</code></td>
+</tr>
+<tr>
+<td><code>--threads</code></td>
+<td>4</td>
+<td>ducc and numba threads (also <code>NUMBA_NUM_THREADS</code>)</td>
+</tr>
+<tr>
+<td><code>--opt</code></td>
+<td><code>raw,diag,dsl,numba,sums</code></td>
+<td>as for <code>run_ais.py</code></td>
+</tr>
+<tr>
+<td><code>--save-steps</code></td>
+<td>none</td>
+<td>comma list of steps whose topography <code>tgrid&lt;N&gt;_it&lt;k&gt;.npy</code> is written in every pass</td>
+</tr>
+<tr>
+<td><code>--count-sht</code></td>
+<td>off</td>
+<td>transform counts per pass in the log</td>
+</tr>
+<tr>
+<td><code>--out</code></td>
+<td><strong>required</strong></td>
+<td>output directory (<code>outer_log.json</code>, <code>pred_pres_topo_&lt;k&gt;.npy</code>, <code>tgrid0_&lt;k&gt;.npy</code>, <code>T0_next.npy</code>, saved steps)</td>
+</tr>
+<tr>
+<td><code>--horizontal</code>, <code>--horizontal-grid</code></td>
+<td>off</td>
+<td><code>horiz&lt;N&gt;_it&lt;k&gt;.npy</code> (and <code>utheta/uphi&lt;N&gt;_it&lt;k&gt;.npy</code>) at <code>--save-steps</code> and the last step</td>
+</tr>
+<tr>
+<td><code>--ramp</code></td>
+<td>off</td>
+<td>as for <code>run_ais.py</code></td>
+</tr>
+<tr>
+<td><code>--axial-rotation</code>, <code>--axial-tau-c</code></td>
+<td><code>off</code></td>
+<td>as for <code>run_ais.py</code>; recorded in <code>outer_log.json</code></td>
+</tr>
+<tr>
+<td><code>--rates</code></td>
+<td>off</td>
+<td>analytic rates <code>dSLdt&lt;N&gt;_it&lt;k&gt;.npy</code>, <code>dRdt&lt;N&gt;_it&lt;k&gt;.npy</code> (m/yr) and <code>TPWrate&lt;N&gt;_it&lt;k&gt;.txt</code> at <code>--save-steps</code> and the last step of every pass; output only</td>
+</tr>
+</tbody>
+</table>
+<p><code>run_outer.py</code> has no <code>--sht</code> and no <code>--mem-threads</code> option. It always uses ducc. With <code>--opt numba</code>
+(default) the modal-state advance runs in the numba thread pool, sized by <code>--threads</code>; <code>solver_opt.py</code>
+then sets <code>mem_threads = 1</code>, so <code>run_ais.py --mem-threads</code> has no effect with <code>--opt numba</code> either.</p>
+<p><strong><code>python/init_topo_segmented.py</code></strong> / <code>slevolve-init-topo</code> (partially relaxed, segmented first-pass initial topography for outer pass 1; defaults from the code):</p>
+<table>
+<thead>
+<tr>
+<th>option</th>
+<th>default</th>
+<th>meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--inputs</code></td>
+<td><strong>required</strong></td>
+<td><code>INPUT_FILES</code> directory (<code>icemodel/</code>, <code>others/</code>)</td>
+</tr>
+<tr>
+<td><code>--icepfx</code></td>
+<td><strong>required</strong></td>
+<td>ice file prefix, e.g. <code>nadi_</code></td>
+</tr>
+<tr>
+<td><code>--nfiles</code></td>
+<td><strong>required</strong></td>
+<td>number of ice files (<code>0..nfiles-1</code>; last = present)</td>
+</tr>
+<tr>
+<td><code>--dt</code></td>
+<td>required unless <code>--times</code></td>
+<td>step length in <strong>years</strong> (converted to kyr internally)</td>
+</tr>
+<tr>
+<td><code>--times</code></td>
+<td>none</td>
+<td>times file, one time in years per ice file (<code>nfiles</code> values, strictly increasing); the segment ages are <code>t_N - t_n</code> (instead of <code>dt (N - n)</code>); <code>--dt</code> is ignored</td>
+</tr>
+<tr>
+<td><code>--earth</code></td>
+<td><strong>required</strong></td>
+<td>Love-number file</td>
+</tr>
+<tr>
+<td><code>--lmax</code></td>
+<td><strong>required</strong></td>
+<td>truncation</td>
+</tr>
+<tr>
+<td><code>--topo-pres</code></td>
+<td><code>&lt;inputs&gt;/others/topo_pres</code></td>
+<td>present topography</td>
+</tr>
+<tr>
+<td><code>--nglv</code></td>
+<td>512</td>
+<td>number of Gauss-Legendre latitudes; the grid is nglv x 2 nglv</td>
+</tr>
+<tr>
+<td><code>--threshold</code></td>
+<td>0.01</td>
+<td>monotonic legs of the (smoothed) ice-volume history whose volume change is below this fraction of the total range are merged into their neighbours</td>
+</tr>
+<tr>
+<td><code>--start</code></td>
+<td>present topography</td>
+<td>starting T0 of the fixed point</td>
+</tr>
+<tr>
+<td><code>--c0</code></td>
+<td>62.0</td>
+<td>starting uniform term c (m)</td>
+</tr>
+<tr>
+<td><code>--rhoi</code>, <code>--rhow</code>, <code>--radius</code></td>
+<td>920, 1000, 6.371e6</td>
+<td>constants</td>
+</tr>
+<tr>
+<td><code>--workers</code></td>
+<td>4</td>
+<td>ducc threads</td>
+</tr>
+<tr>
+<td><code>--out</code></td>
+<td><strong>required</strong></td>
+<td>output <code>.npy</code>; a <code>.json</code> with the segments is written next to it</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Next:</strong> <a href="inputs.html">Input files</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
