@@ -44,7 +44,7 @@ independent implementation of the same formulation.
 
 References for the optional self-consistent axial rotation ([Method](method.md#self-consistent-axial-rotation-optional)):
 
-- Mitrovica, J. X., Wahr, J., Matsuyama, I., and Paulson, A.: The rotational stability of an ice age
+- Mitrovica, J. X., Wahr, J., Matsuyama, I., and Paulson, A.: The rotational stability of an ice-age
   earth, Geophys. J. Int., 161, 491-506, https://doi.org/10.1111/j.1365-246X.2005.02609.x, 2005.
 - Mitrovica, J. X. and Wahr, J.: Ice age Earth rotation, Annu. Rev. Earth Planet. Sci., 39, 577-616,
   https://doi.org/10.1146/annurev-earth-040610-133404, 2011.
