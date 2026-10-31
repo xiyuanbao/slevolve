@@ -20,11 +20,21 @@ the geoid 2e-5 relative, relative sea level at most 11 µm, TPW speed and direct
 relative and 1e-6 degrees, run time unchanged within its noise (one scalar solve per inner
 iteration). With the option on, \(-3C\dot m_3/(2Ma^2)\) agrees with \(\dot J_2\) from the geoid (route
 gap of the two-route test 1.7e-9 instead of 0.485 %). Limitation: the trace term uses an elastic axial
-number (PREM, \(\tau_c=5.36\times10^{-4}\)), because the Love-number files have no degree-0 numbers;
+number (PREM of the shipped Love numbers, \(\tau_c=5.3685\times10^{-4}\); see the next note), because the Love-number files have no degree-0 numbers;
 its viscous relaxation, about 3 % larger, would change \(m_3\) by at most 1.6e-5. Tests:
 `tests/test_j2dot_two_routes.py` gains the option-on cases, and the new
 `tests/test_fortran_python_axial.sh` compares the Fortran and Python solvers with the option on
 ([Verification](verify.md#axial-rotation-fortran-test)).
+
+**Note of 2026-10-31: axial number \(\tau_c\) computed self-consistently.** The elastic axial number of
+the trace term (`full`) is now computed by `tools/degree0_axial_number.py` (degree-0 elastic radial
+solver, NumPy only) from the PREM of the shipped Love numbers, `lovenum/prem_continental.deck` (ocean
+replaced by upper crust up to 6371 km), with the solver's \(a\), \(\Omega\) and \(C\)
+([Method](method.md#self-consistent-axial-rotation-optional)). \(\tau_c\) changes from
+\(5.360266\times10^{-4}\) (computed for PREM without its ocean, surface at 6368 km) to
+\(5.368494\times10^{-4}\) (+0.15 %); \(\dot m_3\) with `full` changes by 8e-7 relative. The default
+(`off`) is unchanged. New test `tests/test_degree0_axial_number.py` (closed form for a homogeneous
+sphere, convergence in the radial step, and the Python and Fortran constants equal to the tool's value).
 
 **Note of 2026-10-31: sign of the order-1 rotation records (correction).** The spectral coefficients
 use the U basis, complex harmonics without the Condon-Shortley phase, whereas the expressions for

@@ -79,20 +79,25 @@ tools/
   regrid.py                        nearest-source sampling onto the solver grid (NearestSourceSampler)
   prepare_case2_inputs.sh          Case 2 input tree from the archived files
   prepare_case3_nadi.py            Case 3 (ICE-NADI-1) input tree
+  degree0_axial_number.py          elastic axial number tau_c (axial rotation `full`): degree-0 elastic
+                                   radial solver on an Earth-model deck (NumPy only)
 lovenum/
   prem_512.l60K2C.sum18p6.dum19p2.tz19p4.lm22  Love numbers, Case 1 Earth model
   prem_512.l120C.ump5.lm5          Love numbers, Case 2 Earth model
   prem_512.l96C.ump3.lm1           Love numbers, Case 3 Earth model
+  prem_continental.deck            PREM elastic and density structure of the Case 2 and 3 Love numbers
+                                   (node deck r, rho, vp, vs, g), input of tools/degree0_axial_number.py
   DEGREE1_NOTES.md, DEGREE1_NOTES_zh.md
                                    notes on degree-1 Love numbers (English, Chinese)
 tests/
-  run_all.py                       runs the nine Python tests below
+  run_all.py                       runs the ten Python tests below
   test_recursion.py, test_sht_roundtrip.py, test_small_case.py,
   test_extrap_formula.py, test_small_case_vardt.py, test_floating_ice.py,
   test_ramp.py                     (second-order placement and analytic rates)
   test_j2dot_two_routes.py         J2-dot from the geoid rate and from m3-dot vs a closed form
                                    (axial rotation option off, deg2 and full)
   test_tpw_direction.py            TPW direction from TPWrate vs the load and the geoid rate
+  test_degree0_axial_number.py     tau_c tool vs a closed form, its convergence, and the solvers' constant
   test_fortran_python.sh           Fortran test: Fortran vs Python on the synthetic Earth
   test_fortran_python_vardt.sh     Fortran test with a variable-step times file (Fortran vs Python)
   test_fortran_python_ramp.sh      Fortran test with RAMP=1 and SLEVOLVE_RATES=1 (Fortran vs Python)

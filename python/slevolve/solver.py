@@ -51,7 +51,10 @@ NPAM = 500
 #   "deg2" : + I^R_33 (exact with the tidal k_2 of the Love-number file)
 #   "full" : + I^R_33 + Delta T^R / 3 (tau_c elastic, PREM)
 AXIAL_MODES = ("off", "deg2", "full")
-TAU_C_PREM = 5.360266227471394e-4
+# tau_c: elastic degree-0 response of the PREM of the shipped Love numbers (lovenum/prem_continental.deck, surface
+# 6371 km) to the degree-0 rotational potential, with this module's a, Omega and C; computed by
+# tools/degree0_axial_number.py (tests/test_degree0_axial_number.py keeps the two equal)
+TAU_C_PREM = 5.368494381028842e-4
 
 
 def axial_constants(p, mode, tau_c=None):

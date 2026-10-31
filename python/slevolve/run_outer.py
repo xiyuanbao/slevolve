@@ -66,7 +66,7 @@ def _args():
                          "+ the rotational I33 (tidal k_2 acting on Lambda_20); full = deg2 + the degree-0 "
                          "trace term (elastic axial number, --axial-tau-c)")
     ap.add_argument("--axial-tau-c", type=float, default=None,
-                    help="with --axial-rotation full: elastic axial number tau_c (default 5.3603e-4, PREM)")
+                    help="with --axial-rotation full: elastic axial number tau_c (default 5.3685e-4, PREM)")
     ap.add_argument("--rates", action="store_true",
                     help="write the analytic rates dSLdt<N>_it<k>.npy, dRdt<N>_it<k>.npy (m/yr) and "
                          "TPWrate<N>_it<k>.txt at --save-steps and the last step; output only")

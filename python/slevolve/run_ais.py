@@ -54,7 +54,7 @@ def _parse_argv():
                          "+ the rotational I33 (tidal k_2 acting on Lambda_20); full = deg2 + the degree-0 "
                          "trace term (elastic axial number, --axial-tau-c)")
     ap.add_argument("--axial-tau-c", type=float, default=None,
-                    help="with --axial-rotation full: elastic axial number tau_c (default 5.3603e-4, PREM)")
+                    help="with --axial-rotation full: elastic axial number tau_c (default 5.3685e-4, PREM)")
     ap.add_argument("--horizontal", action="store_true",
                     help="also write the horizontal-displacement scalar Psi_lm (horiz<N>.npy, "
                          "u_h = grad_h Psi); output only, default off")

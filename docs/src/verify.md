@@ -5,7 +5,7 @@ prints.
 
 | check | implementation covered | needs | time |
 |---|---|---|---|
-| [Python tests](#python-tests) `python tests/run_all.py` | Python solver | numpy (ducc0 optional) | about 5 s |
+| [Python tests](#python-tests) `python tests/run_all.py` | Python solver; axial number \(\tau_c\) | numpy (ducc0 optional) | about 7 s |
 | [Fortran test](#fortran-test) `bash tests/test_fortran_python.sh` | Fortran solver, against the Python solver | Fortran toolchain, numpy | about 30 s |
 | [Non-uniform-step Fortran test](#non-uniform-time-steps-times-file) `bash tests/test_fortran_python_vardt.sh` | Fortran solver with a times file (non-uniform and uniform), against the Python solver | Fortran toolchain, numpy | about 2 min |
 | [Second-order placement Fortran test](#second-order-load-placement-and-rates) `bash tests/test_fortran_python_ramp.sh` | Fortran solver with `RAMP=1` and `SLEVOLVE_RATES=1` (uniform and non-uniform steps), against the Python solver | Fortran toolchain, numpy | about 3 min |
@@ -19,7 +19,7 @@ prints.
 python tests/run_all.py
 ```
 
-Nine plain scripts (no pytest), all of the **Python solver**; the four below, the two non-uniform-step tests of [the next section](#non-uniform-time-steps-times-file), `test_ramp.py` ([second-order placement](#second-order-load-placement-and-rates)), `test_j2dot_two_routes.py` ([J2-dot by two routes](#j2-dot-by-two-routes)) and `test_tpw_direction.py` ([direction of polar motion](#direction-of-polar-motion)):
+Ten plain scripts (no pytest): nine of the **Python solver** and one of the axial number \(\tau_c\); the four below, the two non-uniform-step tests of [the next section](#non-uniform-time-steps-times-file), `test_ramp.py` ([second-order placement](#second-order-load-placement-and-rates)), `test_j2dot_two_routes.py` ([J2-dot by two routes](#j2-dot-by-two-routes)), `test_tpw_direction.py` ([direction of polar motion](#direction-of-polar-motion)) and `test_degree0_axial_number.py` ([axial number](#axial-number-tau_c)):
 
 * `test_recursion.py`: synthetic modal spectrum (random decay rates and residues) and a random
   step-wise load history with non-uniform steps; the recursive update of `solver.ExactMemory` is
@@ -76,7 +76,10 @@ test_j2dot_two_routes: PASS
 == test_tpw_direction.py
 ...
 test_tpw_direction: PASS
-== 9/9 passed in 6.8 s
+== test_degree0_axial_number.py
+...
+test_degree0_axial_number: PASS
+== 10/10 passed in 7.2 s
 ```
 
 The difference of 3.3e-3 m between (a) and (b) is expected: the two inner iterations start from
@@ -215,7 +218,7 @@ test_j2dot_two_routes: route 1 (geoid, Lambda removed)  -8.948394e-11 /yr, rel. 
 test_j2dot_two_routes: route 2 (-3 C m3-dot / 2 M a^2)  -8.991789e-11 /yr, rel. error vs load part 1.7e-09 (tol 1e-08)
 test_j2dot_two_routes: route 1 - route 2 = 0.485 % of J2-dot (tol 1 %, fluid-limit ratio 0.43 %); vs closed-form rotational term 3.2e-03 (tol 0.01); max |ocean load| 5.0e-13 m
 test_j2dot_two_routes: [deg2] known (closed form with the rotational I33) J2-dot -8.948733e-11 /yr; route 1 -8.948619e-11 rel. error 1.3e-05, route 2 -8.948619e-11 rel. error 1.3e-05 (tol 5e-05); route 1 - route 2 = 1.7e-09 of J2-dot (tol 1e-08); m3-dot -0.480 % vs option off, rel. error vs closed form 1.3e-05
-test_j2dot_two_routes: [full] known (closed form with the rotational I33, trace term) J2-dot -8.948755e-11 /yr; route 1 -8.948642e-11 rel. error 1.3e-05, route 2 -8.948642e-11 rel. error 1.3e-05 (tol 5e-05); route 1 - route 2 = 1.7e-09 of J2-dot (tol 1e-08); m3-dot -0.533 % vs option off, rel. error vs closed form 1.3e-05
+test_j2dot_two_routes: [full] known (closed form with the rotational I33, trace term) J2-dot -8.948756e-11 /yr; route 1 -8.948642e-11 rel. error 1.3e-05, route 2 -8.948642e-11 rel. error 1.3e-05 (tol 5e-05); route 1 - route 2 = 1.7e-09 of J2-dot (tol 1e-08); m3-dot -0.533 % vs option off, rel. error vs closed form 1.3e-05
 test_j2dot_two_routes: (0.1 s)
 test_j2dot_two_routes: PASS
 ```
@@ -233,7 +236,7 @@ magnitude with the option on. About a minute.
 
 ```
 (deg2_ramp) tgrid8 5.57e-11 m; dSLdt8 2.40e-13 of max 2.915e+01 m/yr; dRdt8 2.61e-13 of max 1.987e+01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative); m3-dot vs option off -1.492e-03 ok
-(full) tgrid8 5.59e-11 m; dSLdt8 2.39e-13 of max 2.915e+01 m/yr; dRdt8 2.59e-13 of max 1.987e+01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative); m3-dot vs option off -1.984e-03 ok
+(full) tgrid8 5.59e-11 m; dSLdt8 2.40e-13 of max 2.915e+01 m/yr; dRdt8 2.61e-13 of max 1.987e+01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative); m3-dot vs option off -1.985e-03 ok
 test_fortran_python_axial: PASS
 ```
 
@@ -241,6 +244,32 @@ The change of \(\dot m_3\) is smaller here (0.15-0.20 %) than in an ice age run 
 because after 8 steps of 1 yr the tidal response is still almost elastic. With the option off the
 solvers take the same arithmetic path as before the option was added, and the other Fortran tests run
 with it off.
+
+## Axial number tau_c
+
+`tests/test_degree0_axial_number.py` (run by `run_all.py`, under a second) checks
+`tools/degree0_axial_number.py`, which computes the elastic axial number \(\tau_c\) of the trace term
+of the [self-consistent axial rotation](method.md#self-consistent-axial-rotation-optional) (`full`):
+
+1. a homogeneous, self-gravitating, compressible sphere, solid and fluid, given as a two-node deck: the
+   degree-0 response \(\int\rho\,U_0\,r^3dr\) to the potential \((r/a)^2\) must equal the closed form
+   \(U_0=c\,r+d\,j_1(kr)\), \(k^2=\tfrac{16}{3}\pi G\rho^2/(\lambda+2\mu)\), to 1e-9 (radial step 20 km);
+2. `lovenum/prem_continental.deck`, the Earth model of the shipped Love numbers: \(\tau_c\) at radial
+   steps of 20 km and 10 km must agree to 1e-10;
+3. that \(\tau_c\) must equal the constant of the Python solver (`solver.TAU_C_PREM`) to 1e-9, and the
+   Fortran default (`axial_tau_c` in `fortran/src/support_mod.f90`, `AXIAL_TAU_C` in `fortran/build.sh`)
+   must be the same number, so the constants cannot drift from the tool.
+
+```
+test_degree0_axial_number: homogeneous solid sphere: int rho U r^3 dr 7.324105064633e+28, closed form 7.324105064716e+28, rel. error 1.1e-11 (tol 1e-09)
+test_degree0_axial_number: homogeneous fluid sphere: int rho U r^3 dr 3.930652827510e+28, closed form 3.930652827371e+28, rel. error 3.5e-11 (tol 1e-09)
+test_degree0_axial_number: prem_continental.deck: tau_c 5.368494381032349e-04 (step 20 km), 5.368494381031351e-04 (10 km), rel. difference 1.9e-13 (tol 1e-10)
+test_degree0_axial_number: solver.TAU_C_PREM 5.368494381028842e-04, rel. difference 4.7e-13 (tol 1e-09)
+test_degree0_axial_number: fortran/src/support_mod.f90 default 5.368494381028842E-4: equal to solver.TAU_C_PREM
+test_degree0_axial_number: fortran/build.sh default 5.368494381028842E-4: equal to solver.TAU_C_PREM
+test_degree0_axial_number: (0.1 s)
+test_degree0_axial_number: PASS
+```
 
 ## Direction of polar motion
 

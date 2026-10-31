@@ -285,9 +285,42 @@ $$
   \(T\) of the inertia tensor, a third of which falls on \(I_{33}\), but not the exterior degree-2
   potential (so not \(J_2\)). The code writes it as
   \(\tfrac13\Delta T^R=\tfrac32\,\tau_c\,C\,\Lambda_{00}/(a^2\Omega^2)\approx\tau_c\,C\,m_3\), with an axial
-  number \(\tau_c\) of the Earth model. The Love-number files carry no degree-0 numbers, so the elastic
-  value of PREM, \(\tau_c=5.36\times10^{-4}\), is used (Python `--axial-tau-c`, Fortran `AXIAL_TAU_C` to
-  change it). Its viscous relaxation, about 3 %, is left out; that is at most 1.6e-5 of \(m_3\).
+  number \(\tau_c\) of the Earth model (Python `--axial-tau-c`, Fortran `AXIAL_TAU_C` to change it). Its
+  viscous relaxation, about 3 %, is left out; that is at most 1.6e-5 of \(m_3\).
+
+**Axial number \(\tau_c\).** The Love-number files carry no degree-0 numbers, so \(\tau_c\) is computed
+separately, by `tools/degree0_axial_number.py`, from the same Earth model as the shipped Love numbers:
+PREM (Dziewonski & Anderson 1981, Phys. Earth Planet. Inter. 25, 297-356) with the ocean replaced by
+upper crust up to 6371 km, isotropic, as the node deck `lovenum/prem_continental.deck` (\(\rho\), \(\lambda\), \(\mu\) and \(g\) linear between nodes, as in the
+code that computed the Love numbers). A change \(m_3\) changes the degree-0 potential by
+\(\Lambda_{00}(r)=\tfrac23\Omega^2r^2m_3\). Let \(U_0(r)\) be the elastic radial displacement under the
+degree-0 potential \((r/a)^2\); then \(U=\tfrac23\Omega^2a^2m_3U_0\), and since a mass element at radius
+\(r\) contributes \(2r^2\) to the trace, \(\Delta T^R=16\pi\int_0^a\rho\,U\,r^3\,dr\), so
+
+$$
+\tau_c=\frac{\Delta T^R/3}{C\,m_3}=\frac{32\pi}{9}\,\frac{\Omega^2a^2}{C}\int_0^a\rho\,U_0\,r^3\,dr .
+$$
+
+\(U_0\) solves the static degree-0 problem of a compressible, self-gravitating Earth with hydrostatic
+prestress (Takeuchi & Saito 1972, Methods Comput. Phys. 11, 217-295; radial modes at zero frequency),
+with the radial stress \(\sigma\):
+
+$$
+U_0'=\frac{\sigma-2\lambda U_0/r}{\lambda+2\mu},\qquad
+\sigma'=-\frac{4\mu}{(\lambda+2\mu)\,r}\,\sigma+\frac4r\left(\frac{\gamma}{r}-\rho g\right)U_0-\frac{2\rho r}{a^2},
+\qquad \gamma=\frac{\mu(3\lambda+2\mu)}{\lambda+2\mu}
+$$
+
+The gravity perturbation is fixed by mass conservation and its \(4\pi G\rho^2\) term cancels against
+\(g'\), so only \(g\) enters; the fluid core (\(\mu=0\)) needs no special treatment at degree 0. \(U_0\)
+is regular at the centre, \(U_0\) and \(\sigma\) are continuous at every interface, and \(\sigma(a)=0\).
+The tool integrates the regular and a particular solution outward (fourth-order Runge-Kutta, steps of
+at most 10 km by default, refined towards the centre) and combines them so that \(\sigma(a)=0\). With
+the solver's \(a=6371\) km, \(\Omega=7.292\times10^{-5}\) rad/s and \(C=0.3307007\,Ma^2\):
+\(\tau_c=5.368494381028842\times10^{-4}\) (1-km steps; steps of 10 km and 0.5 km change it by 5e-13 and
+3e-15). The same code reproduces an
+independent open-source solver for PREM without its ocean (transversely isotropic, surface at 6368 km)
+to 8e-11, and the closed form for a homogeneous sphere (`tests/test_degree0_axial_number.py`).
 
 In the Laplace domain (\(s\)), for the linearised equation,
 

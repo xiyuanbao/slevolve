@@ -39,7 +39,7 @@
 #                      step (default RAMP=0: the step placement of Kendall et al. 2005; suffix _ramp)
 #   AXIAL_ROTATION=off|deg2|full   axial Liouville equation (default off: Mitrovica & Wahr 2011, eq. 15);
 #                      deg2 adds the rotational I33 (tidal k_2 acting on Lambda_20), full also the degree-0
-#                      trace term with the elastic axial number AXIAL_TAU_C (default 5.360266227471394E-4,
+#                      trace term with the elastic axial number AXIAL_TAU_C (default 5.368494381028842E-4,
 #                      PREM); suffix _axdeg2 / _axfull
 # Solver switches:
 #   DRIVER=run_from_zero_plus|run_outer_plus|run_outer_mem   (default run_from_zero_plus)
@@ -96,7 +96,7 @@ case "${LEGACY_CONSTANTS:-0}" in 0|1) ;; *) echo "bad LEGACY_CONSTANTS (0 or 1)"
 case "${RAMP:-0}" in 0) RAMP_VAL=".false." ;; 1) RAMP_VAL=".true." ;; *) echo "bad RAMP (0 or 1)" >&2; exit 2 ;; esac
 AXIAL_ROTATION="${AXIAL_ROTATION:-off}"
 case "$AXIAL_ROTATION" in off) AX_VAL=0 ;; deg2) AX_VAL=1 ;; full) AX_VAL=2 ;; *) echo "bad AXIAL_ROTATION (off, deg2 or full)" >&2; exit 2 ;; esac
-AXIAL_TAU_C="${AXIAL_TAU_C:-5.360266227471394E-4}"
+AXIAL_TAU_C="${AXIAL_TAU_C:-5.368494381028842E-4}"
 
 # build directory: CASE name (or custom) plus one suffix per switch that differs from its default
 SFX=""
@@ -115,7 +115,7 @@ SFX=""
 [[ "${LEGACY_CONSTANTS:-0}" == 0 ]] || SFX="${SFX}_legacyconst"
 [[ "${RAMP:-0}" == 0 ]] || SFX="${SFX}_ramp"
 [[ "$AXIAL_ROTATION" == off ]] || SFX="${SFX}_ax$AXIAL_ROTATION"
-[[ "$AXIAL_TAU_C" == 5.360266227471394E-4 ]] || SFX="${SFX}_tauc$AXIAL_TAU_C"
+[[ "$AXIAL_TAU_C" == 5.368494381028842E-4 ]] || SFX="${SFX}_tauc$AXIAL_TAU_C"
 TAG="${TAG:-${CASE:-custom}${SFX}}"
 BUILD="$PP/build/$TAG"
 rm -rf "$BUILD"; mkdir -p "$BUILD"
@@ -139,7 +139,7 @@ sed \
   -e "s|Ldt1=2,Ldt2=0,Ldt3=0,Ldt4=0|Ldt1=${LSIM},Ldt2=0,Ldt3=0,Ldt4=0|" \
   -e "s|logical :: ramp=\.false\.|logical :: ramp=${RAMP_VAL}|" \
   -e "s|integer :: axial_rotation=0|integer :: axial_rotation=${AX_VAL}|" \
-  -e "s|real :: axial_tau_c=5.360266227471394E-4|real :: axial_tau_c=${AXIAL_TAU_C}|" \
+  -e "s|real :: axial_tau_c=5.368494381028842E-4|real :: axial_tau_c=${AXIAL_TAU_C}|" \
   $( [[ "${LEGACY_CONSTANTS:-0}" == "1" ]] && echo "-e s|rhoi=920.0|rhoi=910.0| -e s|radius=6.371E6|radius=6.371229E6|" ) \
   "$SUPPORT_SRC" > "$SUPPORT_GEN"
 
