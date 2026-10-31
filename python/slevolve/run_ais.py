@@ -49,6 +49,12 @@ def _parse_argv():
     ap.add_argument("--ramp", action="store_true",
                     help="second-order load placement: each load increment accrues linearly over its "
                          "step (default off: step placement of Kendall et al. 2005)")
+    ap.add_argument("--axial-rotation", default="off", choices=("off", "deg2", "full"),
+                    help="axial Liouville equation: off = Mitrovica & Wahr (2011, eq. 15) (default); deg2 = "
+                         "+ the rotational I33 (tidal k_2 acting on Lambda_20); full = deg2 + the degree-0 "
+                         "trace term (elastic axial number, --axial-tau-c)")
+    ap.add_argument("--axial-tau-c", type=float, default=None,
+                    help="with --axial-rotation full: elastic axial number tau_c (default 5.3603e-4, PREM)")
     ap.add_argument("--horizontal", action="store_true",
                     help="also write the horizontal-displacement scalar Psi_lm (horiz<N>.npy, "
                          "u_h = grad_h Psi); output only, default off")
@@ -251,6 +257,8 @@ def main():
         "calcRG": rg,
         "epsilon1": a.epsilon1,
         "ramp": bool(a.ramp),
+        "axial_rotation": a.axial_rotation,
+        "axial_tau_c": a.axial_tau_c,
         "numpy": np.__version__,
         "uptime_start": uptime(),
         "loadavg_start": loadavg(),
@@ -331,6 +339,8 @@ def main():
         epsilon1=a.epsilon1,
         mem_threads=a.mem_threads,
         ramp=a.ramp,
+        axial_rotation=a.axial_rotation,
+        axial_tau_c=a.axial_tau_c,
         **extra,
     )
     t_init = time.perf_counter() - t0

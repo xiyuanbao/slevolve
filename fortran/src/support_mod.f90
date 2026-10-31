@@ -31,6 +31,10 @@ module user_specs_mod
   logical :: checkmarine=.false., tpw=.true., calcRG=.true.
   ! second-order load placement (build switch RAMP=1); default: step placement (Kendall et al. 2005)
   logical :: ramp=.false.
+  ! axial rotation (build switch AXIAL_ROTATION=off|deg2|full): 0 = Mitrovica & Wahr (2011, eq. 15) (default),
+  ! 1 = + rotational I33 (tidal k_2 acting on Lambda_20), 2 = + degree-0 trace term (elastic axial number tau_c)
+  integer :: axial_rotation=0
+  real :: axial_tau_c=5.360266227471394E-4
   logical :: input_times=.false., initial_topo=.true., iceVolume=.false.
   logical :: coupling=.false., patch_ice=.false.
   integer :: L_sim=2

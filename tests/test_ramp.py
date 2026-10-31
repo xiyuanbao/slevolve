@@ -121,6 +121,7 @@ def check_rates_left_difference(love2):
         stub = object.__new__(SeaLevelSolver)
         stub.p, stub.state, stub.love = P, st, love2
         stub.il, stub.mm, stub.lam = np.zeros((3, 3)), np.zeros(3), np.zeros((3, 3), complex)
+        stub._ax_on = False  # axial rotation option off (Mitrovica & Wahr 2011, eq. 15)
         r2w2 = P.radius**2 * P.omega**2
         L = load(t)
         e_sl = 1 + love2.ke[1:3] - love2.he[1:3]

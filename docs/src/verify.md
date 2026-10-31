@@ -9,6 +9,7 @@ prints.
 | [Fortran test](#fortran-test) `bash tests/test_fortran_python.sh` | Fortran solver, against the Python solver | Fortran toolchain, numpy | about 30 s |
 | [Non-uniform-step Fortran test](#non-uniform-time-steps-times-file) `bash tests/test_fortran_python_vardt.sh` | Fortran solver with a times file (non-uniform and uniform), against the Python solver | Fortran toolchain, numpy | about 2 min |
 | [Second-order placement Fortran test](#second-order-load-placement-and-rates) `bash tests/test_fortran_python_ramp.sh` | Fortran solver with `RAMP=1` and `SLEVOLVE_RATES=1` (uniform and non-uniform steps), against the Python solver | Fortran toolchain, numpy | about 3 min |
+| [Axial rotation Fortran test](#axial-rotation-fortran-test) `bash tests/test_fortran_python_axial.sh` | Fortran solver with `AXIAL_ROTATION=deg2` (with `RAMP=1`) and `full`, with the rates, against the Python solver | Fortran toolchain, numpy | about 1 min |
 | [Fortran-only test](#fortran-only-test) `bash tests/test_fortran_synthetic.sh` | Fortran solver and Fortran input generator, against a shipped reference | Fortran toolchain only (no Python) | about 30 s |
 | [Benchmark reference check](#benchmark-reference-check) `python tests/check_reference.py` | either solver, on a benchmark case | the benchmark data | 20-40 s per case |
 
@@ -194,14 +195,52 @@ error of the ramp placement of the rotational term), route 1 - route 2 at most 1
 With the sign of m3 reversed (+1/C, releases up to 723d95f) route 2 has the wrong sign and route 1 is
 off by 1 %, so the test fails.
 
+The same case is then run with the [self-consistent axial rotation](method.md#self-consistent-axial-rotation-optional)
+switched on (`axial_rotation="deg2"` and `"full"`). The axial equation then contains the rotational
+deformation, so the closed form changes: the test solves
+\(m_3+Q\,(k^T_2*m_3)+\tau_c m_3=m_3^L\), \(Q=\tfrac49(a\Omega^2/g)(Ma^2/C)\), with its own code
+(the k^T and load-k modes of the Love-number file and the piecewise-linear ice as a linear system,
+integrated exactly per step with a matrix exponential; \(\tau_c=0\) for `deg2`). For `full` the trace
+term changes \(\mathrm{tr}\,I\) but not \(J_2\), so route 2 becomes
+\(-3(C\dot m_3+T\dot\Lambda_{00})/(2Ma^2)\), \(T=\tfrac32\tau_c C/(a^2\Omega^2)\). Tolerances: route 1 -
+route 2 at most 1e-8 of \(\dot J_2\) (both routes now measure the same quantity; what remains is the
+accuracy of the (2,0) function of the legacy transform, 1.7e-9), each route against the closed form
+5e-5 (the O(dt^2) error of the ramp placement of the rotational term, now in both routes; 1.3e-5 at
+1-kyr steps, a partial cancellation; 2.2e-5, 6.7e-6 and 1.75e-6 at 500, 250 and 125 yr), and \(\dot m_3\) smaller in magnitude
+than with the option off. The 0.485 % gap of the option-off case closes to 1.7e-9.
+
 ```
 test_j2dot_two_routes: known (closed form, k2 of prem_512.l96C.ump3.lm1): J2-dot -8.948533e-11 /yr = load -8.991789e-11 + rotational deformation 4.325603e-13
 test_j2dot_two_routes: route 1 (geoid, Lambda removed)  -8.948394e-11 /yr, rel. error 1.6e-05 (tol 5e-05)
 test_j2dot_two_routes: route 2 (-3 C m3-dot / 2 M a^2)  -8.991789e-11 /yr, rel. error vs load part 1.7e-09 (tol 1e-08)
 test_j2dot_two_routes: route 1 - route 2 = 0.485 % of J2-dot (tol 1 %, fluid-limit ratio 0.43 %); vs closed-form rotational term 3.2e-03 (tol 0.01); max |ocean load| 5.0e-13 m
-test_j2dot_two_routes: (0.0 s)
+test_j2dot_two_routes: [deg2] known (closed form with the rotational I33) J2-dot -8.948733e-11 /yr; route 1 -8.948619e-11 rel. error 1.3e-05, route 2 -8.948619e-11 rel. error 1.3e-05 (tol 5e-05); route 1 - route 2 = 1.7e-09 of J2-dot (tol 1e-08); m3-dot -0.480 % vs option off, rel. error vs closed form 1.3e-05
+test_j2dot_two_routes: [full] known (closed form with the rotational I33, trace term) J2-dot -8.948755e-11 /yr; route 1 -8.948642e-11 rel. error 1.3e-05, route 2 -8.948642e-11 rel. error 1.3e-05 (tol 5e-05); route 1 - route 2 = 1.7e-09 of J2-dot (tol 1e-08); m3-dot -0.533 % vs option off, rel. error vs closed form 1.3e-05
+test_j2dot_two_routes: (0.1 s)
 test_j2dot_two_routes: PASS
 ```
+
+## Axial rotation Fortran test
+
+`bash tests/test_fortran_python_axial.sh [WORKDIR]` (default `./slevolve_fortran_axial`) builds the
+Fortran solver twice on the synthetic Earth of the [Fortran test](#fortran-test)
+(`AXIAL_ROTATION=deg2 RAMP=1` and `AXIAL_ROTATION=full` with the default placement), runs both with
+`SLEVOLVE_RATES=1`, and compares with the Python solver (`--axial-rotation deg2 --ramp`,
+`--axial-rotation full`): `tgrid8`, the rate grids and the `TPWrate8` record, with the tolerances of
+the [second-order placement test](#second-order-load-placement-and-rates). It also runs the Python
+solver with the option off and requires \(\dot m_3\) to change by more than 1e-4 and to be smaller in
+magnitude with the option on. About a minute.
+
+```
+(deg2_ramp) tgrid8 5.57e-11 m; dSLdt8 2.40e-13 of max 2.915e+01 m/yr; dRdt8 2.61e-13 of max 1.987e+01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative); m3-dot vs option off -1.492e-03 ok
+(full) tgrid8 5.59e-11 m; dSLdt8 2.39e-13 of max 2.915e+01 m/yr; dRdt8 2.59e-13 of max 1.987e+01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative); m3-dot vs option off -1.984e-03 ok
+test_fortran_python_axial: PASS
+```
+
+The change of \(\dot m_3\) is smaller here (0.15-0.20 %) than in an ice age run (about 0.4-0.5 %),
+because after 8 steps of 1 yr the tidal response is still almost elastic. With the option off the
+solvers take the same arithmetic path as before the option was added, and the other Fortran tests run
+with it off.
 
 ## Direction of polar motion
 

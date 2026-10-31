@@ -38,6 +38,59 @@ EPS0 = float(np.finfo(np.float64).eps)  # Fortran epsilon(0.0) under -fdefault-r
 GR_MAXACC = 3
 NPAM = 500
 
+# --------------------------------------------------------------------------- axial rotation (option)
+# The axial Liouville equation of Mitrovica & Wahr (2011, AREPS 39, eq. 15) is C m3 = -[(1 + k^L_2) * I^L_33]
+# (default, "off").  It leaves out the rotational part of I33, the deformation of the Earth by the change in
+# centrifugal potential.  The option adds it, as the axial counterpart of MW2011 eqs. 13-14:
+#     C m3 = -[(1 + k^L_2) * I^L_33 + I^R_33 + Delta T^R / 3],
+#     I^R_33 = -(2 sqrt5 / 3) (M a / g) k^T_2 * Lambda_20        (MacCullagh's I33 for the solver's Lambda_20)
+#     Delta T^R / 3 = (3 / 2) tau_c C Lambda_00 / (a^2 Omega^2)  (trace term; elastic axial number tau_c)
+# Linear in m3 the step solve has the denominator C [1 + Q (k^T_E + c_m) + tau_c], Q = (4/9) Omega^2 a^5 / (G C);
+# with the quadratic Lambda(m) of the solver it is solved by Newton (two iterations reach round-off).
+#   "off"  : MW2011 eq. 15 (default)
+#   "deg2" : + I^R_33 (exact with the tidal k_2 of the Love-number file)
+#   "full" : + I^R_33 + Delta T^R / 3 (tau_c elastic, PREM)
+AXIAL_MODES = ("off", "deg2", "full")
+TAU_C_PREM = 5.360266227471394e-4
+
+
+def axial_constants(p, mode, tau_c=None):
+    """Constants of the axial feedback for the planet p: E (I^R_33 per unit k^T * Lambda_20), T (Delta T^R / 3 per
+    unit Lambda_00), K20, K00 (Lambda_20 = K20 (q - 2 m3^2 - 4 m3), Lambda_00 = K00 (q + m3^2 + 2 m3))."""
+    if mode not in AXIAL_MODES:
+        raise ValueError(f"axial_rotation must be one of {AXIAL_MODES}, got {mode!r}")
+    r2w2 = p.radius**2 * p.omega**2
+    tau = TAU_C_PREM if tau_c is None else float(tau_c)
+    return {"mode": mode, "E": -(2.0 * math.sqrt(5.0) / 3.0) * p.mass * p.radius / p.gacc,
+            "T": (1.5 * tau * p.moiC / r2w2) if mode == "full" else 0.0, "tau_c": tau if mode == "full" else 0.0,
+            "K20": r2w2 / (6.0 * math.sqrt(5.0)), "K00": r2w2 / 3.0}
+
+
+def axial_solve(p, ax, Y, V0, kt, q, m3):
+    """m3 from C m3 + E (kt Lambda_20(m3) + V0) + T Lambda_00(m3) + Y = 0 (Newton from the guess m3).
+    Y = (1 + k^E) I33 + viscous load sum, V0 = viscous tidal sum on Lambda_20 (minus the ramp term of the previous
+    Lambda_20), kt = k^T_E (+ c_m with the ramp), q = m1^2 + m2^2."""
+    C, E, T, K20, K00 = p.moiC, ax["E"], ax["T"], ax["K20"], ax["K00"]
+    for _ in range(6):
+        f = C * m3 + E * (kt * K20 * (q - 2.0 * m3 * m3 - 4.0 * m3) + V0) + T * K00 * (q + m3 * m3 + 2.0 * m3) + Y
+        df = C + E * kt * K20 * (-4.0 * m3 - 4.0) + T * K00 * (2.0 * m3 + 2.0)
+        dm = f / df
+        m3 = m3 - dm
+        if abs(dm) <= 1e-17 * max(abs(m3), 1e-300):
+            break
+    return m3
+
+
+def axial_rate(p, ax, kTE, rhs, mm, md, sk_term):
+    """m3-dot from C m3' + E (kTE Lambda_20' + sk_term) + T Lambda_00' = -rhs, rhs = (1 + k^E) I33' + viscous
+    load rate, sk_term = sum_k a_m,k s_k (Lambda_20 - r_lambda,k) (ramp-consistent states)."""
+    m1, m2, m3 = mm
+    E, T, K20, K00 = ax["E"], ax["T"], ax["K20"], ax["K00"]
+    qd = 2.0 * m1 * md[0] + 2.0 * m2 * md[1]
+    num = -rhs - E * (kTE * K20 * qd + sk_term) - T * K00 * qd
+    den = p.moiC + E * kTE * K20 * (-4.0 * m3 - 4.0) + T * K00 * (2.0 * m3 + 2.0)
+    return num / den
+
 
 class Planet:
     """planets_mod::earth_init"""
@@ -478,6 +531,8 @@ class SeaLevelSolver:
         planet=None,
         mem_threads=1,
         ramp=False,
+        axial_rotation="off",
+        axial_tau_c=None,
     ):
         self.sht = sht
         self.love = love
@@ -526,6 +581,10 @@ class SeaLevelSolver:
         # optional second-order load placement (default off: step placement of Kendall et al. 2005)
         self.ramp = bool(ramp)
         self.state.ramp = self.ramp
+        # optional self-consistent axial rotation (default "off": Mitrovica & Wahr 2011, eq. 15)
+        self.axial_rotation = str(axial_rotation)
+        self._ax = axial_constants(self.p, self.axial_rotation, axial_tau_c)
+        self._ax_on = self.axial_rotation != "off"
 
         # rotational module variables (persist across timesteps, as in Fortran)
         self.il = np.zeros((3, 3))
@@ -681,6 +740,9 @@ class SeaLevelSolver:
         for i in (0, 1):
             md[i] = alpha * ((1 / (p.moiC - p.moiA)) * ((1 + kE2) * ild[i, 2] + sild[i, 2]) + smd[i] / p.kf)
         md[2] = -(1.0 / p.moiC) * ((1 + kE2) * ild[2, 2] + sild[2, 2])
+        if self._ax_on:  # axial rotation option: rotational I33 (and trace) in the axial rate
+            sk_term = float(np.real((st.a_m[:n2] * sk) @ (tot[0] - r_la[:, 0])))
+            md[2] = axial_rate(p, self._ax, kTE2, (1 + kE2) * ild[2, 2] + sild[2, 2], self.mm, md, sk_term)
         m1, m2, m3 = self.mm
         d1, d2, d3 = md
         r2w2 = p.radius**2 * p.omega**2
@@ -773,6 +835,11 @@ class SeaLevelSolver:
         oldil = self.state.p_il.copy()
         oldm = self.state.p_m.copy()
         dlambda_prev2 = self.state.p_lambda.copy()  # deltalambda(2,0:2,prev)
+        ax_v = 0.0
+        if self._ax_on and self.tpw and self.norder >= 2:
+            # axial rotation option: viscous tidal response to Lambda_20, sum_k a_m,k r_lambda,k (fixed in the step)
+            _n2 = self.state.nmod2
+            ax_v = float(np.real(self.state.a_m[:_n2] @ self.state.r_lambda[:_n2, 0]))
 
         # ---- ice part -------------------------------------------------------
         t0 = time.perf_counter()
@@ -861,6 +928,11 @@ class SeaLevelSolver:
                         ) / (1 - al_ * st_.c_m / p.kf)
                     # axial Liouville equation, sign of Mitrovica & Wahr (2011, AREPS 39, eq. 15): -1/C
                     self.mm[2] = -(1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sil_r[2, 2])
+                    if self._ax_on:  # axial rotation option: + rotational I33 (and trace), implicit in m3
+                        self.mm[2] = axial_solve(
+                            p, self._ax, (1 + kE2) * self.il[2, 2] + sil_r[2, 2],
+                            ax_v - st_.c_m * float(np.real(dlambda_prev2[0])), kTE2 + st_.c_m,
+                            self.mm[0] ** 2 + self.mm[1] ** 2, self.mm[2])
                 else:
                     for i in (0, 1):
                         self.mm[i] = (1 / (1 - kTE2 / p.kf)) * (
@@ -869,6 +941,10 @@ class SeaLevelSolver:
                         )
                     # axial Liouville equation, sign of Mitrovica & Wahr (2011, AREPS 39, eq. 15): -1/C
                     self.mm[2] = -(1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sum_il[2, 2])
+                    if self._ax_on:  # axial rotation option: + rotational I33 (and trace), implicit in m3
+                        self.mm[2] = axial_solve(
+                            p, self._ax, (1 + kE2) * self.il[2, 2] + sum_il[2, 2], ax_v, kTE2,
+                            self.mm[0] ** 2 + self.mm[1] ** 2, self.mm[2])
                 dm_cur = self.mm - oldm
 
                 m1, m2, m3 = self.mm[0], self.mm[1], self.mm[2]

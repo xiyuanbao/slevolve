@@ -61,6 +61,12 @@ def _args():
     ap.add_argument("--ramp", action="store_true",
                     help="second-order load placement: each load increment accrues linearly over its "
                          "step (default off: step placement of Kendall et al. 2005)")
+    ap.add_argument("--axial-rotation", default="off", choices=("off", "deg2", "full"),
+                    help="axial Liouville equation: off = Mitrovica & Wahr (2011, eq. 15) (default); deg2 = "
+                         "+ the rotational I33 (tidal k_2 acting on Lambda_20); full = deg2 + the degree-0 "
+                         "trace term (elastic axial number, --axial-tau-c)")
+    ap.add_argument("--axial-tau-c", type=float, default=None,
+                    help="with --axial-rotation full: elastic axial number tau_c (default 5.3603e-4, PREM)")
     ap.add_argument("--rates", action="store_true",
                     help="write the analytic rates dSLdt<N>_it<k>.npy, dRdt<N>_it<k>.npy (m/yr) and "
                          "TPWrate<N>_it<k>.txt at --save-steps and the last step; output only")
@@ -203,13 +209,15 @@ def main():
     store = {}  # --reuse: per-step converged state, survives across outer iterations
     hist = []  # (T0_k, r_k)
     log = {"argv": sys.argv, "outer": a.outer, "iters": [], "ramp": bool(a.ramp),
+           "axial_rotation": a.axial_rotation, "axial_tau_c": a.axial_tau_c,
            "times_years": [float(x) for x in times] if dts is not None else None}
     for it in range(1, a.iters + 1):
         t0 = time.perf_counter()
         slv = OptSeaLevelSolver(
             sht, love, T0, np.ascontiguousarray(ice[0]), norder=a.lmax, dt=a.dt if dts is None else float(dts[0]), tpw=tpw,
             checkmarine=cm, calcRG=True, epsilon1=a.epsilon1, planet=planet(a.rhoi, a.radius),
-            opt=opts, inner=a.inner, reuse=a.reuse, reuse_store=store, ramp=a.ramp)
+            opt=opts, inner=a.inner, reuse=a.reuse, reuse_store=store, ramp=a.ramp,
+            axial_rotation=a.axial_rotation, axial_tau_c=a.axial_tau_c)
         slv.horizontal = bool(a.horizontal or a.horizontal_grid)
         nit = 0
         nits = []

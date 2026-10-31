@@ -132,6 +132,15 @@ order-1 records (il13, il23, m1, m2, their rates) have the physical sign since t
 2026-10-31 ([Release notes](release_notes.md)); directions read from earlier records are off by 180
 degrees, while the fields, the TPW speed and \(\Lambda\) are unchanged.
 
+With the optional [self-consistent axial rotation](method.md#self-consistent-axial-rotation-optional)
+(`AXIAL_ROTATION=deg2|full`, `--axial-rotation`) the records keep their layout and meaning; m3 and its
+rate then include the rotational part of \(I_{33}\) (and, with `full`, the trace term), so \(\dot m_3\)
+and the rate of change of the length of day are about 0.4-0.5 % smaller in an ice age run and are
+consistent with \(\dot J_2\) from the geoid rate: \(-3C\dot m_3/(2Ma^2)\) (for `full` with
+\(C\dot m_3+\tfrac32\tau_c C\dot\Lambda_{00}/(a^2\Omega^2)\) in place of \(C\dot m_3\)) equals
+\(-\sqrt5\,(\dot G_{20}-\dot\Lambda_{20}/g)/a\) to about 1e-4 at the default inner tolerance, against
+about 0.4 % with the default equation, whose \(I_{33}\) has no rotational part.
+
 ## 4. Outer iteration (ice age runs)
 
 | file | meaning |

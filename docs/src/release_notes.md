@@ -4,6 +4,28 @@ This page lists the contents of v1.0, its differences from the legacy code and i
 
 ## v1.0
 
+**Note of 2026-10-31: self-consistent axial rotation (optional extension).** The axial Liouville
+equation of SLEvolve is that of Mitrovica & Wahr (2011, Annu. Rev. Earth Planet. Sci. 39, 577-616,
+eq. 15), which leaves out the part of \(I_{33}\) driven by the change in centrifugal potential. A new
+option adds it: `deg2` adds the rotational \(I_{33}\), the tidal \(k_2\) of the Love-number file acting
+on the solver's own \(\Lambda_{20}\) (the axial counterpart of Mitrovica & Wahr 2011, eqs. 13-14, and of
+the equatorial denominator \(1-k^T_2/k_f\) of Mitrovica et al. 2005, Geophys. J. Int. 161, 491-506,
+eq. 6); `full` also adds the degree-0 trace term. Fortran build switch `AXIAL_ROTATION=off|deg2|full`,
+Python `--axial-rotation` (`run_ais.py`, `run_outer.py`) and the keyword `axial_rotation` of the solver
+classes; the per-step solve and the analytic rate of \(m_3\) include the new terms, with the step and the
+ramp placement ([Method](method.md#self-consistent-axial-rotation-optional)). **The default is off, and
+with it every result is identical to before.** Size in the Case 3 ice age run: \(\dot m_3\) and the
+rate of change of the length of day 0.41 % smaller (`deg2`; 0.49 % with `full`), \(\dot J_2\) from
+the geoid 2e-5 relative, relative sea level at most 11 µm, TPW speed and direction below 1e-8
+relative and 1e-6 degrees, run time unchanged within its noise (one scalar solve per inner
+iteration). With the option on, \(-3C\dot m_3/(2Ma^2)\) agrees with \(\dot J_2\) from the geoid (route
+gap of the two-route test 1.7e-9 instead of 0.485 %). Limitation: the trace term uses an elastic axial
+number (PREM, \(\tau_c=5.36\times10^{-4}\)), because the Love-number files have no degree-0 numbers;
+its viscous relaxation, about 3 % larger, would change \(m_3\) by at most 1.6e-5. Tests:
+`tests/test_j2dot_two_routes.py` gains the option-on cases, and the new
+`tests/test_fortran_python_axial.sh` compares the Fortran and Python solvers with the option on
+([Verification](verify.md#axial-rotation-fortran-test)).
+
 **Note of 2026-10-31: sign of the order-1 rotation records (correction).** The spectral coefficients
 use the U basis, complex harmonics without the Condon-Shortley phase, whereas the expressions for
 the inertia products and the order-1 rotational potential (Milne & Mitrovica 1998, Geophys. J. Int.

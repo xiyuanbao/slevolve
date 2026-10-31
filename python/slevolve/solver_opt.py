@@ -56,7 +56,7 @@ import time
 
 import numpy as np
 
-from .solver import EPS0, PI, ExactMemory, SeaLevelSolver
+from .solver import EPS0, PI, ExactMemory, SeaLevelSolver, axial_solve
 
 II = 1j
 
@@ -391,6 +391,11 @@ class OptSeaLevelSolver(SeaLevelSolver):
         oldil = self.state.p_il.copy()
         oldm = self.state.p_m.copy()
         dlambda_prev2 = self.state.p_lambda.copy()
+        ax_v = 0.0
+        if self._ax_on and self.tpw and self.norder >= 2:
+            # axial rotation option: viscous tidal response to Lambda_20, sum_k a_m,k r_lambda,k (fixed in the step)
+            _n2 = self.state.nmod2
+            ax_v = float(np.real(self.state.a_m[:_n2] @ self.state.r_lambda[:_n2, 0]))
 
         rs = self.reuse_store.get(it) if self.reuse != "off" else None
         if rs is not None:
@@ -557,6 +562,11 @@ class OptSeaLevelSolver(SeaLevelSolver):
                         ) / (1 - al_ * st_.c_m / p.kf)
                     # axial Liouville equation, sign of Mitrovica & Wahr (2011, AREPS 39, eq. 15): -1/C
                     self.mm[2] = -(1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sil_r[2, 2])
+                    if self._ax_on:  # axial rotation option: + rotational I33 (and trace), implicit in m3
+                        self.mm[2] = axial_solve(
+                            p, self._ax, (1 + kE2) * self.il[2, 2] + sil_r[2, 2],
+                            ax_v - st_.c_m * float(np.real(dlambda_prev2[0])), kTE2 + st_.c_m,
+                            self.mm[0] ** 2 + self.mm[1] ** 2, self.mm[2])
                 else:
                     for i in (0, 1):
                         self.mm[i] = (1 / (1 - kTE2 / p.kf)) * (
@@ -565,6 +575,10 @@ class OptSeaLevelSolver(SeaLevelSolver):
                         )
                     # axial Liouville equation, sign of Mitrovica & Wahr (2011, AREPS 39, eq. 15): -1/C
                     self.mm[2] = -(1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sum_il[2, 2])
+                    if self._ax_on:  # axial rotation option: + rotational I33 (and trace), implicit in m3
+                        self.mm[2] = axial_solve(
+                            p, self._ax, (1 + kE2) * self.il[2, 2] + sum_il[2, 2], ax_v, kTE2,
+                            self.mm[0] ** 2 + self.mm[1] ** 2, self.mm[2])
                 dm_cur = self.mm - oldm
 
                 m1, m2, m3 = self.mm[0], self.mm[1], self.mm[2]

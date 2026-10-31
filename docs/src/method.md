@@ -253,6 +253,93 @@ ramp; it then inherits the lag of the step placement and was not more accurate t
 difference in that test, so use it with the ramp. The rates are output only (Fortran `SLEVOLVE_RATES=1`, Python `--save-fields ...,dSLdt,dRdt` or `run_outer.py
 --rates`; [Output fields](outputs.md#analytic-rates-optional)).
 
+### Self-consistent axial rotation (optional)
+
+The axial component \(m_3\) of the rotation-vector perturbation \(\boldsymbol\omega=\Omega\,(m_1,m_2,1+m_3)\)
+follows from the axial Liouville equation. By default SLEvolve uses the form of Mitrovica & Wahr
+(2011, eq. 15):
+
+$$
+m_3=-\frac{1}{C}\left[I^L_{33}+k^L_2*I^L_{33}\right]
+$$
+
+(\(*\): convolution in time; \(I^L_{33}\): inertia perturbation of the surface load; \(k^L_2\): degree-2
+load Love number). Below that equation Mitrovica & Wahr (2011) note that it leaves out the part of
+\(I_{33}\) driven by the change in centrifugal potential, which they call orders of magnitude smaller
+than the loading part. For the equatorial components \(m_1,m_2\) that part is kept: it is the tidal
+term \(k^T_2*m/k_f\) of the polar-motion equation (Mitrovica et al. 2005, eq. 2; Mitrovica & Wahr
+2011, eqs. 13-14). The option adds the axial counterpart:
+
+$$
+C\,m_3=-\left[(1+k^L_2)*I^L_{33}+I^R_{33}+\tfrac13\,\Delta T^R\right]
+$$
+
+* \(I^R_{33}\): the change of \(I_{33}\) from the deformation of the Earth by the degree-2 centrifugal
+  potential. By MacCullagh's formula for the solver's own \(\Lambda_{20}\),
+  \(I^R_{33}=-\tfrac{2\sqrt5}{3}\,\dfrac{Ma}{g}\,k^T_2*\Lambda_{20}\) (\(k^T_2\): degree-2 tidal Love number of
+  the Love-number file; \(M\), \(a\), \(g\): mass, radius and surface gravity). Linearised in \(m\) this is
+  \(\tfrac43\,(\Omega^2a^5/3G)\,k^T_2*m_3\), the (3,3) element of the rotational inertia perturbation
+  whose (1,3) and (2,3) elements are Mitrovica & Wahr (2011, eq. 13).
+* \(\tfrac13\Delta T^R\): the degree-0 part of the centrifugal potential,
+  \(\Lambda_{00}=(a^2\Omega^2/3)(|m|^2+2m_3)\), expands the Earth uniformly. This changes the trace
+  \(T\) of the inertia tensor, a third of which falls on \(I_{33}\), but not the exterior degree-2
+  potential (so not \(J_2\)). The code writes it as
+  \(\tfrac13\Delta T^R=\tfrac32\,\tau_c\,C\,\Lambda_{00}/(a^2\Omega^2)\approx\tau_c\,C\,m_3\), with an axial
+  number \(\tau_c\) of the Earth model. The Love-number files carry no degree-0 numbers, so the elastic
+  value of PREM, \(\tau_c=5.36\times10^{-4}\), is used (Python `--axial-tau-c`, Fortran `AXIAL_TAU_C` to
+  change it). Its viscous relaxation, about 3 %, is left out; that is at most 1.6e-5 of \(m_3\).
+
+In the Laplace domain (\(s\)), for the linearised equation,
+
+$$
+m_3(s)=-\frac{1}{C}\,\frac{I^L_{33}(s)\,\bigl[1+k^L_2(s)\bigr]}{1+Q\,k^T_2(s)+\tau_c},\qquad
+Q=\frac{4}{9}\,\frac{\Omega^2a^5}{GC}=\frac43\,\frac{C-A}{C}\,\frac{1}{k_f}
+$$
+
+with \(k_f=3G(C-A)/(a^5\Omega^2)\) (Mitrovica et al. 2005, eq. 5). This is the axial counterpart of the
+equatorial denominator \(1-k^T_2(s)/k_f\) (Mitrovica et al. 2005, eq. 6; Mitrovica & Wahr 2011, eq. 17).
+The axial correction is positive, so the feedback is stabilising, and it is small:
+\(Q\,k^T_2=1.4\times10^{-3}\) for the elastic and \(4.3\times10^{-3}\) for the fluid-limit \(k^T_2\).
+
+**Per-step solve.** No new modal state is needed. The degree-2 states \(r_k\) of \(\Lambda_{20}\) are
+already advanced once per step for the tidal sea-level term, and the weights are the tidal residues
+\(a^m_k\) of the polar-motion equation. At the end of step \(j\)
+
+$$
+k^T_2*\Lambda_{20}=(k^{T,E}_2+c_m)\,\Lambda_{20}^{\,j}+V^j-c_m\,\Lambda_{20}^{\,j-1},\qquad
+V^j=\sum_k a^m_k\,r_k
+$$
+
+(\(c_m=0\) with the default step placement). \(\Lambda\) is quadratic in \(m\), so \(m_3\) solves the scalar
+equation
+
+$$
+C\,m_3+E\left[(k^{T,E}_2+c_m)\,\Lambda_{20}(m)+V^j-c_m\Lambda_{20}^{\,j-1}\right]+T_c\,\Lambda_{00}(m)
++(1+k^E_2)\,I_{33}+\Sigma^I_{33}+c_I\,\delta I_{33}=0
+$$
+
+with \(E=-\tfrac{2\sqrt5}{3}Ma/g\) and \(T_c=\tfrac32\tau_c C/(a^2\Omega^2)\) (`full`; 0 for `deg2`), by Newton
+iteration from the value of the default equation; two iterations reach round-off. In linear form its
+denominator is \(C[1+Q(k^{T,E}_2+c_m)+\tau_c]\), the axial counterpart of \(1-\alpha c_m/k_f\) above.
+The analytic rate (previous subsection) differentiates the same equation, which is linear in
+\(\dot m_3\); its viscous tidal part is \(\sum_k a^m_k s_k(\Lambda_{20}-r_k-c_k\,\delta\Lambda_{20})\) with the
+ramp-consistent states. The cost is one scalar Newton solve per inner iteration (about 1 µs); no
+transform, modal state or memory is added.
+
+**Size.** In the Case 3 ice age run (\(L=511\), ramp, analytic rates, five outer passes) the option
+lowers \(\dot m_3\) and the rate of change of the length of day by 0.41 % (`deg2`) and 0.49 % (`full`).
+\(\dot J_2\) from the geoid changes by 2e-5 relative, because the sea-level equation already contains
+the rotational deformation through \(\Lambda\); relative sea level changes by at most 11 µm (every fifth step, all grid cells),
+the uplift rate by at most 2.5 nm/yr, and the polar-motion speed and direction by less than 1e-8
+relative and 1e-6 degrees. With the option on, the inertia route \(-3C\dot m_3/(2Ma^2)\) agrees with
+\(\dot J_2\) from the geoid to 8.5e-5 at the default inner tolerance (0.41 % with the option off); the
+remainder comes from \(m_3\) being formed from the ocean load of the previous inner iterate.
+
+**Default off.** The paper and the shipped `reference/` results use Mitrovica & Wahr (2011, eq. 15),
+so the default keeps it and every default output is unchanged. The option is the build switch
+`AXIAL_ROTATION=deg2|full` (Fortran) and `--axial-rotation deg2|full` (Python `run_ais.py`,
+`run_outer.py`; keyword `axial_rotation` of the solver classes).
+
 ### Extrapolated inner start (Sect. 2.5 of the paper)
 
 $$
@@ -313,6 +400,7 @@ Section numbers refer to Sect. 2 of the paper.
 | 0 | **Floating-ice convention.** \(\beta_j\) is the grounded-ice mask of Kendall et al. (2005, eqs 43-44), and the flotation check uses the current topography iterate (see the definition of \(\beta_j\) above). | `sl_model_mod.f90`: `gr_ground`, `gr_reguess`, `gr_update_now`. Python: `solver.py::_grounded_reguess` | Yes (a correction of the legacy convention, which excluded every ice-covered cell from the water-loading ocean and tested flotation against the initial topography of the pass) |
 | 10 | **In-process outer iteration driver.** One process runs passes K0..K1. Earth model, transform tables, FFTW plans, state allocation, ice grids and the warm-start store stay resident. | `fortran/src/run_outer_mem.f90` (`./exe LAST K0 K1`). One pass per process: `run_outer_plus.f90` (`./exe LAST ITERSL`). Python: `run_outer.py` | No. Picard update `tinit_0 ← tinit_0 + (T_obs − T_pred)` as in the legacy code. `SLEVOLVE_OUTER=secant` is an experimental alternative |
 | 11 | **Second-order load placement and analytic rates** (optional, off by default; [above](#second-order-load-placement-optional)). | `modal_state_mod.f90`: `update_ramp`, `state_ramp_commit`, `state_read_rate`; `sl_model_mod.f90`: `rate_spectra`, `rate_grids`, the `ramp` branches of the rotation, sea-level, radial and horizontal assembly; build `RAMP=1`, run time `SLEVOLVE_RATES=1`. Python: `solver.py::ramp_factor`, `ExactMemory.read_rate`, `SeaLevelSolver._rate_spectra`; `kernels.py::ramp_commit`, `rate_sums`, `ramp_add` | `RAMP=1` changes the result (second-order time stepping); the rates are output only |
+| 12 | **Self-consistent axial rotation** (optional, off by default; [above](#self-consistent-axial-rotation-optional)). The rotational part of \(I_{33}\) (tidal \(k_2\) on \(\Lambda_{20}\)) and, optionally, the degree-0 trace term in the axial Liouville equation. | `sl_model_mod.f90`: `axial_solve`, `axial_rate`, the `axial_rotation` branches of the rotation block and of `rate_spectra`; build `AXIAL_ROTATION=deg2` or `full`. Python: `solver.py::axial_constants`, `axial_solve`, `axial_rate`; `--axial-rotation` | `deg2`/`full` change m3 and its rate by about 0.4-0.5 % and the fields by far less; `off` (default) is unchanged |
 
 The longitude FFT routine `fft99b` of the transform module of the legacy code is used in a corrected
 form (`fortran/src/spharmt_otf.f90`).

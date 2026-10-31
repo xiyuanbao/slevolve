@@ -144,6 +144,9 @@ module sl_model_mod
    type(response_memory_state) :: exact_state
    complex(dp), allocatable :: exact_viscous(:), exact_radial(:), exact_current_load(:)
    real(dp) :: exact_sum_il(3,3), exact_sum_m(3)
+   ! axial rotation option: viscous tidal response to Lambda_20, sum_k a_m,k r_lambda,k (fixed in the step)
+   real(dp) :: ax_v
+   integer :: kax
    complex(dp) :: exact_tsl(0:2), exact_trr(0:2)
    ! Optional horizontal-displacement read-out (SLEVOLVE_HORIZ >= 1):
    ! Psi_lm = T_l [ l^E_l L_lm + sum_k (l_k/s_k) R_k,lm ] (+ degree-2 rotation),
@@ -1331,6 +1334,12 @@ module sl_model_mod
       endif
       call exact_state%advance_and_read(exact_spec,dtr,exact_viscous,exact_radial, &
                                         exact_sum_il,exact_sum_m,exact_tsl,exact_trr)
+      ax_v = 0.0_dp
+      if (tpw .and. axial_rotation > 0 .and. norder >= 2) then
+         do kax = 1,exact_state%nmod(2)
+            ax_v = ax_v + exact_spec%a_m(kax,2) * real(exact_state%r_lambda(kax,0))
+         enddo
+      endif
       viscous(:,:) = (0.0,0.0)
       do l = 1,norder
          do m = 0,l
@@ -1658,6 +1667,17 @@ module sl_model_mod
 
             ! axial Liouville equation, sign of Mitrovica & Wahr (2011, AREPS 39, eq. 15): -1/C
             mm(3) = -(1.0 / moiC) * ( (1 + kE(2)) * il(3,3) + sum_il(3,3) )
+            if (axial_rotation > 0) then
+               ! axial rotation option: + rotational I33 (and trace term), implicit in m3; with the ramp,
+               ! sum_il already includes c_il (il - oldil) and the tidal kernel carries c_m
+               if (ramp) then
+                  mm(3) = axial_solve((1 + kE(2)) * il(3,3) + sum_il(3,3), &
+                        & ax_v - exact_state%c_m * real(deltalambda(2,0,exact_prev)), kTE(2) + exact_state%c_m, &
+                        & mm(1)**2 + mm(2)**2, mm(3))
+               else
+                  mm(3) = axial_solve((1 + kE(2)) * il(3,3) + sum_il(3,3), ax_v, kTE(2), mm(1)**2 + mm(2)**2, mm(3))
+               endif
+            endif
 
             dm(:,exact_cur) = mm(:) - oldm(:)
 
@@ -2505,7 +2525,7 @@ module sl_model_mod
       real(8), intent(in) :: h
       integer :: l_, m_, k_, idx_, i_
       real :: ttl_, ekhl_, sk_, c_, al_, r2w2_, m1_, m2_, m3_, d1_, d2_, d3_
-      real :: ild_(3,3), sild_(3,3), smd_(3), dil_(3,3), dm_(3)
+      real :: ild_(3,3), sild_(3,3), smd_(3), dil_(3,3), dm_(3), skax_
       complex :: tot_(0:2), dlam_(0:2), tsld_(0:2), trrd_(0:2)
       if (.not. allocated(rate_vsl)) then
          allocate(rate_vsl(exact_state%ncoef), rate_vrr(exact_state%ncoef))
@@ -2547,6 +2567,16 @@ module sl_model_mod
             rate_mdot(i_) = al_ * ((1 / (moiC - moiA)) * ((1 + kE(2)) * ild_(i_,3) + sild_(i_,3)) + smd_(i_) / kf)
          enddo
          rate_mdot(3) = -(1.0 / moiC) * ((1 + kE(2)) * ild_(3,3) + sild_(3,3))
+         if (axial_rotation > 0) then
+            ! axial rotation option: the same axial equation differentiated (linear in m3-dot)
+            skax_ = 0.0
+            do k_ = 1,exact_state%nmod(2)
+               sk_ = exact_spec%s(k_,2) / 1000.0
+               c_ = exact_state%omphi(k_,2)
+               skax_ = skax_ + (exact_spec%a_m(k_,2) * sk_) * real(tot_(0) - (exact_state%r_lambda(k_,0) + c_ * dlam_(0)))
+            enddo
+            rate_mdot(3) = axial_rate((1 + kE(2)) * ild_(3,3) + sild_(3,3), mm, rate_mdot, skax_)
+         endif
          rate_ildot(:,:) = ild_(:,:)
          m1_ = mm(1); m2_ = mm(2); m3_ = mm(3)
          d1_ = rate_mdot(1); d2_ = rate_mdot(2); d3_ = rate_mdot(3)
@@ -2562,6 +2592,45 @@ module sl_model_mod
          enddo
       endif
    end subroutine rate_spectra
+
+   !=======================================================================================================================!
+   ! Axial rotation option.  m3 from C m3 + E (kt Lambda_20(m3) + v0) + T Lambda_00(m3) + y = 0 (Newton from m3in),
+   ! E = -(2 sqrt5 / 3) M a / g (MacCullagh's I33 for Lambda_20), T = (3/2) tau_c C / (a^2 Omega^2) (full only),
+   ! Lambda_20 = K20 (q - 2 m3^2 - 4 m3), Lambda_00 = K00 (q + m3^2 + 2 m3), q = m1^2 + m2^2.
+   !=======================================================================================================================!
+   real function axial_solve(y, v0, kt, q, m3in)
+      real, intent(in) :: y, v0, kt, q, m3in
+      real :: e, t, k20, k00, f, df, dm3, m3
+      integer :: it
+      e = -(2.0 * sqrt(5.0) / 3.0) * mass * radius / gacc
+      k20 = radius**2 * omega**2 / (6.0 * sqrt(5.0))
+      k00 = radius**2 * omega**2 / 3.0
+      t = 0.0
+      if (axial_rotation == 2) t = 1.5 * axial_tau_c * moiC / (radius**2 * omega**2)
+      m3 = m3in
+      do it = 1,6
+         f = moiC * m3 + e * (kt * k20 * (q - 2.0 * m3 * m3 - 4.0 * m3) + v0) + t * k00 * (q + m3 * m3 + 2.0 * m3) + y
+         df = moiC + e * kt * k20 * (-4.0 * m3 - 4.0) + t * k00 * (2.0 * m3 + 2.0)
+         dm3 = f / df
+         m3 = m3 - dm3
+         if (abs(dm3) <= 1.0e-17 * max(abs(m3), 1.0e-300)) exit
+      enddo
+      axial_solve = m3
+   end function axial_solve
+
+   ! m3-dot from C m3' + E (k^T_E Lambda_20' + sk) + T Lambda_00' = -rhs, sk = sum_k a_m,k s_k (Lambda_20 - r_lambda,k)
+   real function axial_rate(rhs, m, md, sk)
+      real, intent(in) :: rhs, m(3), md(3), sk
+      real :: e, t, k20, k00, qd
+      e = -(2.0 * sqrt(5.0) / 3.0) * mass * radius / gacc
+      k20 = radius**2 * omega**2 / (6.0 * sqrt(5.0))
+      k00 = radius**2 * omega**2 / 3.0
+      t = 0.0
+      if (axial_rotation == 2) t = 1.5 * axial_tau_c * moiC / (radius**2 * omega**2)
+      qd = 2.0 * m(1) * md(1) + 2.0 * m(2) * md(2)
+      axial_rate = (-rhs - e * (kTE(2) * k20 * qd + sk) - t * k00 * qd) &
+                 & / (moiC + e * kTE(2) * k20 * (-4.0 * m(3) - 4.0) + t * k00 * (2.0 * m(3) + 2.0))
+   end function axial_rate
 
    ! Degree 0 of dSL/dt: rate of the conservation constant on the ocean function C* = C beta of the
    ! end of the step, (-(rho_i/rho_w) dI*_00 / dt - mean(C* dSL/dt|l>=1)) / mean(C*); then the grids

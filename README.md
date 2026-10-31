@@ -72,8 +72,9 @@ Tests:
 
 - `python tests/run_all.py` runs the Python tests ("== 9/9 passed").
 - `bash tests/test_fortran_python.sh` (Fortran vs Python, synthetic Earth),
-  `bash tests/test_fortran_python_vardt.sh` (non-uniform steps) and
-  `bash tests/test_fortran_python_ramp.sh` (optional second-order placement and rates) print "PASS".
+  `bash tests/test_fortran_python_vardt.sh` (non-uniform steps),
+  `bash tests/test_fortran_python_ramp.sh` (optional second-order placement and rates) and
+  `bash tests/test_fortran_python_axial.sh` (optional self-consistent axial rotation) print "PASS".
 
 See [Verifying the installation](https://xiyuanbao.github.io/slevolve/verify.html) and the tested environment in
 [Installation](https://xiyuanbao.github.io/slevolve/install.html).

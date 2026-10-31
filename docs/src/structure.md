@@ -91,10 +91,12 @@ tests/
   test_extrap_formula.py, test_small_case_vardt.py, test_floating_ice.py,
   test_ramp.py                     (second-order placement and analytic rates)
   test_j2dot_two_routes.py         J2-dot from the geoid rate and from m3-dot vs a closed form
+                                   (axial rotation option off, deg2 and full)
   test_tpw_direction.py            TPW direction from TPWrate vs the load and the geoid rate
   test_fortran_python.sh           Fortran test: Fortran vs Python on the synthetic Earth
   test_fortran_python_vardt.sh     Fortran test with a variable-step times file (Fortran vs Python)
   test_fortran_python_ramp.sh      Fortran test with RAMP=1 and SLEVOLVE_RATES=1 (Fortran vs Python)
+  test_fortran_python_axial.sh     Fortran test with AXIAL_ROTATION=deg2|full and the rates (Fortran vs Python)
   test_fortran_synthetic.sh        Fortran-only test: Fortran vs reference/synthetic/tgrid8.npy
   npy_maxdiff.f90                  max |A - B| of two .npy grids (used by the Fortran-only test)
   check_reference.py               compares a benchmark run with reference/

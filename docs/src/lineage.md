@@ -42,6 +42,13 @@ independent implementation of the same formulation.
   and the solid Earth on a range of timescales: a new "time window" algorithm, Geosci. Model Dev.,
   15, 1355-1373, https://doi.org/10.5194/gmd-15-1355-2022, 2022.
 
+References for the optional self-consistent axial rotation ([Method](method.md#self-consistent-axial-rotation-optional)):
+
+- Mitrovica, J. X., Wahr, J., Matsuyama, I., and Paulson, A.: The rotational stability of an ice age
+  earth, Geophys. J. Int., 161, 491-506, https://doi.org/10.1111/j.1365-246X.2005.02609.x, 2005.
+- Mitrovica, J. X. and Wahr, J.: Ice age Earth rotation, Annu. Rev. Earth Planet. Sci., 39, 577-616,
+  https://doi.org/10.1146/annurev-earth-040610-133404, 2011.
+
 Data and model references cited on [Data provenance](provenance.md) and [Running the benchmark cases](benchmarks.md):
 
 - Argus, D. F., Peltier, W. R., Drummond, R., and Moore, A. W.: The Antarctica component of postglacial
