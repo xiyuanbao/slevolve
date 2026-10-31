@@ -1653,7 +1653,8 @@ module sl_model_mod
             enddo
             endif
 
-            mm(3) = (1.0 / moiC) * ( (1 + kE(2)) * il(3,3) + sum_il(3,3) )
+            ! axial Liouville equation, sign of Mitrovica & Wahr (2011, AREPS 39, eq. 15): -1/C
+            mm(3) = -(1.0 / moiC) * ( (1 + kE(2)) * il(3,3) + sum_il(3,3) )
 
             dm(:,exact_cur) = mm(:) - oldm(:)
 
@@ -2541,7 +2542,7 @@ module sl_model_mod
          do i_ = 1,2
             rate_mdot(i_) = al_ * ((1 / (moiC - moiA)) * ((1 + kE(2)) * ild_(i_,3) + sild_(i_,3)) + smd_(i_) / kf)
          enddo
-         rate_mdot(3) = (1.0 / moiC) * ((1 + kE(2)) * ild_(3,3) + sild_(3,3))
+         rate_mdot(3) = -(1.0 / moiC) * ((1 + kE(2)) * ild_(3,3) + sild_(3,3))
          rate_ildot(:,:) = ild_(:,:)
          m1_ = mm(1); m2_ = mm(2); m3_ = mm(3)
          d1_ = rate_mdot(1); d2_ = rate_mdot(2); d3_ = rate_mdot(3)

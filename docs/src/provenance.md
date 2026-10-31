@@ -95,8 +95,14 @@ reason. "Not verified" marks statements that could not be confirmed from the arc
   floating shelves carries water load and belongs to the ocean area of the conservation term, and
   tests flotation against the current topography. In the paper, SLEvolve and the legacy solver were
   compared with the same floating-ice treatment (that of the legacy code), which established the
-  round-off agreement; the released code differs from those runs only by this convention, and
-  `reference/` is computed with it.
+  round-off agreement; the released code differs from those runs by this convention and by the sign
+  of m3 (next item), and `reference/` is computed with both.
+* *Sign of the axial rotation component m3.* The legacy code, like the earlier codes it was derived
+  from, uses +1/C in the axial Liouville equation, whereas SLEvolve uses the -1/C of Mitrovica & Wahr
+  (2011, eq. 15) and of J. X. Mitrovica's sea-level code (correction of 2026-10-30). This changes
+  \(\dot J_2\) by about 1 %, reverses the sign of the length-of-day rate and changes relative sea level
+  at the millimetre level; the round-off reproduction of the legacy code in the paper is a statement
+  about that code and is unaffected.
 
 **Case 1 (Antarctic forward run).**
 

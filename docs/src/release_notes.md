@@ -4,6 +4,24 @@ This page lists the contents of v1.0, its differences from the legacy code and i
 
 ## v1.0
 
+**Note of 2026-10-30: sign of the axial rotation component m3 (correction).** The axial component
+of the linearised Liouville equation used +1/C; the correct factor is -1/C,
+\(m_3=-[(1+k^E_2)\,I_{33}+\text{viscous terms}]/C\) (Mitrovica & Wahr 2011, Annu. Rev. Earth Planet.
+Sci. 39, 577-616, eq. 15; the same sign is in J. X. Mitrovica's sea-level code). A load that moves mass
+towards the rotation axis now speeds up the spin (\(m_3>0\)). The error was inherited from the rotation
+block of the legacy code. Both solvers are corrected, including the analytic rate of m3 in
+`TPWrate<N>`; the equatorial (polar-motion) equations and the rotational potential were already
+correct. Size of the change: \(\dot J_2\) about 1 % (Case 3 at the present, from the geoid rate:
+-7.139e-12 to -7.062e-12 /yr), the sign of the length-of-day rate reversed (Case 3: +0.124 to
+-0.124 ms per century), the polar-motion rate changed by a relative 2e-6, and relative sea level at the
+millimetre level (max |change| of the reference fields: Case 1 6.4 mm, Case 2 4.1 mm, Case 3 0.9 mm;
+0.15 m on the 220 m of the 8-yr synthetic test case). With the correction, \(-3C\dot m_3/(2Ma^2)\) and
+\(\dot J_2\) read from the geoid agree in sign and to 0.4 %. `reference/` and the expected outputs of the
+tests and of the quick start were recomputed; the documentation figures do not change visibly and
+were kept. The legacy code has the same sign, so the round-off reproduction of the legacy code in the
+v1.0.0 paper is unaffected as a statement about that code. See
+[Benchmark provenance](provenance.md#differences-from-the-runs-of-han-et-al-2022).
+
 **Note of 2026-10-28: optional second-order load placement and analytic rates.** Two opt-in
 additions, both off by default, so every default output, `reference/` and the results of the paper
 are unchanged:

@@ -119,7 +119,11 @@ earlier load steps taken into account at each step, and `elapsed_wall_time`, `el
 3. 18 values: `lambda(3,3)`, the degree-0 and degree-2 coefficients of the rotational driving
    potential, as (real, imaginary) pairs, m^2 s^-2.
 
-All three are totals since step 0.
+All three are totals since step 0. m3 follows the sign of Mitrovica & Wahr (2011, eq. 15),
+\(m_3=-[(1+k^E_2)\,I_{33}+\text{viscous terms}]/C\): a load that lowers \(I_{33}\) (mass moved towards the
+axis) gives \(m_3>0\), a faster spin and a shorter day; the length-of-day change is \(-m_3\) times the
+length of the day. `TPWrate<N>` follows the same sign (correction of 2026-10-30,
+[Release notes](release_notes.md)).
 
 ## 4. Outer iteration (ice age runs)
 

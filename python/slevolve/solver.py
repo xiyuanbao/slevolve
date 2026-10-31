@@ -680,7 +680,7 @@ class SeaLevelSolver:
         md = np.zeros(3)
         for i in (0, 1):
             md[i] = alpha * ((1 / (p.moiC - p.moiA)) * ((1 + kE2) * ild[i, 2] + sild[i, 2]) + smd[i] / p.kf)
-        md[2] = (1.0 / p.moiC) * ((1 + kE2) * ild[2, 2] + sild[2, 2])
+        md[2] = -(1.0 / p.moiC) * ((1 + kE2) * ild[2, 2] + sild[2, 2])
         m1, m2, m3 = self.mm
         d1, d2, d3 = md
         r2w2 = p.radius**2 * p.omega**2
@@ -855,14 +855,16 @@ class SeaLevelSolver:
                             (1 / (p.moiC - p.moiA)) * ((1 + kE2) * self.il[i, 2] + sil_r[i, 2])
                             + (1 / p.kf) * (sum_m[i] - st_.c_m * oldm[i])
                         ) / (1 - al_ * st_.c_m / p.kf)
-                    self.mm[2] = (1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sil_r[2, 2])
+                    # axial Liouville equation, sign of Mitrovica & Wahr (2011, AREPS 39, eq. 15): -1/C
+                    self.mm[2] = -(1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sil_r[2, 2])
                 else:
                     for i in (0, 1):
                         self.mm[i] = (1 / (1 - kTE2 / p.kf)) * (
                             (1 / (p.moiC - p.moiA)) * ((1 + kE2) * self.il[i, 2] + sum_il[i, 2])
                             + (1 / p.kf) * sum_m[i]
                         )
-                    self.mm[2] = (1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sum_il[2, 2])
+                    # axial Liouville equation, sign of Mitrovica & Wahr (2011, AREPS 39, eq. 15): -1/C
+                    self.mm[2] = -(1.0 / p.moiC) * ((1 + kE2) * self.il[2, 2] + sum_il[2, 2])
                 dm_cur = self.mm - oldm
 
                 m1, m2, m3 = self.mm[0], self.mm[1], self.mm[2]

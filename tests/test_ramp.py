@@ -144,7 +144,7 @@ def check_rates_left_difference(love2):
             for i in (0, 1):
                 stub.mm[i] = al * ((1 / (P.moiC - P.moiA)) * ((1 + kE2) * il[i, 2] + sil[i, 2])
                                    + (1 / P.kf) * (sum_m[i] - st.c_m * oldm[i])) / (1 - al * st.c_m / P.kf)
-            stub.mm[2] = (1.0 / P.moiC) * ((1 + kE2) * il[2, 2] + sil[2, 2])
+            stub.mm[2] = -(1.0 / P.moiC) * ((1 + kE2) * il[2, 2] + sil[2, 2])
             m1, m2, m3 = stub.mm
             stub.lam[2, 0] = (r2w2 / (6.0 * math.sqrt(5.0))) * (m1**2 + m2**2 - 2.0 * m3**2 - 4.0 * m3)
             stub.lam[2, 1] = (r2w2 / math.sqrt(30.0)) * ((m1 - 1j * m2) * (1.0 + m3))

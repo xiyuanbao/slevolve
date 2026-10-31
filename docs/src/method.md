@@ -25,7 +25,7 @@ There are two implementations.
 
 * These parts are exact: with them, the paper's version (Zenodo v1.0.0, doi 10.5281/zenodo.23422438)
   reproduces the legacy solver to round-off (< 1e-11 m in final topography, identical inner-iteration
-  counts and masks); the current code additionally applies the corrected floating-ice convention (see [Provenance](provenance.md#differences-from-the-runs-of-han-et-al-2022)):
+  counts and masks); the current code additionally applies the corrected floating-ice convention and the corrected sign of the axial rotation component m3 (see [Provenance](provenance.md#differences-from-the-runs-of-han-et-al-2022)):
   * the recursive state,
   * resident I/O,
   * the transform reductions,
@@ -204,8 +204,9 @@ m_i=\frac{\alpha\left[\dfrac{(1+k^E_2)\,I_{i3}+\Sigma^I_{i3}+c_I\,\delta I_{i3}}
 $$
 
 with \(\Sigma^I\), \(\Sigma^m\) the read modal sums, \(c_I=\sum_k a^I_k c_k\) and \(c_m=\sum_k a^m_k c_k\)
-(degree-2 weights of the moment of inertia and of the tidal potential); \(m_3\) uses
-\(\Sigma^I_{33}+c_I\,\delta I_{33}\). The viscous tidal terms of sea level and radial displacement gain
+(degree-2 weights of the moment of inertia and of the tidal potential); and
+\(m_3=-[(1+k^E_2)\,I_{33}+\Sigma^I_{33}+c_I\,\delta I_{33}]/C\)
+(Mitrovica & Wahr 2011, eq. 15). The viscous tidal terms of sea level and radial displacement gain
 \(c_{tsl}\,\delta\Lambda\) and \(c_{trr}\,\delta\Lambda\). The cost is one multiply-add per mode and coefficient at
 the commit (the advance has three) and nothing in the inner iteration beyond one multiply-add per
 coefficient.

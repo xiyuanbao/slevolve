@@ -51,7 +51,7 @@ test_sht_roundtrip: PASS
 == test_small_case.py
 ...
 test_small_case: (a) recursive vs (c) explicit history: max |diff| 4.547e-13 m (topography and radial displacement, all steps)
-test_small_case: (a) plain vs (b) extrapolated start: max |diff| 3.253e-03 m (max |sea-level change| 203.3 m, ratio 1.6e-05; epsilon1 = 1e-05)
+test_small_case: (a) plain vs (b) extrapolated start: max |diff| 3.241e-03 m (max |sea-level change| 203.3 m, ratio 1.6e-05; epsilon1 = 1e-05)
 ...
 test_small_case: PASS
 == test_extrap_formula.py
@@ -97,7 +97,7 @@ they differ at the level that tolerance allows (a ratio of 1.6e-5 of the signal)
 test_extrap_formula: Python extrap_guess vs formula: max relative error 2.216e-16
 test_extrap_formula: Fortran extrap_coeffs vs formula: max relative error 2.216e-16
 test_extrap_formula: PASS
-test_small_case_vardt: (a) recursive vs (c) explicit history: max |diff| 1.137e-13 m (topography and radial displacement, all steps; max |sea-level change| 71.6 m)
+test_small_case_vardt: (a) recursive vs (c) explicit history: max |diff| 2.842e-14 m (topography and radial displacement, all steps; max |sea-level change| 71.6 m)
 test_small_case_vardt: (d) uniform times file vs no times file: max |diff| (a) 0.0 m, (b) 0.0 m
 test_small_case_vardt: PASS
 ```
@@ -109,7 +109,7 @@ test_small_case_vardt: PASS
 (`t_k = k` yr; Fortran through `SLEVOLVE_TIMES=<file>`) and without one. About two minutes.
 
 ```
-(1) non-uniform steps: tgrid8 max |Fortran - Python| = 7.844e-11 m (max |topography change| 314.2 m; uniform 1-yr run 221.6 m; vardt - uniform run differ by 92.6 m)
+(1) non-uniform steps: tgrid8 max |Fortran - Python| = 7.822e-11 m (max |topography change| 314.1 m; uniform 1-yr run 221.5 m; vardt - uniform run differ by 92.7 m)
 (2) uniform times file vs no times file: Fortran max |diff| = 0.0 m, Python = 0.0 m (no times file, Fortran - Python 5.548e-11 m)
 (3) Fortran OUTPUT_SLM/times (non-uniform): [0.0, 1.0, 3.0, 8.0, 18.0, 38.0, 88.0, 188.0, 388.0]
 test_fortran_python_vardt: PASS
@@ -138,8 +138,8 @@ the solvers use with a times file, and checks that the decay factors equal exp(-
 test_ramp: (1) ramp factor limits ok
 test_ramp: (2) ramp=False with rates vs default run: max |diff| 0.0e+00 m
 test_ramp: (3) ramp, recursive vs explicit history: max |diff| 4.55e-13 m (uniform), 4.55e-13 m (steps [1000.0, 500.0, 2000.0, 250.0, 1000.0, 750.0, 1500.0, 500.0]); ramp - step placement up to 27.7 m
-test_ramp: (4) ramp, plain vs optimised (numba + raw ducc0): topography/R 5.27e-11 m, rates 1.77e-14 m/yr, m-dot 6.4e-13 relative; extrapolated start 2.27e-03 m (max |sea-level change| 207 m, epsilon1 1e-05)
-test_ramp: (5) analytic rate vs left difference (eps 0.01 yr): non-rotational 7.23e-08, m-dot 3.12e-08, rotational sea level 5.99e-07 (relative); extra point changes the response by 2.1e-10
+test_ramp: (4) ramp, plain vs optimised (numba + raw ducc0): topography/R 5.27e-11 m, rates 1.77e-14 m/yr, m-dot 5.9e-13 relative; extrapolated start 2.27e-03 m (max |sea-level change| 207 m, epsilon1 1e-05)
+test_ramp: (5) analytic rate vs left difference (eps 0.01 yr): non-rotational 7.23e-08, m-dot 3.12e-08, rotational sea level 5.78e-07 (relative); extra point changes the response by 2.1e-10
 test_ramp: PASS
 ```
 
@@ -151,10 +151,10 @@ the non-uniform steps of the times-file test, and the default placement with the
 checks that switching the rates on leaves `tgrid8` unchanged. About three minutes.
 
 ```
-(ramp) tgrid8 5.55e-11 m; dSLdt8 2.41e-13 of max 2.916e+01 m/yr; dRdt8 2.61e-13 of max 1.985e+01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative) ok
-(ramp_vardt) tgrid8 8.00e-11 m; dSLdt8 2.59e-13 of max 4.109e-01 m/yr; dRdt8 2.39e-13 of max 4.259e-01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative) ok
-(step) tgrid8 5.55e-11 m; dSLdt8 2.38e-13 of max 2.916e+01 m/yr; dRdt8 2.60e-13 of max 1.985e+01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative) ok
-Fortran default placement: tgrid8 with rates - without rates = 0.0 m; ramp - default placement 0.20 m (max |topography change| 221.6 m)
+(ramp) tgrid8 5.64e-11 m; dSLdt8 2.41e-13 of max 2.915e+01 m/yr; dRdt8 2.61e-13 of max 1.987e+01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative) ok
+(ramp_vardt) tgrid8 8.05e-11 m; dSLdt8 2.58e-13 of max 4.110e-01 m/yr; dRdt8 2.38e-13 of max 4.260e-01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative) ok
+(step) tgrid8 5.55e-11 m; dSLdt8 2.41e-13 of max 2.915e+01 m/yr; dRdt8 2.60e-13 of max 1.987e+01 m/yr; m-dot 0.0e+00, Lambda-dot 0.0e+00 (relative) ok
+Fortran default placement: tgrid8 with rates - without rates = 0.0 m; ramp - default placement 0.20 m (max |topography change| 221.5 m)
 test_fortran_python_ramp: PASS
 ```
 
@@ -198,7 +198,7 @@ wrote /path/to/slevolve_fortran_test/INPUT_FILES: grid 512x1024, land fraction 0
 built: /path/to/slevolve/fortran/build/fortran_test/exe (case=none driver=run_from_zero_plus sht=otf ...)
 == Fortran run
 == Python run
-tgrid8: max |Fortran - Python| = 5.548e-11 m (max |topography change| 221.6 m)
+tgrid8: max |Fortran - Python| = 5.548e-11 m (max |topography change| 221.5 m)
 test_fortran_python: PASS
 ```
 
@@ -212,7 +212,7 @@ The synthetic Earth at 512 x 1024 (top left: topography, black line: coast; top 
 dashed: ice margin) and the reference result `reference/synthetic/tgrid8.npy` as the topography change
 after 8 steps of 1 yr (bottom; colormap PuOr_r with fixed symmetric limits of +-250 m, the 99th
 percentile of |change| (219 m) rounded up, arrows on the colour bar for values beyond; brown:
-uplift under the melting ice, up to 222 m, mostly elastic after 8 yr; purple: the ocean floor
+uplift under the melting ice, up to 221 m, mostly elastic after 8 yr; purple: the ocean floor
 sinking relative to the rising sea surface). Drawn by
 `python tools/plot_reference.py --case synthetic`.
 
@@ -251,7 +251,7 @@ seed 20261013: random topography (reference/synthetic/topography_seed.npy), two 
 wrote /path/to/slevolve_fortran_synth/INPUT_FILES: grid 512x1024, land fraction 0.290, 9 ice files synth_ice_0..8, topography others/synth_topo.npy, earthmodel/prem_512.l96C.ump3.lm1
 == Fortran run
 == compare tgrid8 with reference/synthetic/tgrid8.npy
-max |A - B| =  5.548E-11 m (tolerance  1.000E-09 m; max |B|  4899.9 m)
+max |A - B| =  5.548E-11 m (tolerance  1.000E-09 m; max |B|  4900.0 m)
 test_fortran_synthetic: PASS
 ```
 
