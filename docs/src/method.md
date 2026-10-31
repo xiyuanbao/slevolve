@@ -318,9 +318,9 @@ The tool integrates the regular and a particular solution outward (fourth-order 
 at most 10 km by default, refined towards the centre) and combines them so that \(\sigma(a)=0\). With
 the solver's \(a=6371\) km, \(\Omega=7.292\times10^{-5}\) rad/s and \(C=0.3307007\,Ma^2\):
 \(\tau_c=5.368494381028842\times10^{-4}\) (1-km steps; steps of 10 km and 0.5 km change it by 5e-13 and
-3e-15). The same code reproduces an
-independent open-source solver for PREM without its ocean (transversely isotropic, surface at 6368 km)
-to 8e-11, and the closed form for a homogeneous sphere (`tests/test_degree0_axial_number.py`).
+3e-15). For a homogeneous solid or fluid sphere the equations have a closed-form solution,
+\(U_0=c\,r+d\,j_1(kr)\) with \(k^2=16\pi G\rho^2/[3(\lambda+2\mu)]\), which the tool reproduces to 1e-11
+(`tests/test_degree0_axial_number.py`).
 
 In the Laplace domain (\(s\)), for the linearised equation,
 

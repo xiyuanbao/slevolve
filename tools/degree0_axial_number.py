@@ -18,7 +18,7 @@ with a the surface radius of the Earth model (6371 km for the shipped deck) and,
 7.292e-5 rad/s and C = 0.3307007 M a^2, M = 5.976e24 kg, a = 6.371e6 m (Planet, planets_mod).
 In the solver's notation T = Delta T^R / 3 per unit Lambda_00(a) = (16 pi / 3) int rho U_0 r^3 dr = (3/2) tau_c C /
 (a^2 Omega^2).  The tool also prints m_c = -sqrt(4 pi) int_0^a rho U_0 r^3 dr [kg s^2], the same response in
-the normalisation used for the check against an independent open-source solver; tau_c = (16 sqrt(pi) / 9)
+the response per unit degree-0 potential (r/a)^2 Y00; tau_c = (16 sqrt(pi) / 9)
 (-m_c) Omega^2 a^2 / C.
 
 Equations (static, elastic, compressible, self-gravitating, hydrostatic prestress; Takeuchi & Saito 1972 and
