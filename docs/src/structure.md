@@ -86,10 +86,11 @@ lovenum/
   DEGREE1_NOTES.md, DEGREE1_NOTES_zh.md
                                    notes on degree-1 Love numbers (English, Chinese)
 tests/
-  run_all.py                       runs the seven Python tests below
+  run_all.py                       runs the eight Python tests below
   test_recursion.py, test_sht_roundtrip.py, test_small_case.py,
   test_extrap_formula.py, test_small_case_vardt.py, test_floating_ice.py,
   test_ramp.py                     (second-order placement and analytic rates)
+  test_j2dot_two_routes.py         J2-dot from the geoid rate and from m3-dot vs a closed form
   test_fortran_python.sh           Fortran test: Fortran vs Python on the synthetic Earth
   test_fortran_python_vardt.sh     Fortran test with a variable-step times file (Fortran vs Python)
   test_fortran_python_ramp.sh      Fortran test with RAMP=1 and SLEVOLVE_RATES=1 (Fortran vs Python)

@@ -7,7 +7,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TESTS = ["test_recursion.py", "test_sht_roundtrip.py", "test_small_case.py", "test_extrap_formula.py",
-         "test_small_case_vardt.py", "test_floating_ice.py", "test_ramp.py"]
+         "test_small_case_vardt.py", "test_floating_ice.py", "test_ramp.py", "test_j2dot_two_routes.py"]
 
 
 def main():

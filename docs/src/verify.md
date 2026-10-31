@@ -18,7 +18,7 @@ prints.
 python tests/run_all.py
 ```
 
-Seven plain scripts (no pytest), all of the **Python solver**; the four below, the two non-uniform-step tests of [the next section](#non-uniform-time-steps-times-file) and `test_ramp.py` ([second-order placement](#second-order-load-placement-and-rates)):
+Eight plain scripts (no pytest), all of the **Python solver**; the four below, the two non-uniform-step tests of [the next section](#non-uniform-time-steps-times-file), `test_ramp.py` ([second-order placement](#second-order-load-placement-and-rates)) and `test_j2dot_two_routes.py` ([J2-dot by two routes](#j2-dot-by-two-routes)):
 
 * `test_recursion.py`: synthetic modal spectrum (random decay rates and residues) and a random
   step-wise load history with non-uniform steps; the recursive update of `solver.ExactMemory` is
@@ -69,7 +69,10 @@ test_floating_ice: PASS
 == test_ramp.py
 ...
 test_ramp: PASS
-== 7/7 passed in 5.2 s
+== test_j2dot_two_routes.py
+...
+test_j2dot_two_routes: PASS
+== 8/8 passed in 5.5 s
 ```
 
 The difference of 3.3e-3 m between (a) and (b) is expected: the two inner iterations start from
@@ -161,6 +164,41 @@ test_fortran_python_ramp: PASS
 The `TPWrate` files are text with 9 significant digits, so their Fortran and Python copies are
 identical. The ramp changes this 8-yr case by only 0.2 m because the steps (1 yr) are short against
 the relaxation times; `test_ramp.py` (1-kyr steps) shows changes of up to 28 m.
+
+## J2-dot by two routes
+
+`tests/test_j2dot_two_routes.py` (run by `run_all.py`, under a second) computes the present-day
+\(\dot J_2\) in two independent ways from the analytic rates with `--ramp` and requires both to match
+a closed-form value computed outside the solver, and the two to agree with each other:
+
+* route 1 (gravity): \(\dot J_2=-\sqrt5\,(\dot G_{20}-\dot\Lambda_{20}/g)/a\) from `dSLdt + dRdt` and
+  \(\dot\Lambda_{20}\) ([Outputs](outputs.md#analytic-rates-optional)), the (2,0) coefficient taken by
+  the test's own Gauss-Legendre quadrature;
+* route 2 (inertia): \(\dot J_2=-3C\dot m_3/(2Ma^2)\), from the axial Liouville equation
+  \(m_3=-\Delta I_{33}/C\) (Mitrovica & Wahr 2011, eq. 15).
+
+The case (32 x 64 grid, lmax 10, rotation on, no marine check, `prem_512.l96C.ump3.lm1`, 12 steps of
+1 kyr) is ice-covered land except two ice-free ocean rows at the nodes of P2; the ice changes by a
+piecewise-linear h(t) times a zonal, equatorially symmetric, zero-mean pattern P2 + c P4 that vanishes
+on the ocean rows, so the ocean load is exactly zero and the load is a degree-2 ice load. The test
+reads the degree-2 load and tidal k of the Love-number file with its own parser and evaluates
+\(\dot J_2\) in closed form (elastic part plus modal sum for the load; m3 from eq. 15 of Mitrovica &
+Wahr (2011); the rotational deformation through the tidal k2). Route 2 contains no rotational
+deformation (the axial equation has none in \(\Delta I_{33}\)) and is compared with the load part.
+Tolerances (the reasons are in the test header): route 2 1e-8 relative, route 1 5e-5 (the O(dt^2)
+error of the ramp placement of the rotational term), route 1 - route 2 at most 1 % of \(\dot J_2\)
+(the rotational deformation, 0.49 % here) and equal to the closed-form rotational term to 1e-2.
+With the sign of m3 reversed (+1/C, releases up to 723d95f) route 2 has the wrong sign and route 1 is
+off by 1 %, so the test fails.
+
+```
+test_j2dot_two_routes: known (closed form, k2 of prem_512.l96C.ump3.lm1): J2-dot -8.948533e-11 /yr = load -8.991789e-11 + rotational deformation 4.325603e-13
+test_j2dot_two_routes: route 1 (geoid, Lambda removed)  -8.948394e-11 /yr, rel. error 1.6e-05 (tol 5e-05)
+test_j2dot_two_routes: route 2 (-3 C m3-dot / 2 M a^2)  -8.991789e-11 /yr, rel. error vs load part 1.7e-09 (tol 1e-08)
+test_j2dot_two_routes: route 1 - route 2 = 0.485 % of J2-dot (tol 1 %, fluid-limit ratio 0.43 %); vs closed-form rotational term 3.2e-03 (tol 0.01); max |ocean load| 5.0e-13 m
+test_j2dot_two_routes: (0.0 s)
+test_j2dot_two_routes: PASS
+```
 
 ## Fortran test
 
