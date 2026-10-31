@@ -96,13 +96,21 @@ reason. "Not verified" marks statements that could not be confirmed from the arc
   tests flotation against the current topography. In the paper, SLEvolve and the legacy solver were
   compared with the same floating-ice treatment (that of the legacy code), which established the
   round-off agreement; the released code differs from those runs by this convention and by the sign
-  of m3 (next item), and `reference/` is computed with both.
+  of m3 (next item), and its rotation records also by the order-1 sign (the item after); `reference/`
+  is computed with both.
 * *Sign of the axial rotation component m3.* The legacy code, like the earlier codes it was derived
   from, uses +1/C in the axial Liouville equation, whereas SLEvolve uses the -1/C of Mitrovica & Wahr
   (2011, Annu. Rev. Earth Planet. Sci. 39, 577-616, eq. 15; correction of 2026-10-30). This changes
   \(\dot J_2\) by about 1 %, reverses the sign of the length-of-day rate and changes relative sea level
   at the millimetre level; the round-off reproduction of the legacy code in the paper is a statement
   about that code and is unaffected.
+* *Sign of the order-1 rotation records.* The legacy code, like the earlier codes it was derived
+  from, uses the order-1 expressions of Milne & Mitrovica (1998, eqs. 33c and 43a,b), written for
+  harmonics with the Condon-Shortley phase (their eq. 33e), with coefficients that have no such
+  phase, so the inertia products il13, il23 and \(\Lambda_{21}\) each have the wrong sign. SLEvolve
+  uses the U-basis signs (correction of 2026-10-31): (m1, m2) is the physical polar motion of
+  Mitrovica & Wahr (2011, eq. 10). The two signs cancel in every field, so the fields, \(\dot J_2\)
+  and the TPW speed are unchanged; only the order-1 rotation records reverse sign.
 
 **Case 1 (Antarctic forward run).**
 

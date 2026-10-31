@@ -75,7 +75,7 @@ Off by default; Fortran `SLEVOLVE_RATES=1`, Python `run_ais.py --save-fields ...
 |---|---|---|
 | `dSLdt<N>` (`.npy` grid) | rate of the sea-level change dSL (sea surface minus solid surface) at the end of step N, including the rotational term and, in degree 0, the rate of the conservation term on the ocean function of step N. `-dSLdt` is the rate of topography change | m/yr |
 | `dRdt<N>` (`.npy` grid) | rate of the radial displacement (uplift rate), including the rotational term | m/yr |
-| `TPWrate<N>` (Fortran, text) / `TPWrate<N>.txt` (Python) | with rotation: the rates of the three records of `TPW<N>`, in the same layout: il-dot (9 values, kg m^2/yr), m-dot (3 values, 1/yr; m1-dot, m2-dot is the polar-motion (true polar wander) rate in rad/yr), Lambda-dot (18 values, m^2 s^-2 /yr) | as stated |
+| `TPWrate<N>` (Fortran, text) / `TPWrate<N>.txt` (Python) | with rotation: the rates of the three records of `TPW<N>`, in the same layout: il-dot (9 values, kg m^2/yr), m-dot (3 values, 1/yr; m1-dot, m2-dot is the polar-motion (true polar wander) rate in rad/yr, toward 0 E and 90 E; direction atan2(m2-dot, m1-dot) in degrees east), Lambda-dot (18 values, m^2 s^-2 /yr) | as stated |
 
 The rate of the sea surface is `dGdt = dSLdt + dRdt`. Present-day J2-dot and the true-polar-wander
 rate follow from these: with \(\dot G_{20}\) the (2,0) coefficient of `dGdt` (spharmt convention
@@ -113,17 +113,24 @@ earlier load steps taken into account at each step, and `elapsed_wall_time`, `el
 **`TPW<N>`** (Fortran, rotation on): three records of the converged rotational quantities after step N
 (`TPW0` = zeros), printed in Fortran column-major order:
 
-1. 9 values: `il(3,3)`, the perturbation of the inertia tensor (only `il(1:3,3)` is filled), kg m^2;
-2. 3 values: `mm(1:3)`, the perturbation of the rotation vector, dimensionless (m1, m2 polar motion
-   in radians, m3 relative change of the spin rate);
+1. 9 values: `il(3,3)`, the perturbation of the inertia tensor by the surface load (only `il(1:3,3)`
+   is filled), kg m^2, physical: \(I_{i3}=-\int\sigma\,x_i x_3\,dA\) for the off-diagonal entries;
+2. 3 values: `mm(1:3)`, the perturbation of the rotation vector, dimensionless: (m1, m2) is the
+   displacement of the rotation pole in radians toward 0 E and 90 E (Mitrovica & Wahr 2011, eq. 10,
+   \(m_1+i\,m_2\propto I_{13}+i\,I_{23}\): the pole moves away from added mass), m3 the relative
+   change of the spin rate;
 3. 18 values: `lambda(3,3)`, the degree-0 and degree-2 coefficients of the rotational driving
-   potential, as (real, imaginary) pairs, m^2 s^-2.
+   potential in the U basis of `dS_converged`, as (real, imaginary) pairs, m^2 s^-2.
 
 All three are totals since step 0. m3 follows the sign of Mitrovica & Wahr (2011, eq. 15),
 \(m_3=-[(1+k^E_2)\,I_{33}+\text{viscous terms}]/C\): a load that lowers \(I_{33}\) (mass moved towards the
 axis) gives \(m_3>0\), a faster spin and a shorter day; the length-of-day change is \(-m_3\) times the
 length of the day. `TPWrate<N>` follows the same sign (correction of 2026-10-30,
 [Release notes](release_notes.md)).
+The direction of true polar wander is atan2(m2-dot, m1-dot) of `TPWrate<N>`, in degrees east. The
+order-1 records (il13, il23, m1, m2, their rates) have the physical sign since the correction of
+2026-10-31 ([Release notes](release_notes.md)); directions read from earlier records are off by 180
+degrees, while the fields, the TPW speed and \(\Lambda\) are unchanged.
 
 ## 4. Outer iteration (ice age runs)
 

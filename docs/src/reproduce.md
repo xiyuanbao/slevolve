@@ -18,7 +18,7 @@ archived 550-yr topography to 2.05 m area-weighted RMS on a 12.3 m signal. The r
 shelf removal: the archived run let the removed shelves enter the elastic and mass-conservation terms
 (and the rotational feedback) at step 1 but not the viscous memory. With that initialization mimicked,
 the agreement is 0.024 m RMS. The paper's version (Zenodo v1.0.0, doi 10.5281/zenodo.23422438) reproduces the legacy solver to
-round-off (< 1e-11 m in every configuration); the current code additionally applies the corrected floating-ice convention and the corrected sign of the axial rotation component m3 (see [Provenance](provenance.md#differences-from-the-runs-of-han-et-al-2022)).
+round-off (< 1e-11 m in every configuration); the current code additionally applies the corrected floating-ice convention, the corrected sign of the axial rotation component m3 and the corrected sign of the order-1 rotation records (see [Provenance](provenance.md#differences-from-the-runs-of-han-et-al-2022)).
 
 ## Case 2: two glacial cycles
 

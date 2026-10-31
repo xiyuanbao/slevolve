@@ -13,7 +13,7 @@ runs (outer iteration on the initial topography). The viscoelastic memory is car
 modal state instead of a sum over the full load history, so the total cost grows as O(N) instead of
 O(N^2) in the number of time steps N. A Fortran solver derived from the legacy code of Han et al.
 (2022) and a Python solver written from scratch; the paper's version (Zenodo v1.0.0, doi 10.5281/zenodo.23422438) reproduces the legacy solver to round-off (below 1e-11 m in the three
-benchmark cases, with the Fortran and Python solvers identical to round-off); the current code additionally applies the corrected floating-ice convention and the corrected sign of the axial rotation component m3 (see
+benchmark cases, with the Fortran and Python solvers identical to round-off); the current code additionally applies the corrected floating-ice convention, the corrected sign of the axial rotation component m3 and the corrected sign of the order-1 rotation records (see
 [Provenance](https://xiyuanbao.github.io/slevolve/provenance.html)).
 
 ## What is new relative to the legacy code
@@ -70,7 +70,7 @@ slevolve-forward --help              # = python python/run_ais.py; also slevolve
 
 Tests:
 
-- `python tests/run_all.py` runs the Python tests ("== 8/8 passed").
+- `python tests/run_all.py` runs the Python tests ("== 9/9 passed").
 - `bash tests/test_fortran_python.sh` (Fortran vs Python, synthetic Earth),
   `bash tests/test_fortran_python_vardt.sh` (non-uniform steps) and
   `bash tests/test_fortran_python_ramp.sh` (optional second-order placement and rates) print "PASS".

@@ -137,8 +137,9 @@ def check_rates_left_difference(love2):
             z20, z21 = L[j][2, 0], L[j][2, 1]
             il = stub.il
             il[2, 2] = (-8 * math.pi * P.radius**4 / (3 * math.sqrt(5.0))) * z20.real
-            il[0, 2] = (8 * math.pi * P.radius**4 / math.sqrt(30.0)) * z21.real
-            il[1, 2] = (-8 * math.pi * P.radius**4 / math.sqrt(30.0)) * (-1.0j * z21).real
+            # order 1: U basis without the Condon-Shortley phase (Milne & Mitrovica 1998, eqs. 33c, 33e, 43a,b)
+            il[0, 2] = (-8 * math.pi * P.radius**4 / math.sqrt(30.0)) * z21.real
+            il[1, 2] = (8 * math.pi * P.radius**4 / math.sqrt(30.0)) * (-1.0j * z21).real
             sil = sum_il + st.c_il * (il - oldil)
             al = 1 / (1 - kTE2 / P.kf)
             for i in (0, 1):
@@ -147,7 +148,7 @@ def check_rates_left_difference(love2):
             stub.mm[2] = -(1.0 / P.moiC) * ((1 + kE2) * il[2, 2] + sil[2, 2])
             m1, m2, m3 = stub.mm
             stub.lam[2, 0] = (r2w2 / (6.0 * math.sqrt(5.0))) * (m1**2 + m2**2 - 2.0 * m3**2 - 4.0 * m3)
-            stub.lam[2, 1] = (r2w2 / math.sqrt(30.0)) * ((m1 - 1j * m2) * (1.0 + m3))
+            stub.lam[2, 1] = -(r2w2 / math.sqrt(30.0)) * ((m1 - 1j * m2) * (1.0 + m3))
             stub.lam[2, 2] = (r2w2 / math.sqrt(5.0 * 24.0)) * (m2**2 - m1**2 + 2.0j * m1 * m2)
             tot = stub.lam[2, 0:3].copy()
             rsl = ((1 + kTE2 - hTE2) * tot + tsl + st.c_tsl * (tot - lamp)) / P.gacc

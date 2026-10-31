@@ -25,7 +25,7 @@ There are two implementations.
 
 * These parts are exact: with them, the paper's version (Zenodo v1.0.0, doi 10.5281/zenodo.23422438)
   reproduces the legacy solver to round-off (< 1e-11 m in final topography, identical inner-iteration
-  counts and masks); the current code additionally applies the corrected floating-ice convention and the corrected sign of the axial rotation component m3 (see [Provenance](provenance.md#differences-from-the-runs-of-han-et-al-2022)):
+  counts and masks); the current code additionally applies the corrected floating-ice convention, the corrected sign of the axial rotation component m3 and the corrected sign of the order-1 rotation records (see [Provenance](provenance.md#differences-from-the-runs-of-han-et-al-2022)):
   * the recursive state,
   * resident I/O,
   * the transform reductions,

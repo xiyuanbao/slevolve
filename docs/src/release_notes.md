@@ -4,6 +4,26 @@ This page lists the contents of v1.0, its differences from the legacy code and i
 
 ## v1.0
 
+**Note of 2026-10-31: sign of the order-1 rotation records (correction).** The spectral coefficients
+use the U basis, complex harmonics without the Condon-Shortley phase, whereas the expressions for
+the inertia products and the order-1 rotational potential (Milne & Mitrovica 1998, Geophys. J. Int.
+133, 1-19, eqs. 33c and 43a,b) are written for harmonics with that phase (their eq. 33e). The
+inertia products il13, il23 and the coefficient \(\Lambda_{21}\) therefore each had the wrong sign.
+Both are corrected: il13, il23 are now \(I_{i3}=-\int\sigma\,x_i x_3\,dA\), and (m1, m2) is the
+physical displacement of the rotation pole toward 0 E and 90 E, with
+\(m_1+i\,m_2\propto I_{13}+i\,I_{23}\) (Mitrovica & Wahr 2011, Annu. Rev. Earth Planet. Sci. 39,
+577-616, eq. 10): added mass moves the pole away from itself. The error was inherited from the
+rotation block of the legacy code. Size of the change: the two signs cancelled, so no field, no
+\(\dot J_2\) and no TPW speed changes (in both solvers the topography, sea level, radial and
+horizontal displacement, rates and \(\Lambda\) are identical before and after); the sign of the
+order-1 rotation records il13, il23, m1, m2 in `TPW<N>` and of their rates in `TPWrate<N>`
+reverses, so directions of polar motion read from earlier records were off by 180 degrees.
+`reference/` stores no rotation records and is unchanged. The legacy code has the same sign, so the
+round-off reproduction of the legacy code in the v1.0.0 paper is unaffected as a statement about
+that code. A new test, `tests/test_tpw_direction.py`, pins the direction
+([Verification](verify.md#direction-of-polar-motion)). See
+[Benchmark provenance](provenance.md#differences-from-the-runs-of-han-et-al-2022).
+
 **Note of 2026-10-30: sign of the axial rotation component m3 (correction).** The axial component
 of the linearised Liouville equation used +1/C; the correct factor is -1/C,
 \(m_3=-[(1+k^E_2)\,I_{33}+\text{viscous terms}]/C\) (Mitrovica & Wahr 2011, Annu. Rev. Earth Planet.

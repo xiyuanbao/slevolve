@@ -1622,11 +1622,14 @@ module sl_model_mod
 
          if (tpw) then ! If incorporating rotation
 
-             ! MOI perturbations (Matsuyama et al, 2006) (only need (1,3),(2,3), and (3,3))
+             ! MOI perturbations (Milne and Mitrovica 1998, eq. 43) (only need (1,3),(2,3), and (3,3))
+             ! order 1: the U basis has no Condon-Shortley phase; Milne & Mitrovica (1998) eqs. 33c, 43a,b are
+             ! written with it (their eq. 33e), so il(1,3), il(2,3) and lambda(2,1) take the opposite sign here
+             ! (il_i3 = -int sigma x_i x_3 dA; Mitrovica & Wahr 2011, eq. 10)
 
             il(3,3) = (-8 * pi * radius**4 / (3 * sqrt(5.0))) * real(rhow * deltaS(2,0,exact_cur) + rhoi * deltaicestar(2,0,exact_cur))
-            il(1,3) = (8 * pi * radius**4 / (sqrt(30.0))) * real(rhow * deltaS(2,1,exact_cur) + rhoi * deltaicestar(2,1,exact_cur))
-            il(2,3) = (-8 * pi * radius**4 / (sqrt(30.0))) &
+            il(1,3) = (-8 * pi * radius**4 / (sqrt(30.0))) * real(rhow * deltaS(2,1,exact_cur) + rhoi * deltaicestar(2,1,exact_cur))
+            il(2,3) = (8 * pi * radius**4 / (sqrt(30.0))) &
                       & * real(-1.0 * ii * (rhow * deltaS(2,1,exact_cur) + rhoi * deltaicestar(2,1,exact_cur)))
 
             dil(:,:,exact_cur) = il(:,:) - oldil(:,:)
@@ -1662,7 +1665,8 @@ module sl_model_mod
             lambda(0,0) = (radius**2 * omega**2 / 3.0) * ((mm(1)**2 + mm(2)**2 + mm(3)**2) + 2.0 * mm(3))
             lambda(2,0) = (radius**2 * omega**2 / (6.0 * sqrt(5.0))) &
                         & * (mm(1)**2 + mm(2)**2 - 2.0 * mm(3)**2 - 4.0 * mm(3))
-            lambda(2,1) = (radius**2 * omega**2 / sqrt(30.0)) * ((mm(1) - ii * mm(2)) * (1.0 + mm(3)))
+            ! order 1 in the U basis (no Condon-Shortley phase; MM98 eq. 33c is written with it, their eq. 33e)
+            lambda(2,1) = -(radius**2 * omega**2 / sqrt(30.0)) * ((mm(1) - ii * mm(2)) * (1.0 + mm(3)))
             lambda(2,2) = (radius**2 * omega**2 / sqrt(5.0 * 24.0)) * (mm(2)**2 - mm(1)**2 + 2.0 * ii * mm(1) * mm(2))
 
             dlambda(:,:,exact_cur) = lambda(:,:) - deltalambda(:,:,exact_prev)
@@ -2549,7 +2553,8 @@ module sl_model_mod
          r2w2_ = radius**2 * omega**2
          rate_lamdot(0,0) = (r2w2_ / 3.0) * (2 * m1_ * d1_ + 2 * m2_ * d2_ + 2 * m3_ * d3_ + 2.0 * d3_)
          rate_lamdot(2,0) = (r2w2_ / (6.0 * sqrt(5.0))) * (2 * m1_ * d1_ + 2 * m2_ * d2_ - 4 * m3_ * d3_ - 4 * d3_)
-         rate_lamdot(2,1) = (r2w2_ / sqrt(30.0)) * ((d1_ - ii * d2_) * (1.0 + m3_) + (m1_ - ii * m2_) * d3_)
+         ! order 1 in the U basis (no Condon-Shortley phase; MM98 eq. 33c is written with it, their eq. 33e)
+         rate_lamdot(2,1) = -(r2w2_ / sqrt(30.0)) * ((d1_ - ii * d2_) * (1.0 + m3_) + (m1_ - ii * m2_) * d3_)
          rate_lamdot(2,2) = (r2w2_ / sqrt(5.0 * 24.0)) * (2 * m2_ * d2_ - 2 * m1_ * d1_ + 2.0 * ii * (d1_ * m2_ + m1_ * d2_))
          do m_ = 0,2
             rate_sllm(2,m_) = rate_sllm(2,m_) + ((1 + kTE(2) - hTE(2)) * rate_lamdot(2,m_) + tsld_(m_)) / gacc

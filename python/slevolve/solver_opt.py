@@ -538,8 +538,11 @@ class OptSeaLevelSolver(SeaLevelSolver):
                 z20 = p.rhow * self.deltaS_cur[2, 0] + p.rhoi * deltaicestar[2, 0]
                 z21 = sg * (p.rhow * self.deltaS_cur[2, 1] + p.rhoi * deltaicestar[2, 1])
                 self.il[2, 2] = (-8 * PI * p.radius**4 / (3 * math.sqrt(5.0))) * z20.real
-                self.il[0, 2] = (8 * PI * p.radius**4 / (math.sqrt(30.0))) * z21.real
-                self.il[1, 2] = (-8 * PI * p.radius**4 / (math.sqrt(30.0))) * (-1.0 * II * z21).real
+                # order 1: the U basis has no Condon-Shortley phase; Milne & Mitrovica (1998, GJI 133)
+                # eqs. 33c, 43a,b are written with it (their eq. 33e), so il13, il23 and Lambda21 take the
+                # opposite sign here: il_i3 = -int sigma x_i x_3 dA (Mitrovica & Wahr 2011, eq. 10)
+                self.il[0, 2] = (-8 * PI * p.radius**4 / (math.sqrt(30.0))) * z21.real
+                self.il[1, 2] = (8 * PI * p.radius**4 / (math.sqrt(30.0))) * (-1.0 * II * z21).real
                 dil_cur = self.il - oldil
 
                 if self.ramp:
@@ -567,7 +570,8 @@ class OptSeaLevelSolver(SeaLevelSolver):
                 m1, m2, m3 = self.mm[0], self.mm[1], self.mm[2]
                 self.lam[0, 0] = (r2w2 / 3.0) * ((m1**2 + m2**2 + m3**2) + 2.0 * m3)
                 self.lam[2, 0] = (r2w2 / (6.0 * math.sqrt(5.0))) * (m1**2 + m2**2 - 2.0 * m3**2 - 4.0 * m3)
-                self.lam[2, 1] = (r2w2 / math.sqrt(30.0)) * ((m1 - II * m2) * (1.0 + m3))
+                # order 1 in the U basis (no Condon-Shortley phase; MM98 eq. 33c is written with it, their eq. 33e)
+                self.lam[2, 1] = -(r2w2 / math.sqrt(30.0)) * ((m1 - II * m2) * (1.0 + m3))
                 self.lam[2, 2] = (r2w2 / math.sqrt(5.0 * 24.0)) * (m2**2 - m1**2 + 2.0 * II * m1 * m2)
                 dlam_cur2 = self.lam[2, 0:3] - dlambda_prev2
 

@@ -18,7 +18,7 @@ prints.
 python tests/run_all.py
 ```
 
-Eight plain scripts (no pytest), all of the **Python solver**; the four below, the two non-uniform-step tests of [the next section](#non-uniform-time-steps-times-file), `test_ramp.py` ([second-order placement](#second-order-load-placement-and-rates)) and `test_j2dot_two_routes.py` ([J2-dot by two routes](#j2-dot-by-two-routes)):
+Nine plain scripts (no pytest), all of the **Python solver**; the four below, the two non-uniform-step tests of [the next section](#non-uniform-time-steps-times-file), `test_ramp.py` ([second-order placement](#second-order-load-placement-and-rates)), `test_j2dot_two_routes.py` ([J2-dot by two routes](#j2-dot-by-two-routes)) and `test_tpw_direction.py` ([direction of polar motion](#direction-of-polar-motion)):
 
 * `test_recursion.py`: synthetic modal spectrum (random decay rates and residues) and a random
   step-wise load history with non-uniform steps; the recursive update of `solver.ExactMemory` is
@@ -72,7 +72,10 @@ test_ramp: PASS
 == test_j2dot_two_routes.py
 ...
 test_j2dot_two_routes: PASS
-== 8/8 passed in 5.5 s
+== test_tpw_direction.py
+...
+test_tpw_direction: PASS
+== 9/9 passed in 6.8 s
 ```
 
 The difference of 3.3e-3 m between (a) and (b) is expected: the two inner iterations start from
@@ -198,6 +201,45 @@ test_j2dot_two_routes: route 2 (-3 C m3-dot / 2 M a^2)  -8.991789e-11 /yr, rel. 
 test_j2dot_two_routes: route 1 - route 2 = 0.485 % of J2-dot (tol 1 %, fluid-limit ratio 0.43 %); vs closed-form rotational term 3.2e-03 (tol 0.01); max |ocean load| 5.0e-13 m
 test_j2dot_two_routes: (0.0 s)
 test_j2dot_two_routes: PASS
+```
+
+## Direction of polar motion
+
+`tests/test_tpw_direction.py` (run by `run_all.py`, under a second) pins the direction of the
+polar-motion records to the physical sign. By Mitrovica & Wahr (2011, eq. 10), \(m_1+i\,m_2\) is
+proportional to \(I_{13}+i\,I_{23}\) with \(I_{i3}=-\int\sigma\,x_i x_3\,dA\), so added mass moves the
+rotation pole away from itself. An ice cap of 10 degrees radius at 45 N grows on land (32 x 64 grid,
+lmax 10, rotation on, `--ramp`, analytic rates, a zonal south-polar ocean, `prem_512.l96C.ump3.lm1`;
+a 1-yr step, then six 1-kyr steps), once at 0 E and once at 120 E. For each case the test requires
+
+* after the 1-yr step, (m1, m2) = alpha (1 + k2E) (I13, I23) / (C - A) with I13, I23 from its own
+  quadrature of the load (ice and ocean) and the elastic k2 parsed from the Love-number file
+  (relative 2e-3; the viscous response within 1 yr, 2.1e-4 measured);
+* the TPW direction atan2(m2-dot, m1-dot) of the `TPWrate` record, written and read back, to equal
+  the direction of (I13-dot, I23-dot) of the load, 180 E for the cap at 0 E (1e-3 degrees);
+* the same direction from the geoid rate, \((\dot m_1,\dot m_2)\propto-(\mathrm{Re}\,\dot N_{21},
+  -\mathrm{Im}\,\dot N_{21})\), \(N_{21}=G_{21}-\Lambda_{21}/g\), the (2,1) coefficient of
+  `dSLdt + dRdt` taken by the test's own quadrature in the U basis (1e-3 degrees);
+* \(\Lambda_{21}\) of the record to equal the quadrature of
+  \(\Lambda=\tfrac12[|\omega|^2a^2-(\omega\cdot\mathbf r)^2]\) for the record's m (relative 1e-9).
+
+In releases up to 2ca4705 the inertia products and \(\Lambda_{21}\) both had the wrong sign
+([Release notes](release_notes.md)); the fields, \(\dot J_2\), the TPW speed and the round-off
+reproduction of the legacy code were unaffected, so none of the other tests could reveal it. There
+every check above fails (the direction by 180 degrees, the closed form and \(\Lambda_{21}\) by a
+relative 2).
+
+```
+test_tpw_direction: case A (cap at 45 N, 0 E): step 1 (1 yr) I13, I23 = -8.0098e+28, 2.9088e+12 kg m^2 (quadrature); m1, m2 = -3.088922e-07, -6.498298e-24, closed form -3.088266e-07, 1.121510e-23, rel. diff 2.1e-04 (tol 0.002) ok
+test_tpw_direction: case A: TPW direction atan2(m2-dot, m1-dot) of TPWrate 180.000000 E; (I13-dot, I23-dot) of the load 180.000000 E (expected 180 E) (tol 0.001 deg) ok
+test_tpw_direction: case A: direction from the geoid rate -(Re N21-dot, -Im N21-dot) 180.000000 E (tol 0.001 deg) ok
+test_tpw_direction: case A: Lambda21 record 1.007975e+01-2.521382e-16j, quadrature of Lambda(omega) 1.007975e+01+1.016380e-13j, rel. diff 1.5e-14 (tol 1e-09) ok
+test_tpw_direction: case B (cap at 45 N, 120 E): step 1 (1 yr) I13, I23 = 3.6759e+28, -6.3646e+28 kg m^2 (quadrature); m1, m2 = 1.417599e-07, -2.454482e-07, closed form 1.417298e-07, -2.453960e-07, rel. diff 2.1e-04 (tol 0.002) ok
+test_tpw_direction: case B: TPW direction atan2(m2-dot, m1-dot) of TPWrate 300.008995 E; (I13-dot, I23-dot) of the load 300.008994 E (tol 0.001 deg) ok
+test_tpw_direction: case B: direction from the geoid rate -(Re N21-dot, -Im N21-dot) 300.008995 E (tol 0.001 deg) ok
+test_tpw_direction: case B: Lambda21 record -4.626213e+00-8.009936e+00j, quadrature of Lambda(omega) -4.626213e+00-8.009936e+00j, rel. diff 1.4e-14 (tol 1e-09) ok
+test_tpw_direction: (0.0 s)
+test_tpw_direction: PASS
 ```
 
 ## Fortran test
