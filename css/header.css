@@ -1,0 +1,50 @@
+/* Wordmark in the header: show it at every width, enlarge it, hide the repeated text site name. */
+.md-header__button.md-logo {
+  display: block;            /* Material hides the logo on narrow screens; keep it */
+  padding: 0.3rem 0.4rem;
+}
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 2rem;
+  width: auto;
+}
+.md-header__topic:first-child {
+  display: none;             /* the wordmark replaces the text site name */
+}
+.md-header__title {
+  margin-left: 0;
+}
+@media screen and (max-width: 76.1875em) {
+  .md-header__button.md-logo img,
+  .md-header__button.md-logo svg { height: 1.7rem; }
+}
+
+/* Light scheme: white header, coloured wordmark as on the landing page. Dark scheme: lighten it. */
+[data-md-color-scheme="default"] .md-header,
+[data-md-color-scheme="default"] .md-tabs {
+  border-bottom: 1px solid #e3e8ec;
+}
+[data-md-color-scheme="slate"] .md-header__button.md-logo img {
+  filter: brightness(1.55) saturate(0.9);
+}
+
+/* Light scheme: a light blue-grey header (not pure white) with dark text, so the coloured wordmark keeps its contrast. */
+[data-md-color-scheme="default"][data-md-color-primary="custom"] {
+  --md-primary-fg-color: #e4ebef;
+  --md-primary-fg-color--light: #eef3f6;
+  --md-primary-fg-color--dark: #cfd9e0;
+  --md-primary-bg-color: #1f2d36;
+  --md-primary-bg-color--light: #3a4a55;
+}
+
+/* With a light custom primary colour, links and the active nav item must not inherit it: use the brand teal. */
+[data-md-color-scheme="default"][data-md-color-primary="custom"] {
+  --md-typeset-a-color: #1E88A8;
+}
+[data-md-color-scheme="default"] .md-nav__link--active,
+[data-md-color-scheme="default"] .md-nav__link:focus,
+[data-md-color-scheme="default"] .md-nav__link:hover,
+[data-md-color-scheme="default"] .md-tabs__link--active,
+[data-md-color-scheme="default"] .md-tabs__link:hover {
+  color: #1E88A8;
+}

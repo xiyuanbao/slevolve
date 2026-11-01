@@ -1,0 +1,1590 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Recursive-state 1-D normal-mode GIA sea-level solver (Fortran and Python)">
+      
+      
+      
+      
+        <link rel="prev" href="method.html">
+      
+      
+        <link rel="next" href="degree1.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="img/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Benchmark provenance and differences from Han et al. (2022) - SLEvolve v1.0</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="css/header.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#benchmark-provenance-and-differences-from-han-et-al-2022" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="index.html" title="SLEvolve v1.0" class="md-header__button md-logo" aria-label="SLEvolve v1.0" data-md-component="logo">
+      
+  <img src="img/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SLEvolve v1.0
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Benchmark provenance and differences from Han et al. (2022)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="teal"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="teal"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="install.html" class="md-tabs__link">
+          
+  
+  
+  Getting started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="benchmarks.html" class="md-tabs__link">
+          
+  
+  
+  User guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="options.html" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="method.html" class="md-tabs__link">
+          
+  
+  
+  Background
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="index.html" title="SLEvolve v1.0" class="md-nav__button md-logo" aria-label="SLEvolve v1.0" data-md-component="logo">
+      
+  <img src="img/logo.svg" alt="logo">
+
+    </a>
+    SLEvolve v1.0
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="install.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="quickstart.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="verify.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Verifying the installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="benchmarks.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running the benchmark cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="own_case.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting up a new case
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lovenum.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Love numbers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="horizontal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Horizontal displacement output
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="conversion.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File conversion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reproduce.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducing the published results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="options.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Command-line options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="inputs.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="outputs.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="formats.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="structure.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/glossary.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Background
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Background
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="method.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark provenance and differences from Han et al. (2022)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="provenance.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark provenance and differences from Han et al. (2022)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#case-1-antarctic-forward-run-550-x-1-yr-from-1950-ce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 1 -- Antarctic forward run (550 x 1 yr from 1950 CE)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#case-2-two-glacial-cycles-1200-x-02-kyr-from-240-ka" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 2 -- two glacial cycles (1200 x 0.2 kyr from 240 ka)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#case-3-ice-nadi-1-deglaciation-50-x-05-kyr-from-25-ka-lucas-et-al-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 3 -- ICE-NADI-1 deglaciation (50 x 0.5 kyr from 25 ka; Lucas et al. 2026)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grid-and-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid and formats
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#differences-from-the-runs-of-han-et-al-2022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Differences from the runs of Han et al. (2022)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="degree1.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Degree-1 Love numbers and reference frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="release_notes.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release notes and known limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lineage.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage and references
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#case-1-antarctic-forward-run-550-x-1-yr-from-1950-ce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 1 -- Antarctic forward run (550 x 1 yr from 1950 CE)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#case-2-two-glacial-cycles-1200-x-02-kyr-from-240-ka" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 2 -- two glacial cycles (1200 x 0.2 kyr from 240 ka)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#case-3-ice-nadi-1-deglaciation-50-x-05-kyr-from-25-ka-lucas-et-al-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 3 -- ICE-NADI-1 deglaciation (50 x 0.5 kyr from 25 ka; Lucas et al. 2026)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grid-and-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid and formats
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#differences-from-the-runs-of-han-et-al-2022" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Differences from the runs of Han et al. (2022)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="benchmark-provenance-and-differences-from-han-et-al-2022">Benchmark provenance and differences from Han et al. (2022)<a class="headerlink" href="#benchmark-provenance-and-differences-from-han-et-al-2022" title="Permanent link">&para;</a></h1>
+<p>This page documents where the data of the three benchmark cases come from, the known issues of the archived files, and how the benchmark set-up differs from the archived runs of Han et al. (2022).</p>
+<p>The input data of the three benchmark cases are not redistributed with SLEvolve. The scripts in
+<code>tools/</code> convert the archived files into solver inputs; the commands are in the
+<a href="benchmarks.html">Running the benchmark cases</a>.</p>
+<h2 id="case-1-antarctic-forward-run-550-x-1-yr-from-1950-ce">Case 1 -- Antarctic forward run (550 x 1 yr from 1950 CE)<a class="headerlink" href="#case-1-antarctic-forward-run-550-x-1-yr-from-1950-ce" title="Permanent link">&para;</a></h2>
+<p><strong>Ice forcing.</strong> The extended RCP8.5, MISI-only (no cliff failure, no hydrofracturing) Antarctic
+ice-sheet run of DeConto et al. (2021), 1950-2500 CE, on a 10 km grid, taken from the Dryad archive of
+Yousefi et al. (2022), doi:10.5061/dryad.ncjsxkswm (run <code>85_MISI</code>). The total (grounded plus floating)
+ice thickness is sampled onto the 512 x 1024 Gauss-Legendre grid with <code>tools/build_case1_total_ice.py</code>
+(sampling map in <code>tools/regrid.py</code>).</p>
+<p><strong>Earth model and topography.</strong> From the OSF archive of Han et al. (2022), doi:10.17605/OSF.IO/8PTFM,
+folder <code>Data/AIS_550yr/</code>:</p>
+<ul>
+<li>Love-number file <code>prem_512.l60K2C.sum18p6.dum19p2.tz19p4.lm22</code>. This is their 'BLVZ' profile:
+  60-km lithosphere; viscosities 10^18.6, 10^19.2 and 10^19.4 Pa s at 60-200, 200-400 and 400-670 km
+  depth. The file name ends in <code>lm22</code> (lower mantle 10^22 Pa s), whereas DeConto et al. (2021) print
+  1 x 10^19 Pa s for the lower mantle (see "Differences from the runs of Han et al. (2022)" below).
+  The file is included unchanged in <code>lovenum/</code>.</li>
+<li>Initial (1950 CE) topography <code>topo0_archive</code>, taken from the archived output run.</li>
+</ul>
+<p><strong>What the OSF archive contains and what the archived run used.</strong></p>
+<ul>
+<li>The 551 archived ice files <code>AISload_gd_Run85_0_0_&lt;k&gt;</code> hold <em>grounded</em> ice only (prefix <code>_gd_</code>; they
+  pass the flotation test against the archived bed with zero failures).</li>
+<li>The archived output run was computed from the <em>total</em> (grounded plus floating) ice of the same
+  ice-sheet run. Evidence: (i) driven by the archived grounded ice, neither the legacy code nor SLEvolve
+  reproduces the archived topography (RMS 2.4 m at step 1 growing to 11.4 m at step 550; Antarctic RMS
+  28 m); (ii) the archived step 1 contains a one-off jump (ocean mean -1.52 m, far-field -1.80 m, up to
+  +26 m along the Ronne and Ross shelf fronts) that corresponds to the removal of the floating shelves
+  present in the initial state (total-minus-grounded volume 6.40e14 m^3) but absent from the later
+  loads; (iii) a proxy shelf field reproduces this jump (pattern correlation 0.98).</li>
+<li>The total-ice fields are not in the OSF archive and are rebuilt from the Dryad archive. The grounded
+  part of the rebuilt ice, sampled onto the Gauss-Legendre grid, matches the archived grounded files
+  cell by cell: correlation 0.99976-0.99981, 99.0 % of cells identical, volume ratio 1.00000-1.00005,
+  identical maximum thickness, at every step checked (0, 1, 50, 100, 150, 200, 300, 400, 550). The
+  remaining ~1 % of cells differ by a nearest-neighbour resampling offset at the ice margin.</li>
+<li>The rebuilt files keep the prefix <code>AISload_gd_Run85_0_0_</code> expected by the compiled-in file names,
+  although they hold the total ice.</li>
+</ul>
+<p><strong>How the benchmark is run.</strong> With the total-ice forcing and the solver's own flotation check
+(<code>checkmarine = .true.</code>), which is the configuration of the archived run. Do not combine total-thickness
+ice with <code>checkmarine = .false.</code>. The archived grounded-ice loads, as distributed, can be used for an
+exactness comparison with the legacy code.</p>
+<p><strong>Legacy baseline.</strong> The legacy code of Han et al. (2022) re-reads the ice history as text at every
+step, in the layout and number format of the archived files. The text files are converted once to the
+binary format for SLEvolve; the legacy inputs are not altered.</p>
+<h2 id="case-2-two-glacial-cycles-1200-x-02-kyr-from-240-ka">Case 2 -- two glacial cycles (1200 x 0.2 kyr from 240 ka)<a class="headerlink" href="#case-2-two-glacial-cycles-1200-x-02-kyr-from-240-ka" title="Permanent link">&para;</a></h2>
+<p><strong>Source.</strong> Same OSF archive, <code>Data/SeaLevelModel_TwoGlacialCycle_Simulations/INPUT_NHIS2GC.zip</code>
+(<code>iceload0..1200</code>): the Northern Hemisphere ice-sheet simulation of Han et al. (2021) repeated over two
+cycles, combined with ICE-6G_C for Antarctica (Argus et al. 2014; Peltier et al. 2015). Only the last
+122 kyr are a realistic history; the first cycle is a repeat. Present topography <code>etopo2_512_ice6gC</code>
+from <code>Data/CoupledModel_OneGlacialCycle_Simulations/INPUT_Others/</code>. Input tree:
+<code>tools/prepare_case2_inputs.sh</code>.</p>
+<p><strong>Known issue.</strong> The Earth-model file distributed for the glacial-cycle cases,
+<code>Data/CoupledModel_OneGlacialCycle_Simulations/INPUT_Others/prem_coll_512.l120C.ump5.lm5</code>, is corrupt in
+the archive (1 110 755 NUL bytes in every copy; the zip CRC verifies, so it was uploaded in this state).
+Love numbers for the stated model (PREM elastic and density structure, 120-km lithosphere, upper mantle
+5e20 Pa s, lower mantle 5e21 Pa s) are used instead. They were computed with the collocation method
+of Mitrovica and Peltier (1992) (after Peltier 1985) and are included in <code>lovenum/</code>
+(<code>prem_512.l120C.ump5.lm5</code>). The <code>case2</code> build preset uses this file name for <code>PLANETMODEL</code>; copy it
+into <code>INPUT_FILES/earthmodel/</code>.</p>
+<h2 id="case-3-ice-nadi-1-deglaciation-50-x-05-kyr-from-25-ka-lucas-et-al-2026">Case 3 -- ICE-NADI-1 deglaciation (50 x 0.5 kyr from 25 ka; Lucas et al. 2026)<a class="headerlink" href="#case-3-ice-nadi-1-deglaciation-50-x-05-kyr-from-25-ka-lucas-et-al-2026" title="Permanent link">&para;</a></h2>
+<p><strong>Source.</strong> Zenodo, doi:10.5281/zenodo.21464139. Input tree: <code>tools/prepare_case3_nadi.py</code>
+(<code>icemodel/nadi_0..50</code>, <code>others/topo_pres</code>, <code>grid/</code>). Earth model Earth_1 of Lucas et al. (2026)
+(96-km lithosphere, upper mantle 3e20 Pa s, lower mantle 1e21 Pa s). Its Love numbers were computed
+with the collocation method of Mitrovica and Peltier (1992) (after Peltier 1985) and are included in
+<code>lovenum/</code> (<code>prem_512.l96C.ump3.lm1</code>). Copy the file into <code>INPUT_FILES/earthmodel/</code>.</p>
+<h2 id="grid-and-formats">Grid and formats<a class="headerlink" href="#grid-and-formats" title="Permanent link">&para;</a></h2>
+<p>All cases use the 512 x 1024 Gauss-Legendre grid of Han et al. (2022), maximum degree 511. Grid files
+are NumPy <code>.npy</code> (fp64, little-endian, <code>(nlat, nlon)</code> in the stream order of the text files); spectral
+fields are <code>.npy</code> complex <code>(L+1, L+1)</code> in Fortran order. See <a href="formats.html">File formats</a>.</p>
+<h2 id="differences-from-the-runs-of-han-et-al-2022">Differences from the runs of Han et al. (2022)<a class="headerlink" href="#differences-from-the-runs-of-han-et-al-2022" title="Permanent link">&para;</a></h2>
+<p>Deliberate deviations of the benchmark set-up from the archived runs of Han et al. (2022), with the
+reason. "Not verified" marks statements that could not be confirmed from the archive or the paper.</p>
+<ul>
+<li><em>Floating-ice convention.</em> The legacy code excludes every ice-covered cell, floating shelves
+  included, from the water-loading ocean and tests flotation against the initial topography of the
+  pass. SLEvolve uses the grounded-ice mask of Kendall et al. (2005, eqs 43-44), so the ocean under
+  floating shelves carries water load and belongs to the ocean area of the conservation term, and
+  tests flotation against the current topography. In the paper, SLEvolve and the legacy solver were
+  compared with the same floating-ice treatment (that of the legacy code), which established the
+  round-off agreement; the released code differs from those runs by this convention and by the sign
+  of m3 (next item), and its rotation records also by the order-1 sign (the item after); <code>reference/</code>
+  is computed with both.</li>
+<li><em>Sign of the axial rotation component m3.</em> The legacy code, like the earlier codes it was derived
+  from, uses +1/C in the axial Liouville equation, whereas SLEvolve uses the -1/C of Mitrovica &amp; Wahr
+  (2011, Annu. Rev. Earth Planet. Sci. 39, 577-616, eq. 15; correction of 2026-10-30). This changes
+  <span class="arithmatex">\(\dot J_2\)</span> by about 1 %, reverses the sign of the length-of-day rate and changes relative sea level
+  at the millimetre level; the round-off reproduction of the legacy code in the paper is a statement
+  about that code and is unaffected.</li>
+<li><em>Sign of the order-1 rotation records.</em> The legacy code, like the earlier codes it was derived
+  from, uses the order-1 expressions of Milne &amp; Mitrovica (1998, eqs. 33c and 43a,b), written for
+  harmonics with the Condon-Shortley phase (their eq. 33e), with coefficients that have no such
+  phase, so the inertia products il13, il23 and <span class="arithmatex">\(\Lambda_{21}\)</span> each have the wrong sign. SLEvolve
+  uses the U-basis signs (correction of 2026-10-31): (m1, m2) is the physical polar motion of
+  Mitrovica &amp; Wahr (2011, eq. 10). The two signs cancel in every field, so the fields, <span class="arithmatex">\(\dot J_2\)</span>
+  and the TPW speed are unchanged; only the order-1 rotation records reverse sign.</li>
+</ul>
+<p><strong>Case 1 (Antarctic forward run).</strong></p>
+<ul>
+<li><em>Total-ice forcing instead of the archived grounded ice, with the marine check on.</em> The 551 archived
+  files <code>AISload_gd_Run85_0_0_&lt;k&gt;</code> hold grounded ice only, but the archived output run was computed
+  from the total (grounded plus floating) ice (evidence above). The total ice is not in the OSF
+  archive and is recovered from the Yousefi et al. (2022) Dryad archive of the same ice-sheet run; its
+  grounded part matches the archived files cell by cell (correlation 0.99976-0.99981). With total ice
+  the solver's flotation check (<code>checkmarine = .true.</code>) removes the floating part, as in the archived run.</li>
+<li><em>Step-1 shelf-removal initialization not mimicked by default.</em> The archived run let the floating
+  shelves of the initial state enter the elastic and mass-conservation terms (and the rotational
+  feedback) at step 1 but not the viscous memory. SLEvolve and the released legacy code include them
+  in all terms alike, which leaves 2.05 m area-weighted RMS against the archived 550-yr topography on a
+  12.3 m signal (0.024 m with that initialization mimicked); these values are for the paper's version, with the legacy floating-ice
+  convention. The released legacy code behaves like
+  SLEvolve, so the archived run differs from the released code in this initialization; the default
+  follows the released code.</li>
+<li><em>Love-number file as distributed</em> (<code>prem_512.l60K2C.sum18p6.dum19p2.tz19p4.lm22</code>, unchanged). The
+  file name says lower mantle 10^22 Pa s, whereas DeConto et al. (2021) print 1 x 10^19 Pa s for this
+  profile. It is used as distributed because the archived run used it.</li>
+<li>Initial topography <code>topo0_archive</code> taken from the archived output run.</li>
+</ul>
+<p><strong>Case 2 (two glacial cycles).</strong></p>
+<ul>
+<li><em>Love numbers recomputed.</em> The archived Earth-model file <code>prem_coll_512.l120C.ump5.lm5</code> is corrupt
+  (1 110 755 NUL bytes in every copy). Love numbers for the stated model (PREM, 120-km lithosphere,
+  upper mantle 5e20 Pa s, lower mantle 5e21 Pa s) were computed with the collocation method of
+  Mitrovica and Peltier (1992) (<code>lovenum/prem_512.l120C.ump5.lm5</code>). Results therefore differ from the
+  archived run by the difference of the Love numbers (not quantified here).</li>
+<li><em>One pass from T_obs.</em> Only the first outer pass (initial topography = present topography
+  <code>etopo2_512_ice6gC</code>) is run, for the timing comparison; Han et al. (2022) ran the outer iteration.
+  Number of passes in the archived run: not verified.</li>
+<li><em>Antarctic ice from ICE-6G_C, as in Han et al. (2022)</em> (the ice files are used as archived).</li>
+</ul>
+<p><strong>Case 3 (ICE-NADI-1).</strong> Not a case of Han et al. (2022).</p>
+<ul>
+<li>Ice history ICE-NADI-1 (Lucas et al. 2026) with their Earth model Earth_1 (96-km lithosphere, upper
+  mantle 3e20 Pa s, lower mantle 1e21 Pa s); Love numbers computed with the collocation method
+  (<code>lovenum/prem_512.l96C.ump3.lm1</code>).</li>
+<li><em>Present topography substituted:</em> <code>others/topo_pres</code> is <code>etopo2_512_ice6gC</code> from the Han et al.
+  (2022) OSF archive (<code>tools/prepare_case3_nadi.py</code>), not a topography distributed with ICE-NADI-1.
+  The ICE-NADI-1 inputs used here do not include a present topography on the solver grid.</li>
+<li>Ice age run with the outer iteration on the initial topography, started from the partially relaxed
+  (segmented) guess with warm-started passes, instead of the three passes from the present
+  topography of Kendall et al. (2005).</li>
+</ul>
+<p><strong>All cases.</strong></p>
+<ul>
+<li>Constants: ice density 920 kg m^-3 and Earth radius 6.371e6 m, the same as Han et al. (2022)
+  (the default; the older legacy values 910 and 6.371229e6 are available with <code>LEGACY_CONSTANTS=1</code>).</li>
+<li>Maximum degree 511 on the 512 x 1024 grid. The legacy code's default is <code>norder = 512</code>, and
+  Han et al. (2022) describe their runs as expansions up to degree and order 512; degree 511
+  is the largest degree resolved by 512 Gauss latitudes (the ducc0 transform requires lmax &lt;= nglv - 1).</li>
+<li>Inner tolerance epsilon = 1e-5, the value set in the released legacy code (<code>epsilon1 = 1.0E-5</code>).</li>
+<li>Uniform steps in each case (1 yr, 200 yr, 500 yr), with the full step-wise load history kept
+  exactly. Han et al. (2022) also propose a time-window scheme that coarsens older loads; whether the
+  archived runs used it: not verified.</li>
+<li>Rotational feedback on (<code>tpw = .true.</code>) in all cases, as in the released legacy code.</li>
+</ul>
+<p><strong>Next:</strong> <a href="degree1.html">Degree-1 Love numbers and reference frames</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
