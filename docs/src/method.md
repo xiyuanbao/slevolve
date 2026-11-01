@@ -288,7 +288,12 @@ $$
   number \(\tau_c\) of the Earth model (Python `--axial-tau-c`, Fortran `AXIAL_TAU_C` to change it). Its
   viscous relaxation, about 3 %, is left out; that is at most 1.6e-5 of \(m_3\).
 
-**Axial number \(\tau_c\).** The Love-number files carry no degree-0 numbers, so \(\tau_c\) is computed
+**Axial number \(\tau_c\).** Because \(\Omega^2r^2\) contains a degree-0 part, a change in spin rate also
+produces a purely radial elastic-gravitational deformation, which changes the trace of the inertia tensor:
+\(\tau_c=n_0a^5\Omega^2/(3GC)\), with \(n_0\) the degree-0 rotational deformation number of Dahlen
+(1976, eqs 121-123 and 160). The isotropic shrinkage of a homogeneous Earth under a change in spin rate
+was considered earlier by Stoneley (1924; see Matsuyama & Bills 2010).
+The Love-number files carry no degree-0 numbers, so \(\tau_c\) is computed
 separately, by `tools/degree0_axial_number.py`, from the same Earth model as the shipped Love numbers:
 PREM (Dziewonski & Anderson 1981, Phys. Earth Planet. Inter. 25, 297-356) with the ocean replaced by
 upper crust up to 6371 km, isotropic, as the node deck `lovenum/prem_continental.deck` (\(\rho\), \(\lambda\), \(\mu\) and \(g\) linear between nodes, as in the
@@ -320,7 +325,8 @@ the solver's \(a=6371\) km, \(\Omega=7.292\times10^{-5}\) rad/s and \(C=0.330700
 \(\tau_c=5.368494381028842\times10^{-4}\) (1-km steps; steps of 10 km and 0.5 km change it by 5e-13 and
 3e-15). For a homogeneous solid or fluid sphere the equations have a closed-form solution,
 \(U_0=c\,r+d\,j_1(kr)\) with \(k^2=16\pi G\rho^2/[3(\lambda+2\mu)]\), which the tool reproduces to 1e-11
-(`tests/test_degree0_axial_number.py`).
+(`tests/test_degree0_axial_number.py`). The corresponding \(n_0=0.1545\) compares with Dahlen's
+0.15505 for Earth model 1066A (Dahlen 1976, Table 2).
 
 In the Laplace domain (\(s\)), for the linearised equation,
 
